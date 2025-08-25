@@ -1,71 +1,76 @@
-// android/app/build.gradle.kts
 import java.util.Properties
 import java.io.FileInputStream
 
 plugins {
     id("com.android.application")
-    id("kotlin-android")
-    // A Flutter pluginnek az Android és a Kotlin plugin után kell jönnie
+    id("org.jetbrains.kotlin.android")
+    // A Flutter pluginnak ezek után kell jönnie
     id("dev.flutter.flutter-gradle-plugin")
 }
 
-// --- Keystore / key.properties beolvasása ---
-val keystoreProperties = Properties()
-val keystorePropertiesFile = rootProject.file("android/key.properties")
-if (keystorePropertiesFile.exists()) {
-    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+// --- key.properties beolvasása a projekt GYÖKERÉBŐL (android/key.properties) ---
+val keyPropsFile = rootProject.file("key.properties")
+val keyProps = Properties()
+if (keyPropsFile.exists()) {
+    keyProps.load(FileInputStream(keyPropsFile))
 }
 
 android {
-    namespace = "com.example.takimaki_full"   // ha kell, módosíthatod
+    namespace = "com.example.takimaki_full"
+
+    // Ezeket a Flutter plugin tölti be
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
+
+    defaultConfig {
+        applicationId = "com.example.takimaki_full"
+        minSdk = flutter.minSdkVersion
+        targetSdk = flutter.targetSdkVersion
+        versionCode = flutterVersionCode.toInt()
+        versionName = flutterVersionName
+    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
+        jvmTarget = "11"
     }
 
-    defaultConfig {
-        applicationId = "com.example.takimaki_full" // ha kell, módosíthatod
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
-    }
-
-    // --- Release aláírás (key.properties alapján) ---
+    // --- RELEASE aláírás beállítása ---
     signingConfigs {
         create("release") {
-            if (keystorePropertiesFile.exists()) {
-                val storeFilePath = keystoreProperties["storeFile"]?.toString() ?: ""
-                if (storeFilePath.isNotEmpty()) {
-                    storeFile = file(storeFilePath)
-                }
-                storePassword = keystoreProperties["storePassword"]?.toString()
-                keyAlias = keystoreProperties["keyAlias"]?.toString()
-                keyPassword = keystoreProperties["keyPassword"]?.toString()
+            if (keyPropsFile.exists()) {
+                val sf = keyProps["storeFile"] as String
+                val sp = keyProps["storePassword"] as String
+                val ka = keyProps["keyAlias"] as String
+                val kp = keyProps["keyPassword"] as String
+
+                storeFile = file(sf)
+                storePassword = sp
+                keyAlias = ka
+                keyPassword = kp
             }
         }
     }
 
     buildTypes {
         getByName("release") {
-            // kapcsold az aláírást a release buildhez
             signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = false
             isShrinkResources = false
-            // proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
         }
         getByName("debug") {
-            // debugnál nem kell aláírás
+            // debughoz nem kell aláírás
         }
     }
 }
 
-// A Flutter plugin kezeli a függőségeket; itt általában nem szükséges semmi extra.
-// dependencies { }
+flutter {
+    source = "../.."
+}
 
+dependencies {
+    // ide jöhetnek extra függőségek, ha kellenek
+}
