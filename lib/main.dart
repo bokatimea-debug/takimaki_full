@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'screens/role_select_screen.dart';
+import 'screens/role_select.dart';  // helyes útvonal
 
 void main() {
   runApp(const TakimakiApp());
@@ -21,3 +21,4 @@ class TakimakiApp extends StatelessWidget {
     );
   }
 }
+
