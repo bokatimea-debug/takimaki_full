@@ -21,7 +21,7 @@ class TakimakiApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      initialRoute: '/onboarding',
+      initialRoute: '/role',
       routes: {
         '/onboarding': (_) => const OnboardingScreen(),
         '/role': (_) => const RoleSelectScreen(),
