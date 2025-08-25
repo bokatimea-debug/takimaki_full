@@ -24,6 +24,6 @@ workflows:
       - name: Get Flutter dependencies
         script: flutter pub get
       - name: Build release APK
-        script: flutter build apk --release --no-shrink --verbose
+        script: flutter build apk --debug --verbose
 artifacts:
-  - build/app/outputs/flutter-apk/app-release.apk
+  - build/app/outputs/flutter-apk/app-debug.apk
