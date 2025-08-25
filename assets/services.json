@@ -1,0 +1,44 @@
+{
+  "services": [
+    {
+      "id": "apartment_cleaning",
+      "label": "Apartman takarítás"
+    },
+    {
+      "id": "general_cleaning",
+      "label": "Általános takarítás"
+    },
+    {
+      "id": "deep_cleaning",
+      "label": "Nagytakarítás"
+    },
+    {
+      "id": "post_renovation",
+      "label": "Felújítás utáni takarítás"
+    },
+    {
+      "id": "maintenance",
+      "label": "Karbantartás"
+    },
+    {
+      "id": "plumbing",
+      "label": "Vízszerelés"
+    },
+    {
+      "id": "gas",
+      "label": "Gázszerelés"
+    },
+    {
+      "id": "aircon",
+      "label": "Légkondicionáló szerelés"
+    },
+    {
+      "id": "furniture",
+      "label": "Bútorösszeszerelés"
+    },
+    {
+      "id": "electricity",
+      "label": "Villanyszerelés"
+    }
+  ]
+}
