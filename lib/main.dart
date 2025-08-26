@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 
 import 'utils.dart';
-import 'screens/role_select.dart';
+import 'screens/role_select_screen.dart';
 import 'screens/customer_search_screen.dart';
 import 'screens/provider_profile_setup_screen.dart';
 import 'screens/home.dart'; // ha hivatkozol rá máshol
