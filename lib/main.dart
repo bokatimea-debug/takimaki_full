@@ -25,7 +25,7 @@ class TakimakiApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const RoleSelectScreen(),
+      home: RoleSelectScreen(),
       routes: {
         '/customer/search': (context) => const CustomerSearchScreen(),
         '/provider/setup': (context) => const ProviderProfileSetupScreen(),
