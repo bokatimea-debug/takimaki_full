@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'provider_profile_screen.dart';
 
 class ProviderProfileSetupScreen extends StatefulWidget {
   const ProviderProfileSetupScreen({super.key});
@@ -8,20 +9,16 @@ class ProviderProfileSetupScreen extends StatefulWidget {
 }
 
 class _ProviderProfileSetupScreenState extends State<ProviderProfileSetupScreen> {
-  final _name = TextEditingController();
-  final _phone = TextEditingController();
   final _rate = TextEditingController(text: '12000');
-  String _service = 'general_cleaning';
-  final Set<int> _districts = {13};
-  TimeOfDay _wkFrom = const TimeOfDay(hour: 9, minute: 0);
-  TimeOfDay _wkTo = const TimeOfDay(hour: 18, minute: 0);
-  TimeOfDay _weFrom = const TimeOfDay(hour: 10, minute: 0);
-  TimeOfDay _weTo = const TimeOfDay(hour: 16, minute: 0);
+  final _desc = TextEditingController();
 
-  final _services = const <Map<String, String>>[
+  // szolgáltatás katalógus
+  final List<Map<String, String>> _catalog = const [
     {'id': 'apartment_cleaning', 'label': 'Apartman takarítás'},
     {'id': 'general_cleaning', 'label': 'Általános takarítás'},
     {'id': 'deep_cleaning', 'label': 'Nagytakarítás'},
+    {'id': 'post_renovation', 'label': 'Felújítás utáni takarítás'},
+    {'id': 'maintenance', 'label': 'Karbantartás'},
     {'id': 'plumbing', 'label': 'Vízszerelés'},
     {'id': 'gas', 'label': 'Gázszerelés'},
     {'id': 'aircon', 'label': 'Légkondicionáló szerelés'},
@@ -29,31 +26,85 @@ class _ProviderProfileSetupScreenState extends State<ProviderProfileSetupScreen>
     {'id': 'electricity', 'label': 'Villanyszerelés'},
   ];
 
+  // kiválasztott szolgáltatások
+  final List<String> _selectedServiceIds = ['general_cleaning'];
+
+  // kerületek
+  final Set<int> _districts = {13};
+
+  // elérhetőség
+  TimeOfDay _wkFrom = const TimeOfDay(hour: 9, minute: 0);
+  TimeOfDay _wkTo   = const TimeOfDay(hour: 18, minute: 0);
+  TimeOfDay _weFrom = const TimeOfDay(hour: 10, minute: 0);
+  TimeOfDay _weTo   = const TimeOfDay(hour: 16, minute: 0);
+
   List<int> get _allDistricts => List<int>.generate(23, (i) => i + 1);
 
   Future<TimeOfDay?> _pickTime(TimeOfDay initial) =>
       showTimePicker(context: context, initialTime: initial);
 
-  void _save() {
-    if (_name.text.trim().isEmpty || _phone.text.trim().isEmpty) {
+  void _addService() async {
+    // elérhető (még fel nem vett) szolgáltatások
+    final remaining = _catalog.where((s) => !_selectedServiceIds.contains(s['id'])).toList();
+    if (remaining.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Minden szolgáltatás felvéve')));
+      return;
+    }
+    String? chosenId;
+    await showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Új szolgáltatás felvétele'),
+        content: DropdownButtonFormField<String>(
+          items: remaining
+              .map((s) => DropdownMenuItem(value: s['id']!, child: Text(s['label']!)))
+              .toList(),
+          onChanged: (v) => chosenId = v,
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Mégse')),
+          FilledButton(
+            onPressed: () {
+              if (chosenId != null) {
+                setState(() => _selectedServiceIds.add(chosenId!));
+              }
+              Navigator.pop(context);
+            },
+            child: const Text('Hozzáadás'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _removeService(String id) {
+    setState(() => _selectedServiceIds.remove(id));
+  }
+
+  String _labelOf(String id) =>
+      _catalog.firstWhere((s) => s['id'] == id)['label'] ?? id;
+
+  void _saveAndOpenProfile() {
+    if (_selectedServiceIds.isEmpty || _districts.isEmpty || _rate.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Név és telefonszám kötelező')),
+        const SnackBar(content: Text('Szolgáltatás, kerület és óradíj kötelező')),
       );
       return;
     }
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Profil elmentve (demó)'),
-        content: Text(
-          'Név: ${_name.text}\n'
-          'Szolgáltatás: ${_services.firstWhere((s) => s['id'] == _service)['label']}\n'
-          'Kerületek: ${_districts.toList()..sort()}\n'
-          'Óradíj: ${_rate.text} Ft\n'
-          'Hétköznap: ${_wkFrom.format(context)} - ${_wkTo.format(context)}\n'
-          'Hétvége: ${_weFrom.format(context)} - ${_weTo.format(context)}',
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ProviderProfileScreen(
+          services: _selectedServiceIds.map(_labelOf).toList(),
+          districts: (_districts.toList()..sort()),
+          rate: _rate.text.trim(),
+          weekdayFrom: _wkFrom,
+          weekdayTo: _wkTo,
+          weekendFrom: _weFrom,
+          weekendTo: _weTo,
+          description: _desc.text.trim().isEmpty ? null : _desc.text.trim(),
         ),
-        actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK'))],
       ),
     );
   }
@@ -61,41 +112,36 @@ class _ProviderProfileSetupScreenState extends State<ProviderProfileSetupScreen>
   @override
   Widget build(BuildContext context) {
     final labelStyle = TextStyle(color: Colors.grey.shade700);
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Szolgáltatói profil')),
+      appBar: AppBar(title: const Text('Szolgáltatói adatlap')),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _addService,
+        icon: const Icon(Icons.add),
+        label: const Text('Szolgáltatás'),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: ListView(
           children: [
-            Text('Név', style: labelStyle),
-            const SizedBox(height: 6),
-            TextField(controller: _name, decoration: const InputDecoration(border: OutlineInputBorder())),
-            const SizedBox(height: 12),
-            Text('Telefonszám', style: labelStyle),
-            const SizedBox(height: 6),
-            TextField(
-              controller: _phone,
-              keyboardType: TextInputType.phone,
-              decoration: const InputDecoration(border: OutlineInputBorder()),
-            ),
-            const SizedBox(height: 12),
-            Text('Szolgáltatás', style: labelStyle),
-            const SizedBox(height: 6),
-            DropdownButtonFormField<String>(
-              value: _service,
-              items: _services
-                  .map<DropdownMenuItem<String>>(
-                    (s) => DropdownMenuItem<String>(
-                      value: s['id']!,
-                      child: Text(s['label']!),
-                    ),
-                  )
+            Text('Felvett szolgáltatások', style: labelStyle),
+            const SizedBox(height: 8),
+            if (_selectedServiceIds.isEmpty)
+              const Text('Nincs felvett szolgáltatás'),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _selectedServiceIds
+                  .map((id) => Chip(
+                        label: Text(_labelOf(id)),
+                        onDeleted: () => _removeService(id),
+                      ))
                   .toList(),
-              onChanged: (v) => setState(() => _service = v ?? _service),
             ),
-            const SizedBox(height: 12),
-            Text('Kerületek (több választható)', style: labelStyle),
-            const SizedBox(height: 6),
+            const SizedBox(height: 16),
+
+            Text('Kerületek (I–XXIII)', style: labelStyle),
+            const SizedBox(height: 8),
             Wrap(
               spacing: 6,
               runSpacing: 6,
@@ -104,38 +150,45 @@ class _ProviderProfileSetupScreenState extends State<ProviderProfileSetupScreen>
                         label: Text('$d.'),
                         selected: _districts.contains(d),
                         onSelected: (sel) => setState(() {
-                          if (sel) {
-                            _districts.add(d);
-                          } else {
-                            _districts.remove(d);
-                          }
+                          sel ? _districts.add(d) : _districts.remove(d);
                         }),
                       ))
                   .toList(),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
+
             Text('Óradíj (Ft/óra)', style: labelStyle),
             const SizedBox(height: 6),
             TextField(
               controller: _rate,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(border: OutlineInputBorder()),
+              decoration: const InputDecoration(border: OutlineInputBorder(), hintText: 'pl. 12000'),
             ),
-            const SizedBox(height: 12),
-            Text('Elérhetőség', style: labelStyle),
+            const SizedBox(height: 16),
+
+            Text('Rövid leírás (opcionális)', style: labelStyle),
             const SizedBox(height: 6),
+            TextField(
+              controller: _desc,
+              maxLines: 3,
+              decoration: const InputDecoration(border: OutlineInputBorder(), hintText: 'Pár mondat magadról...'),
+            ),
+            const SizedBox(height: 16),
+
+            Text('Elérhetőség', style: labelStyle),
+            const SizedBox(height: 8),
             Row(
               children: [
                 Expanded(child: Text('Hétköznap: ${_wkFrom.format(context)} - ${_wkTo.format(context)}')),
                 IconButton(
                   onPressed: () async {
-                    final from = await _pickTime(_wkFrom);
-                    if (from == null) return;
-                    final to = await _pickTime(_wkTo);
-                    if (to == null) return;
+                    final f = await _pickTime(_wkFrom);
+                    if (f == null) return;
+                    final t = await _pickTime(_wkTo);
+                    if (t == null) return;
                     setState(() {
-                      _wkFrom = from;
-                      _wkTo = to;
+                      _wkFrom = f;
+                      _wkTo = t;
                     });
                   },
                   icon: const Icon(Icons.edit),
@@ -147,24 +200,25 @@ class _ProviderProfileSetupScreenState extends State<ProviderProfileSetupScreen>
                 Expanded(child: Text('Hétvége: ${_weFrom.format(context)} - ${_weTo.format(context)}')),
                 IconButton(
                   onPressed: () async {
-                    final from = await _pickTime(_weFrom);
-                    if (from == null) return;
-                    final to = await _pickTime(_weTo);
-                    if (to == null) return;
+                    final f = await _pickTime(_weFrom);
+                    if (f == null) return;
+                    final t = await _pickTime(_weTo);
+                    if (t == null) return;
                     setState(() {
-                      _weFrom = from;
-                      _weTo = to;
+                      _weFrom = f;
+                      _weTo = t;
                     });
                   },
                   icon: const Icon(Icons.edit),
                 ),
               ],
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 24),
+
             FilledButton.icon(
-              onPressed: _save,
+              onPressed: _saveAndOpenProfile,
               icon: const Icon(Icons.save),
-              label: const Text('Mentés'),
+              label: const Text('Mentés és profil megnyitása'),
             ),
           ],
         ),
