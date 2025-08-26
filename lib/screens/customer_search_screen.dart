@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/map_preview.dart';
+import '../ui/ux.dart';
+import '../services/notifications.dart';
 
 class CustomerSearchScreen extends StatefulWidget {
   const CustomerSearchScreen({super.key});
@@ -35,7 +37,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
   @override
   void initState() {
     super.initState();
-    _streetCtrl.addListener(() => setState(() {})); // hogy a map preview frissüljön gépeléskor
+    _streetCtrl.addListener(() => setState(() {}));
   }
 
   void _search() {
@@ -44,11 +46,10 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
         _streetCtrl.text.trim().isEmpty ||
         _dateCtrl.text.trim().isEmpty ||
         _timeCtrl.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Minden mező kötelező!')),
-      );
+      Notifier.warn(context, 'Minden mező kötelező');
       return;
     }
+    Notifier.success(context, 'Keresés indítva');
     Navigator.pushNamed(context, '/customer/profile');
   }
 
@@ -61,7 +62,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Szolgáltató keresése')),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(kPagePadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -70,15 +71,13 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
               items: _services.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
               onChanged: (val) => setState(() => _selectedService = val),
             ),
-            const SizedBox(height: 16),
-
+            gapField,
             DropdownButtonFormField<String>(
               decoration: const InputDecoration(labelText: 'Kerület'),
               items: _districts.map((d) => DropdownMenuItem(value: d, child: Text(d))).toList(),
               onChanged: (val) => setState(() => _selectedDistrict = val),
             ),
-            const SizedBox(height: 16),
-
+            gapField,
             TextField(
               controller: _streetCtrl,
               decoration: const InputDecoration(
@@ -87,12 +86,10 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
               ),
             ),
             const SizedBox(height: 12),
-
             if (address != null) ...[
               MapPreview(address: address),
-              const SizedBox(height: 16),
+              gapField,
             ],
-
             TextField(
               controller: _dateCtrl,
               readOnly: true,
@@ -112,8 +109,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
                 }
               },
             ),
-            const SizedBox(height: 16),
-
+            gapField,
             TextField(
               controller: _timeCtrl,
               readOnly: true,
@@ -132,7 +128,6 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
               },
             ),
             const SizedBox(height: 24),
-
             ElevatedButton(
               onPressed: _search,
               child: const Text('Keresés'),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../session.dart';
 import '../models/subscription.dart';
+import '../services/notifications.dart';
+import '../ui/ux.dart';
 
 class RoleSelectScreen extends StatefulWidget {
   const RoleSelectScreen({super.key});
@@ -17,29 +19,20 @@ class _RoleSelectScreenState extends State<RoleSelectScreen> {
   bool _hasPhoto = false;
 
   void _pickPhoto() {
-    setState(() {
-      _hasPhoto = true; // demóban automatikusan van kép
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Profilkép beállítva (demó)')),
-    );
+    setState(() => _hasPhoto = true); // demóban automatikus
+    Notifier.success(context, 'Profilkép beállítva');
   }
 
   bool _validateAndSave() {
     final first = _firstNameCtrl.text.trim();
     if (first.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Keresztnév kötelező')),
-      );
+      Notifier.warn(context, 'Keresztnév kötelező');
       return false;
     }
     if (!_hasPhoto) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profilkép kötelező')),
-      );
+      Notifier.warn(context, 'Profilkép kötelező');
       return false;
     }
-
     final s = UserSession.instance;
     s.firstName = first;
     s.lastName = _lastNameCtrl.text.trim();
@@ -59,7 +52,6 @@ class _RoleSelectScreenState extends State<RoleSelectScreen> {
       return;
     }
 
-    // Paywall demó
     await showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -72,8 +64,9 @@ class _RoleSelectScreenState extends State<RoleSelectScreen> {
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Mégse')),
           FilledButton(
             onPressed: () {
-              s.activatePaidDemo(); // demó aktiválás
+              s.activatePaidDemo();
               Navigator.pop(context);
+              Notifier.success(context, 'Előfizetés aktiválva (demó)');
             },
             child: const Text('Aktiválom (demó)'),
           ),
@@ -87,17 +80,16 @@ class _RoleSelectScreenState extends State<RoleSelectScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final labelStyle = TextStyle(color: Colors.grey.shade700);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Regisztráció és szerep')),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        padding: const EdgeInsets.all(kPagePadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Center(child: Icon(Icons.local_laundry_service, size: 96, color: theme.colorScheme.primary)),
-            const SizedBox(height: 16),
+            gapSection,
 
             // Profilkép
             Center(
@@ -119,30 +111,30 @@ class _RoleSelectScreenState extends State<RoleSelectScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 20),
+            gapSection,
 
-            Text('Vezetéknév', style: labelStyle),
-            const SizedBox(height: 6),
-            TextField(controller: _lastNameCtrl, decoration: const InputDecoration(border: OutlineInputBorder())),
-            const SizedBox(height: 12),
+            const Text('Vezetéknév'),
+            gapField,
+            TextField(controller: _lastNameCtrl),
+            gapField,
 
-            Text('Keresztnév *', style: labelStyle),
-            const SizedBox(height: 6),
-            TextField(controller: _firstNameCtrl, decoration: const InputDecoration(border: OutlineInputBorder())),
-            const SizedBox(height: 12),
+            const Text('Keresztnév *'),
+            gapField,
+            TextField(controller: _firstNameCtrl),
+            gapField,
 
-            Text('Telefonszám', style: labelStyle),
-            const SizedBox(height: 6),
-            TextField(controller: _phoneCtrl, keyboardType: TextInputType.phone, decoration: const InputDecoration(border: OutlineInputBorder())),
-            const SizedBox(height: 12),
+            const Text('Telefonszám'),
+            gapField,
+            TextField(controller: _phoneCtrl, keyboardType: TextInputType.phone),
+            gapField,
 
-            Text('Email', style: labelStyle),
-            const SizedBox(height: 6),
-            TextField(controller: _emailCtrl, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(border: OutlineInputBorder())),
+            const Text('Email'),
+            gapField,
+            TextField(controller: _emailCtrl, keyboardType: TextInputType.emailAddress),
 
-            const SizedBox(height: 20),
+            gapSection,
             Divider(color: Colors.grey.shade300),
-            const SizedBox(height: 16),
+            gapSection,
 
             _RoleActionCard(
               label: 'Megrendelés leadása',
