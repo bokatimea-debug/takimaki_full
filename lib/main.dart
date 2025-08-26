@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'screens/splash_screen.dart';
 import 'screens/role_select_screen.dart';
 import 'screens/customer_search_screen.dart';
 import 'screens/provider_profile_setup_screen.dart';
@@ -18,7 +19,7 @@ class TakimakiApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Takimaki',
       theme: ThemeData(useMaterial3: true, colorScheme: colorScheme),
-      home: const RoleSelectScreen(),
+      home: const SplashScreen(),
       routes: {
         '/customer/search': (context) => const CustomerSearchScreen(),
         '/customer/profile': (context) => const CustomerProfileScreen(),
