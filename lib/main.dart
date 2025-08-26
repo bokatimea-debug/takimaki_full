@@ -7,6 +7,7 @@ import 'screens/customer_profile_screen.dart';
 import 'screens/offers_demo_screen.dart';
 import 'screens/moderation_demo_screen.dart';
 import 'screens/chat_demo_screen.dart';
+import 'screens/settings_notifications_screen.dart';
 
 void main() => runApp(const TakimakiApp());
 
@@ -28,6 +29,7 @@ class TakimakiApp extends StatelessWidget {
         '/offers/demo': (context) => const OffersDemoScreen(),
         '/moderation/demo': (context) => const ModerationDemoScreen(),
         '/chat/demo': (context) => const ChatDemoScreen(),
+        '/settings/notifications': (context) => const SettingsNotificationsScreen(),
       },
     );
   }
