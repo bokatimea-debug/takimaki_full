@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'theme.dart';
 import 'screens/splash_screen.dart';
 import 'screens/role_select_screen.dart';
 import 'screens/customer_search_screen.dart';
@@ -8,7 +9,6 @@ import 'screens/offers_demo_screen.dart';
 import 'screens/moderation_demo_screen.dart';
 import 'screens/chat_demo_screen.dart';
 import 'screens/settings_notifications_screen.dart';
-import 'screens/admin_complaints_screen.dart';
 
 void main() => runApp(const TakimakiApp());
 
@@ -17,11 +17,10 @@ class TakimakiApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = ColorScheme.fromSeed(seedColor: const Color(0xFF00B8B8));
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Takimaki',
-      theme: ThemeData(useMaterial3: true, colorScheme: colorScheme),
+      theme: takimakiTheme(),
       home: const SplashScreen(),
       routes: {
         '/customer/search': (context) => const CustomerSearchScreen(),
@@ -31,9 +30,9 @@ class TakimakiApp extends StatelessWidget {
         '/moderation/demo': (context) => const ModerationDemoScreen(),
         '/chat/demo': (context) => const ChatDemoScreen(),
         '/settings/notifications': (context) => const SettingsNotificationsScreen(),
-        '/admin/complaints': (context) => const AdminComplaintsScreen(),
       },
     );
   }
 }
+
 
