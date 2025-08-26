@@ -43,12 +43,8 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-            'Keresés indítva: $_selectedService, $_selectedDistrict, ${_streetCtrl.text}, ${_dateCtrl.text} ${_timeCtrl.text}'),
-      ),
-    );
+    // Itt később: ajánlatkérés logika -> most: ugrás a profilra
+    Navigator.pushNamed(context, '/customer/profile');
   }
 
   @override

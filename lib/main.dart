@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'screens/role_select_screen.dart';
 import 'screens/customer_search_screen.dart';
 import 'screens/provider_profile_setup_screen.dart';
+import 'screens/customer_profile_screen.dart';
 
 void main() => runApp(const TakimakiApp());
 
@@ -18,6 +19,7 @@ class TakimakiApp extends StatelessWidget {
       home: const RoleSelectScreen(),
       routes: {
         '/customer/search': (context) => const CustomerSearchScreen(),
+        '/customer/profile': (context) => const CustomerProfileScreen(),
         '/provider/setup': (context) => const ProviderProfileSetupScreen(),
       },
     );
