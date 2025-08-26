@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/map_preview.dart';
 
 class CustomerSearchScreen extends StatefulWidget {
   const CustomerSearchScreen({super.key});
@@ -31,6 +32,12 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
     for (int i = 1; i <= 23; i++) '$i. kerület',
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    _streetCtrl.addListener(() => setState(() {})); // hogy a map preview frissüljön gépeléskor
+  }
+
   void _search() {
     if (_selectedService == null ||
         _selectedDistrict == null ||
@@ -42,13 +49,15 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
       );
       return;
     }
-
-    // Itt később: ajánlatkérés logika -> most: ugrás a profilra
     Navigator.pushNamed(context, '/customer/profile');
   }
 
   @override
   Widget build(BuildContext context) {
+    final address = _streetCtrl.text.trim().isEmpty
+        ? null
+        : '${_selectedDistrict ?? '—'}, ${_streetCtrl.text.trim()}';
+
     return Scaffold(
       appBar: AppBar(title: const Text('Szolgáltató keresése')),
       body: SingleChildScrollView(
@@ -58,18 +67,14 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
           children: [
             DropdownButtonFormField<String>(
               decoration: const InputDecoration(labelText: 'Szolgáltatás'),
-              items: _services
-                  .map((s) => DropdownMenuItem(value: s, child: Text(s)))
-                  .toList(),
+              items: _services.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
               onChanged: (val) => setState(() => _selectedService = val),
             ),
             const SizedBox(height: 16),
 
             DropdownButtonFormField<String>(
               decoration: const InputDecoration(labelText: 'Kerület'),
-              items: _districts
-                  .map((d) => DropdownMenuItem(value: d, child: Text(d)))
-                  .toList(),
+              items: _districts.map((d) => DropdownMenuItem(value: d, child: Text(d))).toList(),
               onChanged: (val) => setState(() => _selectedDistrict = val),
             ),
             const SizedBox(height: 16),
@@ -81,7 +86,12 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
                 border: OutlineInputBorder(),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
+
+            if (address != null) ...[
+              MapPreview(address: address),
+              const SizedBox(height: 16),
+            ],
 
             TextField(
               controller: _dateCtrl,
