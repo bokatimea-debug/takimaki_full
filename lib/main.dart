@@ -8,6 +8,7 @@ import 'screens/offers_demo_screen.dart';
 import 'screens/moderation_demo_screen.dart';
 import 'screens/chat_demo_screen.dart';
 import 'screens/settings_notifications_screen.dart';
+import 'screens/admin_complaints_screen.dart';
 
 void main() => runApp(const TakimakiApp());
 
@@ -30,7 +31,9 @@ class TakimakiApp extends StatelessWidget {
         '/moderation/demo': (context) => const ModerationDemoScreen(),
         '/chat/demo': (context) => const ChatDemoScreen(),
         '/settings/notifications': (context) => const SettingsNotificationsScreen(),
+        '/admin/complaints': (context) => const AdminComplaintsScreen(),
       },
     );
   }
 }
+
