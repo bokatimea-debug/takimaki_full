@@ -4,27 +4,16 @@ workflows:
     max_build_duration: 60
     environment:
       flutter: stable
-      java: 17            # JDK 17 – AGP 8+ és új Flutterhez ez a biztos
+      java: 17
     cache:
       cache_paths:
         - $HOME/.pub-cache
         - $HOME/.gradle/caches
     scripts:
-      - name: Print versions
-        script: |
-          java -version
-          flutter --version
-          gradle -v || true
-      - name: Prepare gradle.properties (safe defaults)
-        script: |
-          FILE="android/gradle.properties"
-          echo "org.gradle.jvmargs=-Xmx3g -Dfile.encoding=UTF-8 -XX:MaxMetaspaceSize=512m" >> $FILE
-          echo "android.useAndroidX=true" >> $FILE
-          echo "android.enableJetifier=true" >> $FILE
       - name: Get Flutter dependencies
         script: flutter pub get
       - name: Build release APK
-        script: flutter build apk --release --no-shrink --verbose
-artifacts:
-  - build/app/outputs/flutter-apk/app-release.apk
+        script: flutter build apk --release
+    artifacts:
+      - build/app/outputs/flutter-apk/app-release.apk
 
