@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../session.dart';
+import '../models/stats.dart';
 
 class CustomerProfileScreen extends StatelessWidget {
   const CustomerProfileScreen({super.key});
@@ -9,6 +10,7 @@ class CustomerProfileScreen extends StatelessWidget {
     final s = UserSession.instance;
     final first = (s.firstName ?? 'Felhasználó').trim();
     final labelStyle = TextStyle(color: Colors.grey.shade700);
+    final successes = Stats.instance.customerSuccessCount;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Profilom')),
@@ -30,7 +32,7 @@ class CustomerProfileScreen extends StatelessWidget {
 
             Text('Értékelés és statisztika', style: labelStyle),
             const SizedBox(height: 6),
-            const Text('⭐ 4.7 • 7 db sikeres rendelés'),
+            Text('⭐ 4.7 • $successes db sikeres rendelés'),
             const SizedBox(height: 16),
 
             Text('Legutóbbi 3 rendelés', style: labelStyle),

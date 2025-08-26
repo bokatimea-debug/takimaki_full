@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../models/stats.dart';
 
 class ProviderProfileScreen extends StatelessWidget {
   final List<String> services;
@@ -25,6 +26,7 @@ class ProviderProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final labelStyle = TextStyle(color: Colors.grey.shade700);
+    final successes = Stats.instance.providerSuccessCount;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Szolgáltatói profil')),
@@ -40,7 +42,6 @@ class ProviderProfileScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: ListView(
           children: [
-            // publikus fejléc (demó avatar)
             Row(
               children: const [
                 CircleAvatar(radius: 28, child: Icon(Icons.person)),
@@ -52,7 +53,7 @@ class ProviderProfileScreen extends StatelessWidget {
 
             Text('Értékelés és statisztika', style: labelStyle),
             const SizedBox(height: 6),
-            const Text('⭐ 4.8 • 12 db sikeres teljesítés'),
+            Text('⭐ 4.8 • $successes db sikeres teljesítés'),
             const SizedBox(height: 16),
 
             Text('Szolgáltatások', style: labelStyle),
