@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../session.dart';
+import '../models/subscription.dart';
 
 class RoleSelectScreen extends StatefulWidget {
   const RoleSelectScreen({super.key});
@@ -46,6 +47,41 @@ class _RoleSelectScreenState extends State<RoleSelectScreen> {
     s.email = _emailCtrl.text.trim();
     s.hasPhoto = _hasPhoto;
     return true;
+  }
+
+  Future<void> _guardAndNavigate(UserRole role, VoidCallback go) async {
+    final s = UserSession.instance;
+    s.startSubscriptionIfNeeded(role);
+
+    final active = s.isSubscriptionActive;
+    if (active) {
+      go();
+      return;
+    }
+
+    // Paywall demó
+    await showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Előfizetés szükséges'),
+        content: Text(
+          'A próbaidőszak lejárt (${SubscriptionPolicy.trialLabel(role)}).\n'
+          'Előfizetés: 3000 Ft/hó (demó).',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Mégse')),
+          FilledButton(
+            onPressed: () {
+              s.activatePaidDemo(); // demó aktiválás
+              Navigator.pop(context);
+            },
+            child: const Text('Aktiválom (demó)'),
+          ),
+        ],
+      ),
+    );
+
+    if (s.isSubscriptionActive) go();
   }
 
   @override
@@ -112,9 +148,11 @@ class _RoleSelectScreenState extends State<RoleSelectScreen> {
               label: 'Megrendelés leadása',
               icon: Icons.shopping_bag,
               color: theme.colorScheme.primary,
-              onTap: () {
+              onTap: () async {
                 if (_validateAndSave()) {
-                  Navigator.pushNamed(context, '/customer/search');
+                  await _guardAndNavigate(UserRole.customer, () {
+                    Navigator.pushNamed(context, '/customer/search');
+                  });
                 }
               },
             ),
@@ -123,9 +161,11 @@ class _RoleSelectScreenState extends State<RoleSelectScreen> {
               label: 'Szolgáltatás felvétele',
               icon: Icons.engineering,
               color: theme.colorScheme.secondary,
-              onTap: () {
+              onTap: () async {
                 if (_validateAndSave()) {
-                  Navigator.pushNamed(context, '/provider/setup');
+                  await _guardAndNavigate(UserRole.provider, () {
+                    Navigator.pushNamed(context, '/provider/setup');
+                  });
                 }
               },
             ),
@@ -181,3 +221,4 @@ class _RoleActionCard extends StatelessWidget {
     );
   }
 }
+
