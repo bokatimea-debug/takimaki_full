@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import '../widgets/map_preview.dart';
-import '../ui/ux.dart';
-import '../services/notifications.dart';
+import '../widgets/district_picker.dart';
 
 class CustomerSearchScreen extends StatefulWidget {
   const CustomerSearchScreen({super.key});
@@ -14,127 +12,113 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
   final _streetCtrl = TextEditingController();
   final _dateCtrl = TextEditingController();
   final _timeCtrl = TextEditingController();
-  String? _selectedService;
-  String? _selectedDistrict;
+  String? _service;
+  List<int> _districts = []; // 1..23
 
-  final List<String> _services = [
-    'Apartman takarítás',
-    'Általános takarítás',
-    'Nagytakarítás',
-    'Felújítás utáni takarítás',
-    'Karbantartás',
-    'Vízszerelés',
-    'Gázszerelés',
-    'Légkondicionáló szerelés',
-    'Bútorösszeszerelés',
-    'Villanyszerelés',
+  final List<String> _services = const [
+    'Apartman takarítás','Általános takarítás','Nagytakarítás','Felújítás utáni takarítás',
+    'Karbantartás','Vízszerelés','Gázszerelés','Légkondicionáló szerelés','Bútorösszeszerelés','Villanyszerelés',
   ];
 
-  final List<String> _districts = [
-    for (int i = 1; i <= 23; i++) '$i. kerület',
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _streetCtrl.addListener(() => setState(() {}));
+  void _openDistricts() async {
+    final res = await pickDistricts(context, _districts);
+    if (res != null) setState(() => _districts = res);
   }
 
   void _search() {
-    if (_selectedService == null ||
-        _selectedDistrict == null ||
+    if (_service == null ||
+        _districts.isEmpty ||
         _streetCtrl.text.trim().isEmpty ||
         _dateCtrl.text.trim().isEmpty ||
         _timeCtrl.text.trim().isEmpty) {
-      Notifier.warn(context, 'Minden mező kötelező');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Minden mező kötelező'), duration: Duration(seconds: 2)),
+      );
       return;
     }
-    Notifier.success(context, 'Keresés indítva');
     Navigator.pushNamed(context, '/customer/profile');
   }
 
   @override
   Widget build(BuildContext context) {
-    final address = _streetCtrl.text.trim().isEmpty
-        ? null
-        : '${_selectedDistrict ?? '—'}, ${_streetCtrl.text.trim()}';
+    final summary = summarizeDistricts(_districts);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Szolgáltató keresése')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(kPagePadding),
-        child: Column(
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column( // nincs görgetés
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             DropdownButtonFormField<String>(
               decoration: const InputDecoration(labelText: 'Szolgáltatás'),
               items: _services.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
-              onChanged: (val) => setState(() => _selectedService = val),
+              onChanged: (v) => setState(() => _service = v),
             ),
-            gapField,
-            DropdownButtonFormField<String>(
-              decoration: const InputDecoration(labelText: 'Kerület'),
-              items: _districts.map((d) => DropdownMenuItem(value: d, child: Text(d))).toList(),
-              onChanged: (val) => setState(() => _selectedDistrict = val),
+            const SizedBox(height: 10),
+
+            // Budapest fix + kerületválasztó modal
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Budapest'),
+              subtitle: Text(summary),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: _openDistricts,
             ),
-            gapField,
+            const Divider(),
+
             TextField(
               controller: _streetCtrl,
-              decoration: const InputDecoration(
-                labelText: 'Utca',
-                border: OutlineInputBorder(),
-              ),
+              decoration: const InputDecoration(labelText: 'Utca, házszám'),
             ),
-            const SizedBox(height: 12),
-            if (address != null) ...[
-              MapPreview(address: address),
-              gapField,
-            ],
-            TextField(
-              controller: _dateCtrl,
-              readOnly: true,
-              decoration: const InputDecoration(
-                labelText: 'Dátum',
-                border: OutlineInputBorder(),
-              ),
-              onTap: () async {
-                DateTime? picked = await showDatePicker(
-                  context: context,
-                  firstDate: DateTime.now(),
-                  lastDate: DateTime.now().add(const Duration(days: 365)),
-                  initialDate: DateTime.now(),
-                );
-                if (picked != null) {
-                  _dateCtrl.text = '${picked.year}-${picked.month}-${picked.day}';
-                }
-              },
+
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _dateCtrl,
+                    readOnly: true,
+                    decoration: const InputDecoration(labelText: 'Dátum'),
+                    onTap: () async {
+                      final now = DateTime.now();
+                      final picked = await showDatePicker(
+                        context: context,
+                        firstDate: now,
+                        lastDate: now.add(const Duration(days: 365)),
+                        initialDate: now,
+                      );
+                      if (picked != null) {
+                        _dateCtrl.text = '${picked.year}-${picked.month}-${picked.day}';
+                        setState(() {});
+                      }
+                    },
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: TextField(
+                    controller: _timeCtrl,
+                    readOnly: true,
+                    decoration: const InputDecoration(labelText: 'Idő'),
+                    onTap: () async {
+                      final picked = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+                      if (picked != null) {
+                        _timeCtrl.text = picked.format(context);
+                        setState(() {});
+                      }
+                    },
+                  ),
+                ),
+              ],
             ),
-            gapField,
-            TextField(
-              controller: _timeCtrl,
-              readOnly: true,
-              decoration: const InputDecoration(
-                labelText: 'Idő',
-                border: OutlineInputBorder(),
-              ),
-              onTap: () async {
-                TimeOfDay? picked = await showTimePicker(
-                  context: context,
-                  initialTime: TimeOfDay.now(),
-                );
-                if (picked != null) {
-                  _timeCtrl.text = picked.format(context);
-                }
-              },
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: _search,
-              child: const Text('Keresés'),
-            ),
+
+            const Spacer(),
+            ElevatedButton(onPressed: _search, child: const Text('Keresés')),
           ],
         ),
       ),
     );
   }
 }
+
