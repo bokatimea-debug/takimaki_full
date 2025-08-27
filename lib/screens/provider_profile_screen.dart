@@ -1,113 +1,110 @@
 import 'package:flutter/material.dart';
-import '../models/stats.dart';
+import '../widgets/district_picker.dart';
 
-class ProviderProfileScreen extends StatelessWidget {
-  final List<String> services;
-  final List<int> districts;
-  final String rate;
-  final TimeOfDay weekdayFrom;
-  final TimeOfDay weekdayTo;
-  final TimeOfDay weekendFrom;
-  final TimeOfDay weekendTo;
-  final String? description;
+class ProviderProfileSetupScreen extends StatefulWidget {
+  const ProviderProfileSetupScreen({super.key});
 
-  const ProviderProfileScreen({
-    super.key,
-    required this.services,
-    required this.districts,
-    required this.rate,
-    required this.weekdayFrom,
-    required this.weekdayTo,
-    required this.weekendFrom,
-    required this.weekendTo,
-    this.description,
-  });
+  @override
+  State<ProviderProfileSetupScreen> createState() => _ProviderProfileSetupScreenState();
+}
+
+class _ProviderProfileSetupScreenState extends State<ProviderProfileSetupScreen> {
+  List<int> _districts = [];
+  String? _service;
+  final _rateCtrl = TextEditingController(text: '12000');
+  TimeOfDay _wdFrom = const TimeOfDay(hour: 9, minute: 0);
+  TimeOfDay _wdTo = const TimeOfDay(hour: 18, minute: 0);
+  TimeOfDay _weFrom = const TimeOfDay(hour: 10, minute: 0);
+  TimeOfDay _weTo = const TimeOfDay(hour: 16, minute: 0);
+
+  final List<String> _services = const [
+    'Apartman takarítás','Általános takarítás','Nagytakarítás','Felújítás utáni takarítás',
+    'Karbantartás','Vízszerelés','Gázszerelés','Légkondicionáló szerelés','Bútorösszeszerelés','Villanyszerelés',
+  ];
+
+  bool get _canSave =>
+      _service != null && _districts.isNotEmpty && _rateCtrl.text.trim().isNotEmpty;
+
+  Future<void> _pickTime(bool weekday, bool from) async {
+    final initial = from ? (weekday ? _wdFrom : _weFrom) : (weekday ? _wdTo : _weTo);
+    final res = await showTimePicker(context: context, initialTime: initial);
+    if (res == null) return;
+    setState(() {
+      if (weekday) {
+        if (from) _wdFrom = res; else _wdTo = res;
+      } else {
+        if (from) _weFrom = res; else _weTo = res;
+      }
+    });
+  }
+
+  void _save() {
+    if (!_canSave) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Kerület, szolgáltatás és óradíj kötelező')),
+      );
+      return;
+    }
+    Navigator.pushReplacementNamed(context, '/provider/profile');
+  }
 
   @override
   Widget build(BuildContext context) {
-    final labelStyle = TextStyle(color: Colors.grey.shade700);
-    final successes = Stats.instance.providerSuccessCount;
+    final summary = summarizeDistricts(_districts);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Szolgáltatói profil')),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // vissza a setupra új szolgáltatás felvételéhez
-          Navigator.pop(context);
-        },
-        child: const Icon(Icons.add),
-        tooltip: 'Új szolgáltatás felvétele',
-      ),
+      appBar: AppBar(title: const Text('Szolgáltatás felvétele')),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: ListView(
+        child: Column( // nincs görgetés
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Budapest + kerületválasztó
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Budapest'),
+              subtitle: Text(summary),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () async {
+                final res = await pickDistricts(context, _districts);
+                if (res != null) setState(() => _districts = res);
+              },
+            ),
+            const Divider(),
+
+            DropdownButtonFormField<String>(
+              decoration: const InputDecoration(labelText: 'Szolgáltatás (egy választás)'),
+              items: _services.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
+              onChanged: (v) => setState(() => _service = v),
+            ),
+            const SizedBox(height: 10),
+
+            TextField(
+              controller: _rateCtrl,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Óradíj (Ft/óra)'),
+            ),
+
+            const SizedBox(height: 10),
             Row(
-              children: const [
-                CircleAvatar(radius: 28, child: Icon(Icons.person)),
-                SizedBox(width: 12),
-                Text('Szolgáltató (demó név)', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+              children: [
+                Expanded(child: Text('Hétköznap: ${_wdFrom.format(context)}–${_wdTo.format(context)}')),
+                IconButton(onPressed: () => _pickTime(true, true), icon: const Icon(Icons.schedule)),
+                IconButton(onPressed: () => _pickTime(true, false), icon: const Icon(Icons.schedule)),
               ],
             ),
-            const SizedBox(height: 16),
-
-            Text('Értékelés és statisztika', style: labelStyle),
-            const SizedBox(height: 6),
-            Text('⭐ 4.8 • $successes db sikeres teljesítés'),
-            const SizedBox(height: 16),
-
-            Text('Szolgáltatások', style: labelStyle),
-            const SizedBox(height: 6),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: services.map((s) => Chip(label: Text(s))).toList(),
+            Row(
+              children: [
+                Expanded(child: Text('Hétvége: ${_weFrom.format(context)}–${_weTo.format(context)}')),
+                IconButton(onPressed: () => _pickTime(false, true), icon: const Icon(Icons.schedule)),
+                IconButton(onPressed: () => _pickTime(false, false), icon: const Icon(Icons.schedule)),
+              ],
             ),
-            const SizedBox(height: 16),
 
-            Text('Kerületek', style: labelStyle),
-            const SizedBox(height: 6),
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: districts.map((d) => Chip(label: Text('$d.'))).toList(),
-            ),
-            const SizedBox(height: 16),
-
-            Text('Árazás', style: labelStyle),
-            const SizedBox(height: 6),
-            Text('$rate Ft/óra'),
-            const SizedBox(height: 16),
-
-            Text('Elérhetőség', style: labelStyle),
-            const SizedBox(height: 6),
-            Text('Hétköznap: ${weekdayFrom.format(context)} - ${weekdayTo.format(context)}'),
-            Text('Hétvége: ${weekendFrom.format(context)} - ${weekendTo.format(context)}'),
-            const SizedBox(height: 16),
-
-            if (description != null && description!.isNotEmpty) ...[
-              Text('Bemutatkozás', style: labelStyle),
-              const SizedBox(height: 6),
-              Text(description!),
-              const SizedBox(height: 16),
-            ],
-
-            Text('Legutóbbi 3 munka', style: labelStyle),
-            const SizedBox(height: 6),
-            const ListTile(
-              leading: Icon(Icons.check_circle_outline),
-              title: Text('Általános takarítás – 2025-08-10 10:00'),
-              subtitle: Text('XIII. kerület, Demó utca 1.'),
-            ),
-            const ListTile(
-              leading: Icon(Icons.check_circle_outline),
-              title: Text('Vízszerelés – 2025-08-05 14:00'),
-              subtitle: Text('II. kerület, Minta u. 2.'),
-            ),
-            const ListTile(
-              leading: Icon(Icons.check_circle_outline),
-              title: Text('Villanyszerelés – 2025-07-28 09:00'),
-              subtitle: Text('XI. kerület, Próba tér 3.'),
+            const Spacer(),
+            ElevatedButton(
+              onPressed: _canSave ? _save : null,
+              child: const Text('Mentés'),
             ),
           ],
         ),
