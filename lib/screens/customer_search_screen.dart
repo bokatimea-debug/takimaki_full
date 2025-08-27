@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/district_picker.dart';
+import '../widgets/map_preview.dart';
 
 class CustomerSearchScreen extends StatefulWidget {
   const CustomerSearchScreen({super.key});
@@ -12,12 +13,21 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
   final _streetCtrl = TextEditingController();
   final _dateCtrl = TextEditingController();
   final _timeCtrl = TextEditingController();
+
   String? _service;
   List<int> _districts = []; // 1..23
 
   final List<String> _services = const [
-    'Apartman takarítás','Általános takarítás','Nagytakarítás','Felújítás utáni takarítás',
-    'Karbantartás','Vízszerelés','Gázszerelés','Légkondicionáló szerelés','Bútorösszeszerelés','Villanyszerelés',
+    'Apartman takarítás',
+    'Általános takarítás',
+    'Nagytakarítás',
+    'Felújítás utáni takarítás',
+    'Karbantartás',
+    'Vízszerelés',
+    'Gázszerelés',
+    'Légkondicionáló szerelés',
+    'Bútorösszeszerelés',
+    'Villanyszerelés',
   ];
 
   void _openDistricts() async {
@@ -32,7 +42,10 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
         _dateCtrl.text.trim().isEmpty ||
         _timeCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Minden mező kötelező'), duration: Duration(seconds: 2)),
+        const SnackBar(
+          content: Text('Minden mező kötelező'),
+          duration: Duration(seconds: 2),
+        ),
       );
       return;
     }
@@ -42,6 +55,8 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
   @override
   Widget build(BuildContext context) {
     final summary = summarizeDistricts(_districts);
+    final street = _streetCtrl.text.trim();
+    final address = street.isEmpty ? null : 'Budapest, $street';
 
     return Scaffold(
       appBar: AppBar(title: const Text('Szolgáltató keresése')),
@@ -52,9 +67,12 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
           children: [
             DropdownButtonFormField<String>(
               decoration: const InputDecoration(labelText: 'Szolgáltatás'),
-              items: _services.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
+              items: _services
+                  .map((s) => DropdownMenuItem(value: s, child: Text(s)))
+                  .toList(),
               onChanged: (v) => setState(() => _service = v),
             ),
+
             const SizedBox(height: 10),
 
             // Budapest fix + kerületválasztó modal
@@ -70,9 +88,18 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
             TextField(
               controller: _streetCtrl,
               decoration: const InputDecoration(labelText: 'Utca, házszám'),
+              onChanged: (_) => setState(() {}),
             ),
 
             const SizedBox(height: 10),
+
+            // Google Maps előnézet (Budapest középre), ha van cím
+            if (address != null) ...[
+              MapPreview(address: address),
+              const SizedBox(height: 10),
+            ],
+
+            // dátum + idő egy sorban
             Row(
               children: [
                 Expanded(
@@ -89,7 +116,8 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
                         initialDate: now,
                       );
                       if (picked != null) {
-                        _dateCtrl.text = '${picked.year}-${picked.month}-${picked.day}';
+                        _dateCtrl.text =
+                            '${picked.year}-${picked.month}-${picked.day}';
                         setState(() {});
                       }
                     },
@@ -102,7 +130,10 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
                     readOnly: true,
                     decoration: const InputDecoration(labelText: 'Idő'),
                     onTap: () async {
-                      final picked = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+                      final picked = await showTimePicker(
+                        context: context,
+                        initialTime: TimeOfDay.now(),
+                      );
                       if (picked != null) {
                         _timeCtrl.text = picked.format(context);
                         setState(() {});
@@ -121,4 +152,3 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
     );
   }
 }
-
