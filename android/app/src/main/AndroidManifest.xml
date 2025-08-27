@@ -10,6 +10,11 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="REPLACE_WITH_YOUR_API_KEY" />
 
+        <!-- Flutter V2 kötelező beállítás -->
+        <meta-data
+            android:name="flutterEmbedding"
+            android:value="2" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -23,5 +28,6 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+
     </application>
 </manifest>
