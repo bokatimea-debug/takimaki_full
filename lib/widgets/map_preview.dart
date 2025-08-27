@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class MapPreview extends StatelessWidget {
   final String address;
@@ -6,53 +7,27 @@ class MapPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const budapest = LatLng(47.4979, 19.0402);
+
     return Container(
-      height: 160,
+      height: 180,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.grey.shade300),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Colors.grey.shade200, Colors.grey.shade100],
-        ),
       ),
-      child: Stack(
-        children: [
-          const Center(
-            child: Icon(Icons.map, size: 64),
+      clipBehavior: Clip.antiAlias,
+      child: GoogleMap(
+        initialCameraPosition: const CameraPosition(target: budapest, zoom: 11.5),
+        myLocationButtonEnabled: false,
+        zoomControlsEnabled: false,
+        liteModeEnabled: true,
+        markers: {
+          Marker(
+            markerId: const MarkerId('addr'),
+            position: budapest,
+            infoWindow: InfoWindow(title: 'Budapest', snippet: address),
           ),
-          Positioned(
-            left: 12,
-            right: 12,
-            bottom: 12,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.9),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.grey.shade300),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.place, size: 18),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      address,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  const Icon(Icons.verified, color: Colors.green, size: 18),
-                  const SizedBox(width: 4),
-                  const Text('cím validálva (demó)'),
-                ],
-              ),
-            ),
-          ),
-        ],
+        },
       ),
     );
   }
