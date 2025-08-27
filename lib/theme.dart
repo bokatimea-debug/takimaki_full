@@ -73,11 +73,16 @@ ThemeData takimakiTheme() {
     ),
 
     // Kártyák
-    cardTheme: CardTheme(
-      elevation: 1.5,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-    ),
+    cardTheme: const CardThemeData(
+  shape: RoundedRectangleBorder(
+    borderRadius: BorderRadius.all(Radius.circular(12)),
+  ),
+  elevation: 2,
+  margin: EdgeInsets.all(8),
+),
+
+
+
 
     // Szövegek
     textTheme: const TextTheme(
