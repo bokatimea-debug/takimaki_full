@@ -1,16 +1,11 @@
 import 'package:flutter/material.dart';
-import 'theme.dart';
-import 'screens/splash_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'screens/registration_screen.dart';
 import 'screens/role_select_screen.dart';
-import 'screens/customer_search_screen.dart';
-import 'screens/provider_profile_setup_screen.dart';
-import 'screens/customer_profile_screen.dart';
-import 'screens/offers_demo_screen.dart';
-import 'screens/moderation_demo_screen.dart';
-import 'screens/chat_demo_screen.dart';
-import 'screens/settings_notifications_screen.dart';
 
-void main() => runApp(const TakimakiApp());
+void main() {
+  runApp(const TakimakiApp());
+}
 
 class TakimakiApp extends StatelessWidget {
   const TakimakiApp({super.key});
@@ -18,21 +13,43 @@ class TakimakiApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
       title: 'Takimaki',
-      theme: takimakiTheme(),
-      home: const SplashScreen(),
-      routes: {
-        '/customer/search': (context) => const CustomerSearchScreen(),
-        '/customer/profile': (context) => const CustomerProfileScreen(),
-        '/provider/setup': (context) => const ProviderProfileSetupScreen(),
-        '/offers/demo': (context) => const OffersDemoScreen(),
-        '/moderation/demo': (context) => const ModerationDemoScreen(),
-        '/chat/demo': (context) => const ChatDemoScreen(),
-        '/settings/notifications': (context) => const SettingsNotificationsScreen(),
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        colorSchemeSeed: const Color(0xFF0FA3A9),
+        useMaterial3: true,
+      ),
+      home: const _Bootstrap(),
+    );
+  }
+}
+
+class _Bootstrap extends StatefulWidget {
+  const _Bootstrap();
+
+  @override
+  State<_Bootstrap> createState() => _BootstrapState();
+}
+
+class _BootstrapState extends State<_Bootstrap> {
+  Future<bool> _load() async {
+    final sp = await SharedPreferences.getInstance();
+    return sp.getBool(RegistrationScreen.prefKey) ?? false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<bool>(
+      future: _load(),
+      builder: (c, s) {
+        if (!s.hasData) {
+          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        }
+        return s.data! ? const RoleSelectScreen() : const RegistrationScreen();
       },
     );
   }
 }
+
 
 
