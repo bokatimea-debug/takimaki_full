@@ -14,8 +14,6 @@ class CustomerEditProfileScreen extends StatefulWidget {
 class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
   final store = ProfileStore.instance;
   late TextEditingController bioCtrl;
-  late TextEditingController weekdayCtrl;
-  late TextEditingController weekendCtrl;
   Uint8List? pickedPhoto;
 
   @override
@@ -23,8 +21,6 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
     super.initState();
     final c = store.customer;
     bioCtrl = TextEditingController(text: c.bio);
-    weekdayCtrl = TextEditingController(text: c.weekdayHours);
-    weekendCtrl = TextEditingController(text: c.weekendHours);
     pickedPhoto = c.photoBytes;
   }
 
@@ -33,17 +29,13 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
     final img = await picker.pickImage(source: ImageSource.gallery, maxWidth: 1024);
     if (img != null) {
       final bytes = await img.readAsBytes();
-      setState(() {
-        pickedPhoto = bytes;
-      });
+      setState(() => pickedPhoto = bytes);
     }
   }
 
   void _save() {
     final c = store.customer;
     c.bio = bioCtrl.text.trim();
-    c.weekdayHours = weekdayCtrl.text.trim();
-    c.weekendHours = weekendCtrl.text.trim();
     c.photoBytes = pickedPhoto;
     Navigator.pop(context);
   }
@@ -70,39 +62,16 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
             const SizedBox(height: 12),
             TextField(
               controller: bioCtrl,
+              maxLines: 4,
               decoration: const InputDecoration(
                 labelText: "Bemutatkozás",
-                hintText: "Pár soros bemutatkozó szöveg...",
-              ),
-              maxLines: 3,
-            ),
-            const SizedBox(height: 12),
-            const Align(
-              alignment: Alignment.centerLeft,
-              child: Text("Általános elérhetőségi idő",
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-            const SizedBox(height: 6),
-            TextField(
-              controller: weekdayCtrl,
-              decoration: const InputDecoration(
-                labelText: "Hétköznap (pl. H–P 9–18)",
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: weekendCtrl,
-              decoration: const InputDecoration(
-                labelText: "Hétvége (pl. Szo–V 10–16)",
+                hintText: "Pár soros bemutatkozó szöveg…",
               ),
             ),
             const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
-              child: FilledButton(
-                onPressed: _save,
-                child: const Text("Mentés"),
-              ),
+              child: FilledButton(onPressed: _save, child: const Text("Mentés")),
             ),
             const SizedBox(height: 12),
             TextButton(
@@ -119,10 +88,9 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
                   ),
                 );
                 if (confirm == true) {
-                  store.customer.bio = "";
-                  store.customer.weekdayHours = "";
-                  store.customer.weekendHours = "";
-                  store.customer.photoBytes = null;
+                  store.customer
+                    ..bio = ""
+                    ..photoBytes = null;
                   Navigator.pushNamedAndRemoveUntil(context, "/role_select", (r) => false);
                 }
               },
