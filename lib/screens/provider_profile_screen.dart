@@ -24,53 +24,31 @@ class ProviderProfileScreen extends StatelessWidget {
             const Text('24 sikeres munka', style: TextStyle(fontSize: 16)),
             const SizedBox(height: 24),
 
-            // Elérhetőség
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Elérhetőség: H–P 9–18, Szo 10–16',
-                  style: TextStyle(fontSize: 16),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/provider/edit_availability');
-                  },
-                  child: const Text('Szerkesztés'),
-                ),
-              ],
-            ),
-            const Divider(height: 32),
-
-            // Szolgáltatások
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('Szolgáltatások:',
-                    style:
-                        TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                TextButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/provider/edit_services');
-                  },
-                  child: const Text('Szerkesztés'),
-                ),
-              ],
-            ),
-            const Align(
-              alignment: Alignment.centerLeft,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('• Takarítás'),
-                  Text('• Villanyszerelés'),
-                  Text('• Bútorösszeszerelés'),
-                ],
+            // Profil szerkesztése gomb
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/provider/edit_profile');
+                },
+                child: const Text('Profil szerkesztése'),
               ),
             ),
-            const Divider(height: 32),
+            const SizedBox(height: 24),
 
-            // Akciógombok
+            // Szolgáltatások gomb
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/provider/services');
+                },
+                child: const Text('Szolgáltatások'),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Beérkezett ajánlatkérések
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -81,6 +59,8 @@ class ProviderProfileScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
+
+            // Üzenetek
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(
@@ -89,35 +69,6 @@ class ProviderProfileScreen extends StatelessWidget {
                 },
                 child: const Text('Üzenetek'),
               ),
-            ),
-            const Divider(height: 32),
-
-            // Legutóbbi munkák
-            const Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Legutóbbi munkáim',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-            ),
-            const SizedBox(height: 12),
-            const ListTile(
-              title: Text('Nagytakarítás'),
-              subtitle: Text('2025-08-28 • Teljesítve'),
-            ),
-            const ListTile(
-              title: Text('Vízszerelés'),
-              subtitle: Text('2025-08-20 • Teljesítve'),
-            ),
-            const ListTile(
-              title: Text('Festés'),
-              subtitle: Text('2025-08-15 • Lemondva'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/provider/all_orders');
-              },
-              child: const Text('Összes megtekintése'),
             ),
           ],
         ),
