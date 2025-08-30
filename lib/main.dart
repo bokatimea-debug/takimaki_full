@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'screens/splash_login_screen.dart';
+import 'screens/role_select_screen.dart';
 
 void main() {
   runApp(const TakimakiApp());
@@ -18,9 +19,23 @@ class TakimakiApp extends StatelessWidget {
         useMaterial3: true,
       ),
       home: const SplashLoginScreen(),
+      routes: {
+        '/role_select': (context) => const RoleSelectScreen(),
+        '/customer/search': (context) => const _PlaceholderScreen(title: 'Customer Search'),
+      },
     );
   }
 }
 
+class _PlaceholderScreen extends StatelessWidget {
+  final String title;
+  const _PlaceholderScreen({required this.title});
 
-
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(title)),
+      body: Center(child: Text('$title képernyő (helyőrző)')),
+    );
+  }
+}

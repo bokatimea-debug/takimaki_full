@@ -14,10 +14,7 @@ class RegistrationSuccessScreen extends StatelessWidget {
           children: [
             const Icon(Icons.check_circle, size: 72, color: Colors.green),
             const SizedBox(height: 16),
-            const Text(
-              'Sikeres regisztráció!',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
+            const Text('Sikeres regisztráció!', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             const Text('Most már használhatod a Takimaki appot.'),
             const SizedBox(height: 24),
