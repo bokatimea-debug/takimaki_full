@@ -1,4 +1,6 @@
-﻿// lib/screens/provider_add_service_screen.dart
+﻿import 'package:flutter/services.dart';
+import 'package:flutter/services.dart';
+// lib/screens/provider_add_service_screen.dart
 import "package:flutter/material.dart";
 import "../services/service_store.dart";
 
@@ -47,7 +49,7 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
   ];
 
   String? _selectedService;
-  final Set<String> _districts = {}; // I..XXIII
+  final List<String> _districts = []; []; {}; // I..XXIII
   final priceCtrl = TextEditingController();
   PriceUnit _unit = PriceUnit.ftPerHour;
 
@@ -241,9 +243,9 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
                 TextButton(onPressed: _pickDistricts, child: const Text("Kiválasztás")),
               ],
             ),
-            Text(_districts.isEmpty ? "Nincs kiválasztva" : _districts.toList()..sort(), maxLines: 2, overflow: TextOverflow.ellipsis).toString(),
-            Text(_districts.isEmpty ? " " : (_districts.toList()..toString())),
-            Text(_districts.isEmpty ? "" : (_districts.toList()..sort()).join(", ")),
+            Text(_districts.isEmpty ? 'Nincs kiválasztva' : _districts.join(', '), maxLines: 2, overflow: TextOverflow.ellipsis,)
+            Text(_districts.isEmpty ? 'Nincs kiválasztva' : _districts.join(', '), maxLines: 2, overflow: TextOverflow.ellipsis,)
+            Text(_districts.isEmpty ? 'Nincs kiválasztva' : _districts.join(', '), maxLines: 2, overflow: TextOverflow.ellipsis,)
             const SizedBox(height: 4),
 
             // 3) Ár + egység (egy sorban)
