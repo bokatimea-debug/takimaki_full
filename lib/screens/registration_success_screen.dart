@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'role_select_screen.dart';
 
 class RegistrationSuccessScreen extends StatelessWidget {
@@ -14,7 +14,10 @@ class RegistrationSuccessScreen extends StatelessWidget {
           children: [
             const Icon(Icons.check_circle, size: 72, color: Colors.green),
             const SizedBox(height: 16),
-            const Text('Sikeres regisztráció!', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            const Text(
+              'Sikeres regisztráció!',
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 8),
             const Text('Most már használhatod a Takimaki appot.'),
             const SizedBox(height: 24),
@@ -22,9 +25,9 @@ class RegistrationSuccessScreen extends StatelessWidget {
               width: double.infinity,
               child: FilledButton(
                 onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
+                  Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute(builder: (_) => const RoleSelectScreen()),
+                    (route) => false,
                   );
                 },
                 child: const Text('Folytatás'),
