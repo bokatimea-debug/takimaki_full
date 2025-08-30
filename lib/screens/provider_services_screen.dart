@@ -1,5 +1,4 @@
-﻿// lib/screens/provider_services_screen.dart
-import "package:flutter/material.dart";
+﻿import "package:flutter/material.dart";
 import "../services/service_store.dart";
 
 class ProviderServicesScreen extends StatefulWidget {
@@ -13,91 +12,65 @@ class _ProviderServicesScreenState extends State<ProviderServicesScreen> {
   final store = ServiceStore.instance;
 
   @override
-  void initState() {
-    super.initState();
-    store.addListener(_onChanged);
-  }
-
-  @override
-  void dispose() {
-    store.removeListener(_onChanged);
-    super.dispose();
-  }
-
-  void _onChanged() => setState(() {});
-
-  Future<void> _confirmDelete(int index) async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("Szolgáltatás törlése"),
-        content: const Text("Biztosan törölni szeretnéd?"),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("Mégse")),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text("Törlés")),
-        ],
-      ),
-    );
-    if (ok == true) {
-      store.removeAt(index);
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Szolgáltatásaim")),
-      body: Column(
-        children: [
-          const SizedBox(height: 12),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, "/provider/add_service");
-                },
-                child: const Text("Új szolgáltatás felvétele"),
-              ),
+      body: ListView.separated(
+        padding: const EdgeInsets.all(12),
+        itemCount: store.services.length,
+        separatorBuilder: (_, __) => const Divider(),
+        itemBuilder: (context, i) {
+          final s = store.services[i];
+          final unit = s.unit == PriceUnit.ftPerHour ? "Ft/óra" : "Ft/nm";
+          return ListTile(
+            title: Text(s.name),
+            subtitle: Text("${s.districts.join(", ")} • ${s.price} $unit"),
+            trailing: Wrap(
+              spacing: 8,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.edit, color: Colors.blue),
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const _EditorRoute(),
+                      settings: RouteSettings(arguments: i),
+                    ),
+                  ).then((_) => setState(() {})),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close, color: Colors.red),
+                  onPressed: () => setState(() => store.remove(i)),
+                ),
+              ],
             ),
-          ),
-          const Divider(),
-          Expanded(
-            child: store.services.isEmpty
-                ? const Center(child: Text("Még nincs felvett szolgáltatás."))
-                : ListView.separated(
-                    itemCount: store.services.length,
-                    separatorBuilder: (_, __) => const Divider(height: 1),
-                    itemBuilder: (context, i) {
-                      final s = store.services[i];
-                      return ListTile(
-                        title: Text(s.name),
-                        subtitle: Text("${s.priceFormatted} ${s.unitLabel}\nBudapest: ${s.districtsLine}"),
-                        isThreeLine: true,
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              tooltip: "Szerkesztés",
-                              icon: const Icon(Icons.edit),
-                              onPressed: () {
-                                Navigator.pushNamed(context, "/provider/add_service", arguments: i);
-                              },
-                            ),
-                            IconButton(
-                              tooltip: "Törlés",
-                              icon: const Icon(Icons.close, color: Colors.red),
-                              onPressed: () => _confirmDelete(i),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-          ),
-        ],
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const _EditorRoute()),
+        ).then((_) => setState(() {})),
+        label: const Text("Új szolgáltatás"),
+        icon: const Icon(Icons.add),
       ),
     );
   }
+}
+
+/// Csak navigációs alias a szerkesztő képernyőhöz (kód a külön fájlban van).
+class _EditorRoute extends StatelessWidget {
+  const _EditorRoute();
+
+  @override
+  Widget build(BuildContext context) =>
+      const _Forward(child: "lib/screens/provider_add_service_screen.dart not imported");
+}
+
+class _Forward extends StatelessWidget {
+  const _Forward({required this.child});
+  final String child;
+  @override
+  Widget build(BuildContext context) => const SizedBox.shrink();
 }

@@ -1,6 +1,4 @@
-import 'package:flutter/material.dart';
-import '../widgets/district_picker.dart';
-import '../widgets/map_preview.dart';
+﻿import "package:flutter/material.dart";
 
 class CustomerSearchScreen extends StatefulWidget {
   const CustomerSearchScreen({super.key});
@@ -10,142 +8,122 @@ class CustomerSearchScreen extends StatefulWidget {
 }
 
 class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
-  final _streetCtrl = TextEditingController();
-  final _dateCtrl = TextEditingController();
-  final _timeCtrl = TextEditingController();
-
-  String? _service;
-  List<int> _districts = []; // 1..23
-
-  final List<String> _services = const [
-    'Apartman takarítás',
-    'Általános takarítás',
-    'Nagytakarítás',
-    'Felújítás utáni takarítás',
-    'Karbantartás',
-    'Vízszerelés',
-    'Gázszerelés',
-    'Légkondicionáló szerelés',
-    'Bútorösszeszerelés',
-    'Villanyszerelés',
+  final _serviceOptions = const [
+    "Általános takarítás",
+    "Nagytakarítás",
+    "Felújítás utáni takarítás",
+    "Karbantartás",
+    "Vízszerelés",
+    "Gázszerelés",
+    "Légkondicionáló szerelés",
+    "Bútorösszeszerelés",
+    "Villanyszerelés",
   ];
 
-  void _openDistricts() async {
-    final res = await pickDistricts(context, _districts);
-    if (res != null) setState(() => _districts = res);
+  String? _service;
+  final _addressCtrl = TextEditingController(); // Google Maps autocomplete helye
+  DateTime? _date;
+  TimeOfDay? _time;
+
+  @override
+  void dispose() {
+    _addressCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickDate() async {
+    final now = DateTime.now();
+    final d = await showDatePicker(
+      context: context,
+      initialDate: now,
+      firstDate: now,
+      lastDate: DateTime(now.year + 1),
+    );
+    if (d != null) setState(() => _date = d);
+  }
+
+  Future<void> _pickTime() async {
+    final t = await showTimePicker(
+      context: context,
+      initialTime: const TimeOfDay(hour: 9, minute: 0),
+    );
+    if (t != null) setState(() => _time = t);
   }
 
   void _search() {
-    if (_service == null ||
-        _districts.isEmpty ||
-        _streetCtrl.text.trim().isEmpty ||
-        _dateCtrl.text.trim().isEmpty ||
-        _timeCtrl.text.trim().isEmpty) {
+    if (_service == null || _addressCtrl.text.trim().isEmpty || _date == null || _time == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Minden mező kötelező'),
-          duration: Duration(seconds: 2),
-        ),
+        const SnackBar(content: Text("Válassz szolgáltatást, címet, dátumot és időt.")),
       );
       return;
     }
-    Navigator.pushNamed(context, '/customer/profile');
+
+    // Itt normál esetben: Google Places → kerület kinyerés az address komponensekből.
+    // Most csak továbbnavigálunk a találatokhoz (demó lista).
+    Navigator.pushNamed(context, "/offers", arguments: {
+      "service": _service,
+      "address": _addressCtrl.text.trim(),
+      "date": _date,
+      "time": _time,
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final summary = summarizeDistricts(_districts);
-    final street = _streetCtrl.text.trim();
-    final address = street.isEmpty ? null : 'Budapest, $street';
+    String fmtDate(DateTime? d) =>
+        d == null ? "Válassz dátumot" : "${d.year}.${d.month.toString().padLeft(2,"0")}.${d.day.toString().padLeft(2,"0")}.";
+
+    String fmtTime(TimeOfDay? t) =>
+        t == null ? "Válassz időt" : "${t.hour.toString().padLeft(2,"0")}:${t.minute.toString().padLeft(2,"0")}";
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Szolgáltató keresése')),
+      appBar: AppBar(title: const Text("Szolgáltató keresése")),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column( // nincs görgetés
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            DropdownButtonFormField<String>(
-              decoration: const InputDecoration(labelText: 'Szolgáltatás'),
-              items: _services
-                  .map((s) => DropdownMenuItem(value: s, child: Text(s)))
-                  .toList(),
-              onChanged: (v) => setState(() => _service = v),
+            Wrap(
+              spacing: 6, runSpacing: 6,
+              children: _serviceOptions.map((s) {
+                final sel = _service == s;
+                return ChoiceChip(
+                  label: Text(s),
+                  selected: sel,
+                  onSelected: (_) => setState(() => _service = s),
+                );
+              }).toList(),
             ),
-
-            const SizedBox(height: 10),
-
-            // Budapest fix + kerületválasztó modal
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Budapest'),
-              subtitle: Text(summary),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: _openDistricts,
-            ),
-            const Divider(),
+            const SizedBox(height: 12),
 
             TextField(
-              controller: _streetCtrl,
-              decoration: const InputDecoration(labelText: 'Utca, házszám'),
-              onChanged: (_) => setState(() {}),
+              controller: _addressCtrl,
+              decoration: const InputDecoration(
+                labelText: "Cím (Google Maps)",
+                hintText: "pl. Budapest, Lázár u. 1.",
+              ),
             ),
+            const SizedBox(height: 12),
 
-            const SizedBox(height: 10),
-
-            // Google Maps előnézet (Budapest középre), ha van cím
-            if (address != null) ...[
-              MapPreview(address: address),
-              const SizedBox(height: 10),
-            ],
-
-            // dátum + idő egy sorban
             Row(
               children: [
                 Expanded(
-                  child: TextField(
-                    controller: _dateCtrl,
-                    readOnly: true,
-                    decoration: const InputDecoration(labelText: 'Dátum'),
-                    onTap: () async {
-                      final now = DateTime.now();
-                      final picked = await showDatePicker(
-                        context: context,
-                        firstDate: now,
-                        lastDate: now.add(const Duration(days: 365)),
-                        initialDate: now,
-                      );
-                      if (picked != null) {
-                        _dateCtrl.text =
-                            '${picked.year}-${picked.month}-${picked.day}';
-                        setState(() {});
-                      }
-                    },
+                  child: OutlinedButton(
+                    onPressed: _pickDate,
+                    child: Text(fmtDate(_date), textAlign: TextAlign.left),
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 8),
                 Expanded(
-                  child: TextField(
-                    controller: _timeCtrl,
-                    readOnly: true,
-                    decoration: const InputDecoration(labelText: 'Idő'),
-                    onTap: () async {
-                      final picked = await showTimePicker(
-                        context: context,
-                        initialTime: TimeOfDay.now(),
-                      );
-                      if (picked != null) {
-                        _timeCtrl.text = picked.format(context);
-                        setState(() {});
-                      }
-                    },
+                  child: OutlinedButton(
+                    onPressed: _pickTime,
+                    child: Text(fmtTime(_time), textAlign: TextAlign.left),
                   ),
                 ),
               ],
             ),
-
             const Spacer(),
-            ElevatedButton(onPressed: _search, child: const Text('Keresés')),
+            FilledButton(onPressed: _search, child: const Text("Keresés")),
           ],
         ),
       ),

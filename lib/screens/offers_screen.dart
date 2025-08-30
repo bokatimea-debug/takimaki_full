@@ -1,73 +1,45 @@
-import 'package:flutter/material.dart';
-import '../repositories/offers_repository.dart';
+﻿import "package:flutter/material.dart";
 
-class OffersScreen extends StatefulWidget {
-  final String requestId;
-  const OffersScreen({super.key, required this.requestId});
-
-  @override
-  State<OffersScreen> createState() => _OffersScreenState();
-}
-
-class _OffersScreenState extends State<OffersScreen> {
-  final repo = OffersRepository.instance;
-
-  @override
-  void initState() {
-    super.initState();
-    repo.seedDemo(widget.requestId);
-  }
+class OffersScreen extends StatelessWidget {
+  const OffersScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final items = repo.listByRequest(widget.requestId);
+    final args = ModalRoute.of(context)?.settings.arguments as Map<String, Object?>?;
+    final service = args?["service"] as String?;
+    final address = args?["address"] as String?;
+    final date = args?["date"];
+    final time = args?["time"];
 
-    Color chipColor(OfferStatus s) {
-      switch (s) {
-        case OfferStatus.accepted:
-          return Colors.green;
-        case OfferStatus.inactive:
-          return Colors.grey;
-        case OfferStatus.pending:
-          return Colors.orange;
-      }
-    }
-
-    String chipText(OfferStatus s) {
-      switch (s) {
-        case OfferStatus.accepted:
-          return 'Elfogadva';
-        case OfferStatus.inactive:
-          return 'Inaktív';
-        case OfferStatus.pending:
-          return 'Függőben';
-      }
-    }
+    final demo = [
+      {"name": "Kiss Kft.", "rating": 4.8, "price": "12 000 Ft/óra"},
+      {"name": "Tiszta Otthon Bt.", "rating": 4.6, "price": "11 500 Ft/óra"},
+      {"name": "VillámSzerelő", "rating": 4.9, "price": "13 000 Ft/óra"},
+    ];
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Ajánlatok')),
+      appBar: AppBar(title: const Text("Elérhető szolgáltatók")),
       body: ListView.separated(
         padding: const EdgeInsets.all(12),
-        itemCount: items.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 8),
-        itemBuilder: (_, i) {
-          final o = items[i];
-          return Card(
-            child: ListTile(
-              title: Text('${o.providerName}'),
-              subtitle: Text('${o.priceFt} Ft'),
-              trailing: Chip(
-                label: Text(chipText(o.status), style: const TextStyle(color: Colors.white)),
-                backgroundColor: chipColor(o.status),
-              ),
-              onTap: o.status == OfferStatus.pending
-                  ? () {
-                      setState(() => repo.accept(o.id));
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Ajánlat elfogadva. A többi inaktív lett.')),
-                      );
-                    }
-                  : null,
+        itemCount: demo.length,
+        separatorBuilder: (_, __) => const Divider(),
+        itemBuilder: (context, i) {
+          final it = demo[i];
+          return ListTile(
+            title: Text(it["name"] as String),
+            subtitle: Text("★ ${(it["rating"] as double).toStringAsFixed(1)} • ${it["price"]}"),
+            onTap: () => Navigator.pushNamed(context, "/chat", arguments: {
+              "with": it["name"],
+              "context": {
+                "service": service,
+                "address": address,
+                "date": date.toString(),
+                "time": time.toString(),
+              }
+            }),
+            trailing: FilledButton(
+              onPressed: () => Navigator.pushNamed(context, "/chat", arguments: {"with": it["name"]}),
+              child: const Text("Ajánlatkérés"),
             ),
           );
         },

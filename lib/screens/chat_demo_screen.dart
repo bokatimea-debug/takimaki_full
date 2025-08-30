@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart';
-import '../models/chat.dart';
+﻿import "package:flutter/material.dart";
 
 class ChatDemoScreen extends StatefulWidget {
   const ChatDemoScreen({super.key});
@@ -9,104 +8,79 @@ class ChatDemoScreen extends StatefulWidget {
 }
 
 class _ChatDemoScreenState extends State<ChatDemoScreen> {
-  final store = ChatStore.instance;
   final _ctrl = TextEditingController();
+  final List<_Msg> _messages = [];
 
   @override
-  void initState() {
-    super.initState();
-    store.seedDemoIfEmpty();
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
   }
 
   void _send() {
-    final txt = _ctrl.text.trim();
-    if (txt.isEmpty) return;
-    store.send('me', txt);
-    _ctrl.clear();
-    setState(() {});
-    // demó: válasz bot
-    Future.delayed(const Duration(seconds: 1), () {
-      store.send('other', 'Köszönöm, visszaigazolva.');
-      setState(() {});
+    final t = _ctrl.text.trim();
+    if (t.isEmpty) return;
+    setState(() {
+      _messages.add(_Msg(text: t, me: true, ts: DateTime.now()));
     });
+    _ctrl.clear();
   }
 
   @override
   Widget build(BuildContext context) {
-    final msgs = store.messages;
+    final who = (ModalRoute.of(context)?.settings.arguments as Map?)?["with"] ?? "Partner";
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Chat (30 napos törlés)'),
-        actions: [
-          IconButton(
-            tooltip: 'Purge 30+ napos',
-            onPressed: () { setState(() {}); },
-            icon: const Icon(Icons.cleaning_services_outlined),
-          ),
-        ],
-      ),
+      appBar: AppBar(title: Text("Chat – $who")),
       body: Column(
         children: [
           Expanded(
             child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              reverse: false,
-              itemCount: msgs.length,
-              itemBuilder: (_, i) {
-                final m = msgs[i];
-                final mine = m.author == 'me';
+              padding: const EdgeInsets.all(12),
+              itemCount: _messages.length,
+              itemBuilder: (context, i) {
+                final m = _messages[i];
+                final align = m.me ? Alignment.centerRight : Alignment.centerLeft;
+                final color = m.me ? Colors.teal.shade100 : Colors.grey.shade200;
                 return Align(
-                  alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
+                  alignment: align,
                   child: Container(
                     margin: const EdgeInsets.symmetric(vertical: 4),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: mine ? Colors.teal.shade100 : Colors.grey.shade200,
+                      color: color,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Column(
-                      crossAxisAlignment: mine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-                      children: [
-                        Text(m.text),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${m.at.hour.toString().padLeft(2, '0')}:${m.at.minute.toString().padLeft(2, '0')}',
-                          style: TextStyle(fontSize: 11, color: Colors.grey.shade700),
-                        ),
-                      ],
-                    ),
+                    child: Text(m.text),
                   ),
                 );
               },
             ),
           ),
-          SafeArea(
-            top: false,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _ctrl,
-                      decoration: const InputDecoration(
-                        hintText: 'Írj üzenetet…',
-                        border: OutlineInputBorder(),
-                      ),
-                      onSubmitted: (_) => _send(),
-                    ),
+          Padding(
+            padding: const EdgeInsets.all(8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _ctrl,
+                    decoration: const InputDecoration(hintText: "Írj üzenetet..."),
+                    onSubmitted: (_) => _send(),
                   ),
-                  const SizedBox(width: 8),
-                  ElevatedButton(
-                    onPressed: _send,
-                    child: const Icon(Icons.send),
-                  ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 8),
+                IconButton(onPressed: _send, icon: const Icon(Icons.send)),
+              ],
             ),
           ),
         ],
       ),
     );
   }
+}
+
+class _Msg {
+  _Msg({required this.text, required this.me, required this.ts});
+  final String text;
+  final bool me;
+  final DateTime ts;
 }

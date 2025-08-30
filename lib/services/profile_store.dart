@@ -1,21 +1,18 @@
-﻿// lib/services/profile_store.dart
-import 'dart:typed_data';
+﻿import "dart:typed_data";
 
-class ProfileData {
-  Uint8List? photoBytes;
-  String bio = '';
-  String weekdayHours = ''; // pl. "H–P 9–18"
-  String weekendHours = ''; // pl. "Szo–V 10–16"
-
-  // statisztikák (dummy, lehet később backend)
-  double rating = 4.7;
-  int successCount = 24;
-}
-
+/// Egyszerű, memóriában élő profil tároló.
+/// (Ha majd tartósítani akarjuk, ide kerül a SharedPreferences/Isar stb.)
 class ProfileStore {
   ProfileStore._();
-  static final instance = ProfileStore._();
+  static final ProfileStore instance = ProfileStore._();
 
-  final provider = ProfileData();
-  final customer = ProfileData();
+  final customer = _Profile();
+  final provider = _Profile();
+}
+
+class _Profile {
+  String bio = "";
+  String weekdayHours = ""; // "H–P 9:00–18:00"
+  String weekendHours = ""; // "Szo–V 10:00–16:00"
+  Uint8List? photoBytes;
 }

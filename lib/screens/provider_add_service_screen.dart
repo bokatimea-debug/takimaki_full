@@ -1,24 +1,27 @@
-﻿// lib/screens/provider_add_service_screen.dart
-import "package:flutter/material.dart";
+﻿import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "../services/service_store.dart";
 
-/// Ezres tagolás az ár mezőben (csak számokat enged, 12 000 formátum).
+/// Ezres tagolás az árhoz.
 class ThousandsFormatter extends TextInputFormatter {
   @override
-  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
     final digits = newValue.text.replaceAll(RegExp(r"[^0-9]"), "");
     if (digits.isEmpty) {
       return const TextEditingValue(text: "");
     }
-    final sb = StringBuffer();
+    final buf = StringBuffer();
     for (int i = 0; i < digits.length; i++) {
       final idxFromEnd = digits.length - i;
-      sb.write(digits[i]);
-      if (idxFromEnd > 1 && idxFromEnd % 3 == 1) sb.write(" ");
+      buf.write(digits[i]);
+      if (idxFromEnd > 1 && idxFromEnd % 3 == 1) buf.write(" ");
     }
-    final t = sb.toString();
-    return TextEditingValue(text: t, selection: TextSelection.collapsed(offset: t.length));
+    final formatted = buf.toString();
+    return TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
+    );
   }
 }
 
@@ -26,32 +29,31 @@ class ProviderAddServiceScreen extends StatefulWidget {
   const ProviderAddServiceScreen({super.key});
 
   @override
-  State<ProviderAddServiceScreen> createState() => _ProviderAddServiceScreenState();
+  State<ProviderAddServiceScreen> createState() =>
+      _ProviderAddServiceScreenState();
 }
 
 class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
   final store = ServiceStore.instance;
 
-  // Előre definiált szolgáltatások listája
   final List<String> _serviceOptions = const [
     "Általános takarítás",
     "Nagytakarítás",
-    "Villanyszerelés",
+    "Felújítás utáni takarítás",
+    "Karbantartás",
     "Vízszerelés",
+    "Gázszerelés",
+    "Légkondicionáló szerelés",
     "Bútorösszeszerelés",
-    "Festés",
-    "Kertgondozás",
+    "Villanyszerelés",
   ];
 
   String? _selectedService;
-
-  /// Kiválasztott kerületek (I..XXIII)
-  final Set<String> _districts = {};
+  final Set<String> _districts = {}; // I..XXIII – popupban választjuk
 
   final priceCtrl = TextEditingController();
   PriceUnit _unit = PriceUnit.ftPerHour;
 
-  /// Elérhetőségi idősávok – átfedés engedett
   final List<ServiceSlot> _slots = [];
 
   @override
@@ -66,49 +68,50 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
       "XI","XII","XIII","XIV","XV","XVI","XVII","XVIII","XIX","XX",
       "XXI","XXII","XXIII"
     ];
-    final temp = Set<String>.from(_districts);
-    final res = await showDialog<Set<String>>(
+    final current = Set<String>.from(_districts);
+
+    final result = await showDialog<Set<String>>(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("Budapest, kerületek"),
-        content: SingleChildScrollView(
-          child: Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: [
-              FilterChip(
-                label: const Text("Mind"),
-                selected: temp.length == all.length,
-                onSelected: (v) {
-                  if (v) {
-                    temp
-                      ..clear()
-                      ..addAll(all);
-                  } else {
-                    temp.clear();
-                  }
-                  setState(() {});
-                },
-              ),
-              ...all.map((d) => FilterChip(
-                    label: Text(d),
-                    selected: temp.contains(d),
-                    onSelected: (v) => v ? temp.add(d) : temp.remove(d),
-                  )),
-            ],
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setLocal) => AlertDialog(
+          title: const Text("Budapest, kerületek"),
+          content: SingleChildScrollView(
+            child: Wrap(
+              spacing: 6, runSpacing: 6,
+              children: [
+                FilterChip(
+                  label: const Text("Mind"),
+                  selected: current.length == all.length,
+                  onSelected: (v) {
+                    setLocal(() {
+                      current
+                        ..clear()
+                        ..addAll(v ? all : const <String>[]);
+                    });
+                  },
+                ),
+                ...all.map((d) => FilterChip(
+                  label: Text(d),
+                  selected: current.contains(d),
+                  onSelected: (v) =>
+                      setLocal(() => v ? current.add(d) : current.remove(d)),
+                )),
+              ],
+            ),
           ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Mégse")),
+            FilledButton(onPressed: () => Navigator.pop(ctx, current), child: const Text("Mentés")),
+          ],
         ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Mégse")),
-          FilledButton(onPressed: () => Navigator.pop(context, temp), child: const Text("Mentés")),
-        ],
       ),
     );
-    if (res != null) {
+
+    if (result != null) {
       setState(() {
         _districts
           ..clear()
-          ..addAll(res);
+          ..addAll(result);
       });
     }
   }
@@ -118,30 +121,42 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
     final date = await showDatePicker(
       context: context,
       initialDate: now,
-      firstDate: DateTime(now.year - 1),
+      firstDate: now,
       lastDate: DateTime(now.year + 2),
     );
     if (date == null) return;
-
-    final from = await showTimePicker(context: context, initialTime: const TimeOfDay(hour: 9, minute: 0));
+    final from = await showTimePicker(
+      context: context,
+      initialTime: const TimeOfDay(hour: 9, minute: 0),
+      helpText: "Kezdő idő",
+    );
     if (from == null) return;
-
-    final to = await showTimePicker(context: context, initialTime: const TimeOfDay(hour: 16, minute: 0));
+    final to = await showTimePicker(
+      context: context,
+      initialTime: const TimeOfDay(hour: 16, minute: 0),
+      helpText: "Záró idő",
+    );
     if (to == null) return;
 
     setState(() {
-      _slots.add(ServiceSlot(date: DateTime(date.year, date.month, date.day), from: from, to: to));
+      _slots.add(ServiceSlot(
+        date: DateTime(date.year, date.month, date.day),
+        from: from,
+        to: to,
+      ));
     });
   }
 
-  void _removeSlot(int index) => setState(() => _slots.removeAt(index));
+  void _removeSlot(int i) => setState(() => _slots.removeAt(i));
 
   void _save() {
     final priceDigits = priceCtrl.text.replaceAll(" ", "");
-    if (_selectedService == null || _districts.isEmpty || priceDigits.isEmpty || _slots.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Tölts ki minden mezőt: szolgáltatás, kerület(ek), ár és idősáv.")),
-      );
+    if (_selectedService == null ||
+        _districts.isEmpty ||
+        priceDigits.isEmpty ||
+        _slots.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text("Tölts ki mindent: szolgáltatás, kerület(ek), ár, idősávok.")));
       return;
     }
     final price = int.tryParse(priceDigits) ?? 0;
@@ -163,32 +178,29 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
     Navigator.pop(context);
   }
 
+  String two(int n) => n.toString().padLeft(2, "0");
+
   @override
   Widget build(BuildContext context) {
-    // Szerkesztés esetén előtöltés
+    // szerkesztéskor előtöltés
     final arg = ModalRoute.of(context)?.settings.arguments;
     if (arg is int) {
-      final existing = store.services[arg];
-      _selectedService ??= existing.name;
-      if (_districts.isEmpty) _districts.addAll(existing.districts);
+      final s = store.services[arg];
+      _selectedService ??= s.name;
+      if (_districts.isEmpty) _districts.addAll(s.districts);
       if (priceCtrl.text.isEmpty) {
-        final s = existing.price.toString();
-        final sb = StringBuffer();
-        for (int i = 0; i < s.length; i++) {
-          final idxFromEnd = s.length - i;
-          sb.write(s[i]);
-          if (idxFromEnd > 1 && idxFromEnd % 3 == 1) sb.write(" ");
+        final t = s.price.toString();
+        final buf = StringBuffer();
+        for (int i = 0; i < t.length; i++) {
+          final idxFromEnd = t.length - i;
+          buf.write(t[i]);
+          if (idxFromEnd > 1 && idxFromEnd % 3 == 1) buf.write(" ");
         }
-        priceCtrl.text = sb.toString();
+        priceCtrl.text = buf.toString();
       }
-      _unit = existing.unit;
-      if (_slots.isEmpty) _slots.addAll(existing.slots);
+      if (_slots.isEmpty) _slots.addAll(s.slots);
+      _unit = s.unit;
     }
-
-    String districtsLabel() =>
-        _districts.isEmpty ? "Nincs kiválasztva" : (_districts.toList()..sort()).join(", ");
-
-    String two(int n) => n.toString().padLeft(2, "0");
 
     return Scaffold(
       appBar: AppBar(title: const Text("Új szolgáltatás")),
@@ -197,10 +209,8 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // 1) Szolgáltatás választó (chips)
             Wrap(
-              spacing: 6,
-              runSpacing: 6,
+              spacing: 6, runSpacing: 6,
               children: _serviceOptions.map((opt) {
                 final sel = _selectedService == opt;
                 return ChoiceChip(
@@ -212,7 +222,6 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
             ),
             const SizedBox(height: 8),
 
-            // 2) Kerületek
             Row(
               children: [
                 const Expanded(child: Text("Budapest, kerületek")),
@@ -220,13 +229,11 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
               ],
             ),
             Text(
-              districtsLabel(),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+              _districts.isEmpty ? "Nincs kiválasztva" : (_districts.toList()..sort()).join(", "),
+              maxLines: 2, overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 8),
 
-            // 3) Ár + egység
             Row(
               children: [
                 Expanded(
@@ -234,13 +241,17 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
                     controller: priceCtrl,
                     keyboardType: TextInputType.number,
                     inputFormatters: [ThousandsFormatter()],
-                    decoration: const InputDecoration(labelText: "Ár", hintText: "pl. 12 000"),
+                    decoration: const InputDecoration(
+                      labelText: "Ár",
+                      hintText: "pl. 12 000",
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
                 ToggleButtons(
                   isSelected: [_unit == PriceUnit.ftPerHour, _unit == PriceUnit.ftPerSqm],
-                  onPressed: (i) => setState(() => _unit = i == 0 ? PriceUnit.ftPerHour : PriceUnit.ftPerSqm),
+                  onPressed: (i) => setState(() =>
+                    _unit = i == 0 ? PriceUnit.ftPerHour : PriceUnit.ftPerSqm),
                   children: const [
                     Padding(padding: EdgeInsets.symmetric(horizontal: 10), child: Text("Ft/óra")),
                     Padding(padding: EdgeInsets.symmetric(horizontal: 10), child: Text("Ft/nm")),
@@ -250,7 +261,6 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
             ),
             const SizedBox(height: 8),
 
-            // 4) Idősávok
             Row(
               children: [
                 const Expanded(child: Text("Elérhetőség (nap + óra/perc)")),
@@ -259,26 +269,22 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
             ),
             if (_slots.isNotEmpty)
               Wrap(
-                spacing: 6,
-                runSpacing: 6,
+                spacing: 6, runSpacing: 6,
                 children: List.generate(_slots.length, (i) {
                   final s = _slots[i];
                   final d = "${s.date.year}.${two(s.date.month)}.${two(s.date.day)}.";
                   final f = "${two(s.from.hour)}:${two(s.from.minute)}";
                   final t = "${two(s.to.hour)}:${two(s.to.minute)}";
-                  return InputChip(label: Text("$d • $f–$t"), onDeleted: () => _removeSlot(i));
+                  return InputChip(
+                    label: Text("$d • $f–$t"),
+                    onDeleted: () => _removeSlot(i),
+                  );
                 }),
               )
             else
               const Text("Nincs idősáv megadva"),
-
             const Spacer(),
-
-            // 5) Mentés
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(onPressed: _save, child: const Text("Mentés")),
-            ),
+            FilledButton(onPressed: _save, child: const Text("Mentés")),
           ],
         ),
       ),
