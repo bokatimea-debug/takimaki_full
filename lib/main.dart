@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+﻿// lib/main.dart
+import 'package:flutter/material.dart';
 import 'screens/splash_login_screen.dart';
 import 'screens/role_select_screen.dart';
 
@@ -29,7 +30,7 @@ class TakimakiApp extends StatelessWidget {
 
 class _PlaceholderScreen extends StatelessWidget {
   final String title;
-  const _PlaceholderScreen({required this.title});
+  const _PlaceholderScreen({required this.title, super.key});
 
   @override
   Widget build(BuildContext context) {
