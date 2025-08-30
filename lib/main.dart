@@ -1,19 +1,19 @@
 ﻿// lib/main.dart
-import 'package:flutter/material.dart';
-import 'screens/splash_login_screen.dart';
-import 'screens/role_select_screen.dart';
-import 'screens/customer_profile_screen.dart';
-import 'screens/customer_edit_profile_screen.dart';
-import 'screens/customer_new_order_screen.dart';
-import 'screens/customer_messages_screen.dart';
-import 'screens/customer_orders_screen.dart';
-import 'screens/provider_profile_screen.dart';
-import 'screens/provider_services_screen.dart';
-import 'screens/provider_add_service_screen.dart';
-import 'screens/provider_edit_profile_screen.dart';
-import 'screens/provider_requests_screen.dart';
-import 'screens/provider_messages_screen.dart';
-import 'screens/provider_all_orders_screen.dart';
+import "package:flutter/material.dart";
+import "screens/splash_login_screen.dart";
+import "screens/role_select_screen.dart";
+import "screens/customer_profile_screen.dart";
+import "screens/customer_edit_profile_screen.dart";
+import "screens/provider_profile_screen.dart";
+import "screens/provider_services_screen.dart";
+import "screens/provider_add_service_screen.dart";
+import "screens/provider_edit_profile_screen.dart";
+import "screens/customer_new_order_screen.dart";
+import "screens/customer_messages_screen.dart";
+import "screens/customer_orders_screen.dart";
+import "screens/provider_requests_screen.dart";
+import "screens/provider_messages_screen.dart";
+import "screens/provider_all_orders_screen.dart";
 
 void main() {
   runApp(const TakimakiApp());
@@ -25,7 +25,7 @@ class TakimakiApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Takimaki',
+      title: "Takimaki",
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorSchemeSeed: const Color(0xFF0FA3A9),
@@ -33,19 +33,19 @@ class TakimakiApp extends StatelessWidget {
       ),
       home: const SplashLoginScreen(),
       routes: {
-        '/role_select': (context) => const RoleSelectScreen(),
-        '/customer/profile': (context) => const CustomerProfileScreen(),
-        '/customer/edit_profile': (context) => const CustomerEditProfileScreen(),
-        '/customer/new_order': (context) => const CustomerNewOrderScreen(),
-        '/customer/messages': (context) => const CustomerMessagesScreen(),
-        '/customer/orders': (context) => const CustomerOrdersScreen(),
-        '/provider/profile': (context) => const ProviderProfileScreen(),
-        '/provider/services': (context) => const ProviderServicesScreen(),
-        '/provider/add_service': (context) => const ProviderAddServiceScreen(),
-        '/provider/edit_profile': (context) => const ProviderEditProfileScreen(),
-        '/provider/requests': (context) => const ProviderRequestsScreen(),
-        '/provider/messages': (context) => const ProviderMessagesScreen(),
-        '/provider/all_orders': (context) => const ProviderAllOrdersScreen(),
+        "/role_select": (context) => const RoleSelectScreen(),
+        "/customer/profile": (context) => const CustomerProfileScreen(),
+        "/customer/edit_profile": (context) => const CustomerEditProfileScreen(),
+        "/customer/new_order": (context) => const CustomerNewOrderScreen(),
+        "/customer/messages": (context) => const CustomerMessagesScreen(),
+        "/customer/orders": (context) => const CustomerOrdersScreen(),
+        "/provider/profile": (context) => const ProviderProfileScreen(),
+        "/provider/services": (context) => const ProviderServicesScreen(),
+        "/provider/add_service": (context) => const ProviderAddServiceScreen(),
+        "/provider/edit_profile": (context) => const ProviderEditProfileScreen(),
+        "/provider/requests": (context) => const ProviderRequestsScreen(),
+        "/provider/messages": (context) => const ProviderMessagesScreen(),
+        "/provider/all_orders": (context) => const ProviderAllOrdersScreen(),
       },
     );
   }
