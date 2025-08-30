@@ -1,35 +1,78 @@
+﻿// lib/screens/customer_profile_screen.dart
 import 'package:flutter/material.dart';
-import '../widgets/rating_stars.dart';
 
 class CustomerProfileScreen extends StatelessWidget {
   const CustomerProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // DEMÓ adatok
-    const name = 'Kiss Júlia';
-    const rating = 4.6;
-    const success = 12;
-
     return Scaffold(
-      appBar: AppBar(title: const Text('Megrendelői profil')),
-      body: Padding(
+      appBar: AppBar(title: const Text('Megrendelő profil')),
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            ListTile(
-              leading: const CircleAvatar(child: Icon(Icons.person)),
-              title: const Text(name),
-              subtitle: RatingStars(rating: rating, successCount: success, isProvider: false),
+            // Profilkép + értékelés + rendelések száma
+            CircleAvatar(
+              radius: 50,
+              backgroundColor: Colors.grey.shade300,
+              child: const Icon(Icons.person, size: 50),
             ),
             const SizedBox(height: 12),
+            const Text('⭐ 4.8 / 5.0', style: TextStyle(fontSize: 18)),
+            const Text('12 sikeres rendelés', style: TextStyle(fontSize: 16)),
+            const SizedBox(height: 24),
+
+            // Akciógombok
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/customer/new_order');
+                },
+                child: const Text('Új rendelés leadása'),
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/customer/messages');
+                },
+                child: const Text('Üzenetek'),
+              ),
+            ),
+            const Divider(height: 32),
+
+            // Legutóbbi rendelések
             const Align(
               alignment: Alignment.centerLeft,
-              child: Text('Utolsó 3 megrendelés', style: TextStyle(fontWeight: FontWeight.w600)),
+              child: Text(
+                'Legutóbbi rendeléseim',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
             ),
-            const SizedBox(height: 8),
-            for (final it in const ['Apartman takarítás – 17 000 Ft', 'Nagytakarítás – 30 000 Ft', 'Irodatisztítás – 12 000 Ft'])
-              Card(child: ListTile(title: Text(it))),
+            const SizedBox(height: 12),
+            const ListTile(
+              title: Text('Takarítás'),
+              subtitle: Text('2025-08-29 • Teljesítve'),
+            ),
+            const ListTile(
+              title: Text('Villanyszerelés'),
+              subtitle: Text('2025-08-20 • Lemondva'),
+            ),
+            const ListTile(
+              title: Text('Nagytakarítás'),
+              subtitle: Text('2025-08-05 • Teljesítve'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/customer/orders');
+              },
+              child: const Text('Összes rendelés megtekintése'),
+            ),
           ],
         ),
       ),
