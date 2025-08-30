@@ -1,5 +1,4 @@
-﻿// lib/screens/role_select_screen.dart
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 class RoleSelectScreen extends StatelessWidget {
   const RoleSelectScreen({super.key});
@@ -21,7 +20,7 @@ class RoleSelectScreen extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: FilledButton(
-                onPressed: () => Navigator.pushNamed(context, '/provider_registration'),
+                onPressed: () => Navigator.pushNamed(context, '/provider/profile'),
                 child: const Text('Szolgáltató'),
               ),
             ),
@@ -29,7 +28,7 @@ class RoleSelectScreen extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(
-                onPressed: () => Navigator.pushNamed(context, '/customer/search'),
+                onPressed: () => Navigator.pushNamed(context, '/customer/profile'),
                 child: const Text('Megrendelő'),
               ),
             ),

@@ -1,8 +1,6 @@
-﻿// lib/main.dart
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'screens/splash_login_screen.dart';
 import 'screens/role_select_screen.dart';
-import 'screens/registration_form_screen.dart';
 
 void main() {
   runApp(const TakimakiApp());
@@ -23,9 +21,8 @@ class TakimakiApp extends StatelessWidget {
       home: const SplashLoginScreen(),
       routes: {
         '/role_select': (context) => const RoleSelectScreen(),
-        '/registration_form': (context) => const RegistrationFormScreen(),
-        '/customer/search': (context) => const _PlaceholderScreen(title: 'Customer Search'),
-        '/provider_registration': (context) => const _PlaceholderScreen(title: 'Provider Registration'),
+        '/customer/profile': (context) => const _PlaceholderScreen(title: 'Customer Profile'),
+        '/provider/profile': (context) => const _PlaceholderScreen(title: 'Provider Profile'),
       },
     );
   }
