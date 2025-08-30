@@ -24,7 +24,19 @@ class CustomerProfileScreen extends StatelessWidget {
             const Text('12 sikeres rendelés', style: TextStyle(fontSize: 16)),
             const SizedBox(height: 24),
 
-            // Akciógombok
+            // Profil szerkesztése
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/customer/edit_profile');
+                },
+                child: const Text('Profil szerkesztése'),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Új rendelés leadása
             SizedBox(
               width: double.infinity,
               child: FilledButton(
@@ -35,6 +47,8 @@ class CustomerProfileScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
+
+            // Üzenetek
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(
@@ -46,7 +60,7 @@ class CustomerProfileScreen extends StatelessWidget {
             ),
             const Divider(height: 32),
 
-            // Legutóbbi rendelések
+            // Legutóbbi rendeléseim
             const Align(
               alignment: Alignment.centerLeft,
               child: Text(

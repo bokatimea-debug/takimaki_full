@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'screens/splash_login_screen.dart';
 import 'screens/role_select_screen.dart';
 import 'screens/customer_profile_screen.dart';
+import 'screens/customer_edit_profile_screen.dart';
 import 'screens/provider_profile_screen.dart';
 import 'screens/provider_services_screen.dart';
 import 'screens/provider_add_service_screen.dart';
@@ -28,11 +29,11 @@ class TakimakiApp extends StatelessWidget {
       routes: {
         '/role_select': (context) => const RoleSelectScreen(),
         '/customer/profile': (context) => const CustomerProfileScreen(),
+        '/customer/edit_profile': (context) => const CustomerEditProfileScreen(),
         '/provider/profile': (context) => const ProviderProfileScreen(),
         '/provider/services': (context) => const ProviderServicesScreen(),
         '/provider/add_service': (context) => const ProviderAddServiceScreen(),
         '/provider/edit_profile': (context) => const ProviderEditProfileScreen(),
-        // később: /provider/requests, /provider/messages, /provider/all_orders
       },
     );
   }
