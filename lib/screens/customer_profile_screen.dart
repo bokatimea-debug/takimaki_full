@@ -1,21 +1,38 @@
-﻿import "dart:typed_data";
+﻿// lib/screens/customer_profile_screen.dart
+import "dart:convert";
+import "dart:typed_data";
 import "package:flutter/material.dart";
-import "../services/profile_store.dart";
+import "package:shared_preferences/shared_preferences.dart";
+import "../services/demo_data.dart";
 
-class CustomerProfileScreen extends StatelessWidget {
+class CustomerProfileScreen extends StatefulWidget {
   const CustomerProfileScreen({super.key});
+  @override
+  State<CustomerProfileScreen> createState() => _CustomerProfileScreenState();
+}
+
+class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
+  Uint8List? photo;
+  String bio = "";
+
+  @override
+  void initState() { super.initState(); _load(); }
+
+  Future<void> _load() async {
+    final sp = await SharedPreferences.getInstance();
+    bio = sp.getString("customer_bio") ?? "";
+    final b64 = sp.getString("customer_photo_b64") ?? sp.getString("registration_photo_b64");
+    if (b64!=null && b64.isNotEmpty) photo = base64Decode(b64);
+    if (mounted) setState((){});
+  }
 
   @override
   Widget build(BuildContext context) {
-    final c = ProfileStore.instance.customer;
-
-    Widget avatar() {
-      final Uint8List? bytes = c.photoBytes;
-      if (bytes == null) {
-        return const CircleAvatar(radius: 44, child: Icon(Icons.person, size: 44));
-      }
-      return CircleAvatar(radius: 44, backgroundImage: MemoryImage(bytes));
-    }
+    Widget avatar() => CircleAvatar(
+      radius: 44,
+      backgroundImage: photo!=null? MemoryImage(photo!) : null,
+      child: photo==null? const Icon(Icons.person, size: 44) : null,
+    );
 
     return Scaffold(
       appBar: AppBar(title: const Text("Megrendelő profil")),
@@ -25,40 +42,17 @@ class CustomerProfileScreen extends StatelessWidget {
           children: [
             avatar(),
             const SizedBox(height: 8),
-            if (c.bio.isNotEmpty) Text(c.bio, textAlign: TextAlign.center),
+            if (bio.isNotEmpty) Text(bio, textAlign: TextAlign.center),
             const SizedBox(height: 16),
-
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: () => Navigator.pushNamed(context, "/customer/profile/edit")
-                    .then((_) => (context as Element).markNeedsBuild()),
-                child: const Text("Profil szerkesztése"),
-              ),
-            ),
+            SizedBox(width: double.infinity, child: FilledButton(onPressed: ()=> Navigator.pushNamed(context, "/customer/edit_profile").then((_){_load();}), child: const Text("Profil szerkesztése"))),
             const SizedBox(height: 8),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: () => Navigator.pushNamed(context, "/customer/order/new"),
-                child: const Text("Új rendelés leadása"),
-              ),
-            ),
+            SizedBox(width: double.infinity, child: FilledButton(onPressed: ()=> Navigator.pushNamed(context, "/customer/new_order"), child: const Text("Új rendelés leadása"))),
             const SizedBox(height: 8),
-            OutlinedButton(
-              onPressed: () => Navigator.pushNamed(context, "/customer/messages"),
-              child: const Text("Üzenetek"),
-            ),
+            OutlinedButton(onPressed: ()=> Navigator.pushNamed(context, "/customer/messages"), child: const Text("Üzenetek")),
             const Spacer(),
-            const Align(
-              alignment: Alignment.centerLeft,
-              child: Text("Legutóbbi rendeléseim", style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
+            const Align(alignment: Alignment.centerLeft, child: Text("Legutóbbi rendeléseim", style: TextStyle(fontWeight: FontWeight.bold))),
             const SizedBox(height: 8),
-            const Align(
-              alignment: Alignment.centerLeft,
-              child: Text("• Takarítás – Teljesítve\n• Villanyszerelés – Lemondva\n• Nagytakarítás – Teljesítve"),
-            ),
+            Align(alignment: Alignment.centerLeft, child: Text(DemoOrders.customerOrders.take(3).map((e)=>"• ${e["title"]} – ${e["status"]}").join("\n"))),
           ],
         ),
       ),
