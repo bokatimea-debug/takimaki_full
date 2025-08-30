@@ -22,7 +22,7 @@ class ProviderServicesScreen extends StatelessWidget {
             ),
           ),
           const Divider(),
-          const Expanded(
+          Expanded(
             child: ListView(
               children: [
                 ListTile(
