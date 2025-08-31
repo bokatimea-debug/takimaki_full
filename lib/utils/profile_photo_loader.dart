@@ -2,23 +2,34 @@
 import "package:flutter/material.dart";
 import "package:shared_preferences/shared_preferences.dart";
 
-/// Lehetséges kulcsok, amelyek alá ment a base64 profilkép (regisztrációnál).
+/// Régi és új kulcsok, amik alá a base64 profilfotó kerülhetett.
 const List<String> _photoKeys = <String>[
+  // új
   "profile_photo_b64",
   "customer_profile_photo_b64",
   "provider_profile_photo_b64",
+  // lehetséges régi/eltérő kulcsok
+  "profilePhotoB64",
+  "profile_photo",
+  "profile_b64",
+  "user_profile_photo_b64",
+  "avatar_b64",
 ];
 
 Future<ImageProvider?> loadProfilePhoto() async {
   try {
     final prefs = await SharedPreferences.getInstance();
+
+    // ha valaha rossz prefixszel ment: whitespace csökkentés
     for (final k in _photoKeys) {
       final b64 = prefs.getString(k);
-      if (b64 != null && b64.trim().isNotEmpty) {
-        try {
-          final bytes = base64Decode(b64);
-          return MemoryImage(bytes);
-        } catch (_) {}
+      if (b64 != null) {
+        final s = b64.trim();
+        if (s.isNotEmpty) {
+          try {
+            return MemoryImage(base64Decode(s));
+          } catch (_) {/* megyünk tovább a listán */}
+        }
       }
     }
   } catch (_) {}
