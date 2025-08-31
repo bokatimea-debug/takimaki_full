@@ -1,4 +1,6 @@
-﻿import "dart:io";
+﻿import 'dart:convert';
+
+import "dart:io";
 import "package:flutter/material.dart";
 import "package:shared_preferences/shared_preferences.dart";
 
@@ -31,7 +33,7 @@ class ProfilePhotoLoader {
 
   static ImageProvider? _from({String? b64, String? path, String? url}) {
     if (b64 != null && b64.isNotEmpty) {
-      try { return MemoryImage(const Base64Decoder().convert(b64)); } catch (_) {}
+      try { return MemoryImage(base64Decode()); } catch (_) {}
     }
     if (path != null && path.isNotEmpty) {
       final f = File(path);
@@ -43,3 +45,4 @@ class ProfilePhotoLoader {
     return null;
   }
 }
+
