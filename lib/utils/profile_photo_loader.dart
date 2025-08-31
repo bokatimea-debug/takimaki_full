@@ -33,7 +33,7 @@ class ProfilePhotoLoader {
 
   static ImageProvider? _from({String? b64, String? path, String? url}) {
     if (b64 != null && b64.isNotEmpty) {
-      try { return MemoryImage(base64Decode()); } catch (_) {}
+      try { return MemoryImage(base64Decode(b64)); } catch (_) {}
     }
     if (path != null && path.isNotEmpty) {
       final f = File(path);
@@ -45,4 +45,5 @@ class ProfilePhotoLoader {
     return null;
   }
 }
+
 
