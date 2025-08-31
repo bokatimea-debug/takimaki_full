@@ -1,28 +1,56 @@
 ﻿import 'package:flutter/material.dart';
+import 'package:google_place/google_place.dart';
 
 class MapPickerScreen extends StatefulWidget {
   const MapPickerScreen({super.key});
-  @override State<MapPickerScreen> createState() => _S();
+  @override
+  State<MapPickerScreen> createState() => _MapPickerScreenState();
 }
-class _S extends State<MapPickerScreen> {
-  final _c = TextEditingController();
+
+class _MapPickerScreenState extends State<MapPickerScreen> {
+  late GooglePlace _googlePlace;
+  List<AutocompletePrediction> predictions = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _googlePlace = GooglePlace("YOUR_GOOGLE_API_KEY"); // TODO: API kulcs
+  }
+
+  void _autoCompleteSearch(String value) async {
+    var result = await _googlePlace.autocomplete.get(value, language: "hu");
+    if (result != null && result.predictions != null && mounted) {
+      setState(() {
+        predictions = result.predictions!;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Cím kiválasztása')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          const Text('Írd be a címet (Google Maps integráció később):'),
-          const SizedBox(height: 8),
-          TextField(controller:_c, decoration: const InputDecoration(hintText:'pl. 1138 Budapest, Váci út 99.', border: OutlineInputBorder())),
-          const Spacer(),
-          FilledButton(onPressed: (){
-            final v=_c.text.trim();
-            if(v.isEmpty){ ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Adj meg címet'))); return; }
-            Navigator.pop(context, v);
-          }, child: const Text('Mentés')),
-        ]),
+      appBar: AppBar(title: const Text("Válassz címet")),
+      body: Column(
+        children: [
+          TextField(
+            decoration: const InputDecoration(hintText: "Írd be a címet"),
+            onChanged: _autoCompleteSearch,
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: predictions.length,
+              itemBuilder: (context, index) {
+                final p = predictions[index];
+                return ListTile(
+                  title: Text(p.description ?? ""),
+                  onTap: () {
+                    Navigator.pop(context, p.description);
+                  },
+                );
+              },
+            ),
+          )
+        ],
       ),
     );
   }
