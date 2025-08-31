@@ -22,12 +22,11 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
   final _priceCtrl = TextEditingController();
   String _unit = "Ft/óra";
   final Set<int> _districts = {};
-  final Set<DateTime> _dates = {}; // többszörös nap kiválasztás
+  final Set<DateTime> _dates = {}; // több nap kijelölhető
 
   @override
   void initState() {
     super.initState();
-    // ha szerkesztésből jövünk
     final args = ModalRoute.of(context)?.settings.arguments;
     WidgetsBinding.instance.addPostFrameCallback((_){
       if (args is Map<String, dynamic>) {
@@ -90,7 +89,6 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
     final raw = prefs.getString("provider_services") ?? "[]";
     final list = (json.decode(raw) as List).cast<Map<String, dynamic>>();
 
-    // ha szerkesztés: azonos bejegyzést cseréljük
     final args = ModalRoute.of(context)?.settings.arguments;
     if (args is Map<String, dynamic>) {
       final idx = list.indexWhere((e) => e["id"] == args["id"]);
@@ -148,8 +146,9 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
               children: List.generate(23, (i){
                 final n = i+1;
                 final sel = _districts.contains(n);
+                final label = (n==1)?"I":(n==2)?"II":(n==3)?"III":(n==20)?"XX":(n==21)?"XXI":(n==22)?"XXII":(n==23)?"XXIII": "$n";
                 return FilterChip(
-                  label: Text(n==1? "I": n==2? "II": n==3? "III": "$n"),
+                  label: Text(label),
                   selected: sel,
                   onSelected: (_){
                     setState(() {
@@ -171,10 +170,10 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
                     onChanged: (v){
                       final num = int.tryParse(v.replaceAll(" ", ""));
                       if (num != null) {
-                        final selPos = (_priceCtrl.selection.baseOffset);
+                        final txt = _fmtTh(num);
                         _priceCtrl.value = TextEditingValue(
-                          text: _fmtTh(num),
-                          selection: TextSelection.collapsed(offset: (_fmtTh(num)).length),
+                          text: txt,
+                          selection: TextSelection.collapsed(offset: txt.length),
                         );
                       }
                     },

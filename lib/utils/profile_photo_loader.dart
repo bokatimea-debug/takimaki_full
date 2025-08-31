@@ -2,6 +2,7 @@
 import "package:flutter/material.dart";
 import "package:shared_preferences/shared_preferences.dart";
 
+/// Lehetséges kulcsok, amelyek alá ment a base64 profilkép (regisztrációnál).
 const List<String> _photoKeys = <String>[
   "profile_photo_b64",
   "customer_profile_photo_b64",

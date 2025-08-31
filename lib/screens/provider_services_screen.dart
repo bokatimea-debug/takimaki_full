@@ -66,7 +66,6 @@ class _ProviderServicesScreenState extends State<ProviderServicesScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   IconButton(onPressed: () async {
-                    // szerkesztés ugyanazzal a képernyővel
                     final res = await Navigator.pushNamed(context, "/provider/add_service", arguments: it);
                     if (res == true) await _load();
                   }, icon: const Icon(Icons.edit)),
