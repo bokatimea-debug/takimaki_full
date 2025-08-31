@@ -2,7 +2,6 @@
 
 class CustomerEditProfileScreen extends StatefulWidget {
   const CustomerEditProfileScreen({super.key});
-
   @override
   State<CustomerEditProfileScreen> createState() => _CustomerEditProfileScreenState();
 }
@@ -24,9 +23,7 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
             ),
             const SizedBox(height: 20),
             FilledButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
+              onPressed: (){ Navigator.pop(context); },
               child: const Text("Mentés"),
             ),
           ],

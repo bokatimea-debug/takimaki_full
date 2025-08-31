@@ -1,76 +1,82 @@
 ﻿import "package:flutter/material.dart";
-import "../services/service_store.dart";
+import "package:shared_preferences/shared_preferences.dart";
+import "dart:convert";
 
 class ProviderServicesScreen extends StatefulWidget {
   const ProviderServicesScreen({super.key});
-
   @override
   State<ProviderServicesScreen> createState() => _ProviderServicesScreenState();
 }
 
 class _ProviderServicesScreenState extends State<ProviderServicesScreen> {
-  final store = ServiceStore.instance;
+  List<Map<String, dynamic>> _items = [];
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString("provider_services") ?? "[]";
+    _items = (json.decode(raw) as List).cast<Map<String, dynamic>>();
+    if (mounted) setState((){});
+  }
+
+  Future<void> _save() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString("provider_services", json.encode(_items));
+  }
+
+  Future<void> _delete(int index) async {
+    _items.removeAt(index);
+    await _save();
+    if (mounted) setState((){});
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Szolgáltatásaim")),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () async {
+          final res = await Navigator.pushNamed(context, "/provider/add_service");
+          if (res == true) await _load();
+        },
+        icon: const Icon(Icons.add),
+        label: const Text("Új szolgáltatás"),
+      ),
       body: ListView.separated(
         padding: const EdgeInsets.all(12),
-        itemCount: store.services.length,
-        separatorBuilder: (_, __) => const Divider(),
+        itemCount: _items.length,
+        separatorBuilder: (_, __)=> const SizedBox(height: 8),
         itemBuilder: (context, i) {
-          final s = store.services[i];
-          final unit = s.unit == PriceUnit.ftPerHour ? "Ft/óra" : "Ft/nm";
-          return ListTile(
-            title: Text(s.name),
-            subtitle: Text("${s.districts.join(", ")} • ${s.price} $unit"),
-            trailing: Wrap(
-              spacing: 8,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.edit, color: Colors.blue),
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const _EditorRoute(),
-                      settings: RouteSettings(arguments: i),
-                    ),
-                  ).then((_) => setState(() {})),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close, color: Colors.red),
-                  onPressed: () => setState(() => store.remove(i)),
-                ),
-              ],
+          final it = _items[i];
+          final name = it["name"] ?? "";
+          final price = it["price_fmt"] ?? "";
+          final unit = it["unit"] ?? "";
+          final dcount = (it["districts"] as List?)?.length ?? 0;
+          final dates = (it["dates"] as List?)?.length ?? 0;
+          return Card(
+            child: ListTile(
+              title: Text(name),
+              subtitle: Text("$price $unit • Kerületek: $dcount • Napok: $dates"),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(onPressed: () async {
+                    // szerkesztés ugyanazzal a képernyővel
+                    final res = await Navigator.pushNamed(context, "/provider/add_service", arguments: it);
+                    if (res == true) await _load();
+                  }, icon: const Icon(Icons.edit)),
+                  IconButton(onPressed: ()=> _delete(i), icon: const Icon(Icons.close))
+                ],
+              ),
             ),
           );
         },
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const _EditorRoute()),
-        ).then((_) => setState(() {})),
-        label: const Text("Új szolgáltatás"),
-        icon: const Icon(Icons.add),
-      ),
     );
   }
-}
-
-/// Csak navigációs alias a szerkesztő képernyőhöz (kód a külön fájlban van).
-class _EditorRoute extends StatelessWidget {
-  const _EditorRoute();
-
-  @override
-  Widget build(BuildContext context) =>
-      const _Forward(child: "lib/screens/provider_add_service_screen.dart not imported");
-}
-
-class _Forward extends StatelessWidget {
-  const _Forward({required this.child});
-  final String child;
-  @override
-  Widget build(BuildContext context) => const SizedBox.shrink();
 }

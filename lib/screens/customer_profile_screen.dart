@@ -11,10 +11,11 @@ class CustomerProfileScreen extends StatelessWidget {
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const ProfileAvatar(radius: 50),
+            const Center(child: ProfileAvatar(radius: 50)),
             const SizedBox(height: 12),
-            const Text("Megrendelő profil", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Center(child: Text("Megrendelő profil", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
             const SizedBox(height: 12),
             OutlinedButton(
               onPressed: ()=> Navigator.pushNamed(context, "/customer/edit_profile"),
