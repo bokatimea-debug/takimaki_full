@@ -1,8 +1,6 @@
-﻿// lib/screens/provider_add_service_screen.dart
-import "package:flutter/material.dart";
+﻿import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:table_calendar/table_calendar.dart";
-import "../services/service_store.dart";
 
 class ThousandsFormatter extends TextInputFormatter {
   @override
@@ -10,10 +8,10 @@ class ThousandsFormatter extends TextInputFormatter {
     final d = n.text.replaceAll(RegExp(r"[^0-9]"), "");
     if (d.isEmpty) return const TextEditingValue(text: "");
     final b = StringBuffer();
-    for (int i=0;i<d.length;i++){
-      final idx = d.length - i;
+    for (int i = 0; i < d.length; i++) {
+      final left = d.length - i;
       b.write(d[i]);
-      if (idx>1 && idx%3==1) b.write(" ");
+      if (left > 1 && left % 3 == 1) b.write(" ");
     }
     final f = b.toString();
     return TextEditingValue(text: f, selection: TextSelection.collapsed(offset: f.length));
@@ -26,9 +24,9 @@ class ProviderAddServiceScreen extends StatefulWidget {
   State<ProviderAddServiceScreen> createState() => _ProviderAddServiceScreenState();
 }
 
-class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
-  final store = ServiceStore.instance;
+enum PriceUnit { ftPerHour, ftPerSqm }
 
+class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
   final _options = const [
     "Általános takarítás","Nagytakarítás","Felújítás utáni takarítás",
     "Karbantartás","Vízszerelés","Gázszerelés","Légkondicionáló szerelés",
@@ -40,181 +38,52 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
   final priceCtrl = TextEditingController();
   PriceUnit _unit = PriceUnit.ftPerHour;
 
-  final List<ServiceSlot> _slots = [];
+  final List<_Slot> _slots = [];
 
   @override
   void dispose() { priceCtrl.dispose(); super.dispose(); }
 
   Future<void> _pickDistricts() async {
-    final all = [
+    final all = const [
       "I","II","III","IV","V","VI","VII","VIII","IX","X",
       "XI","XII","XIII","XIV","XV","XVI","XVII","XVIII","XIX","XX",
       "XXI","XXII","XXIII"
     ];
-    final current = Set<String>.from(_districts);
     final out = await showDialog<Set<String>>(
       context: context,
-      builder: (_) => StatefulBuilder(
-        builder: (ctx, setLocal) => AlertDialog(
-          title: const Text("Budapest, kerületek"),
-          content: SingleChildScrollView(
-            child: Wrap(
-              spacing: 6, runSpacing: 6,
-              children: [
-                FilterChip(
-                  label: const Text("Mind"),
-                  selected: current.length==all.length,
-                  onSelected: (v){
-                    setLocal((){
-                      current
-                        ..clear()
-                        ..addAll(v?all:const <String>[]);
-                    });
-                  },
-                ),
-                ...all.map((d)=>FilterChip(
-                  label: Text(d),
-                  selected: current.contains(d),
-                  onSelected: (v){
-                    setLocal((){ v? current.add(d) : current.remove(d); });
-                  },
-                )),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(onPressed: ()=>Navigator.pop(ctx), child: const Text("Mégse")),
-            FilledButton(onPressed: ()=>Navigator.pop(ctx, current), child: const Text("Mentés")),
-          ],
-        ),
-      ),
+      barrierDismissible: false,
+      builder: (_) => _DistrictDialog(all: all, selected: Set.of(_districts)),
     );
-    if (out!=null) setState((){ _districts..clear()..addAll(out); });
+    if (out != null) setState(() { _districts..clear()..addAll(out); });
   }
 
   Future<void> _addMultiSlots() async {
-    final selected = <DateTime>{};
-    TimeOfDay? from;
-    TimeOfDay? to;
-
-    await showDialog<void>(
+    final res = await showDialog<_MultiDayPickResult>(
       context: context,
-      builder: (ctx){
-        DateTime focused = DateTime.now();
-        DateTime first = DateTime(DateTime.now().year-1,1,1);
-        DateTime last  = DateTime(DateTime.now().year+2,12,31);
-        return StatefulBuilder(
-          builder: (ctx, setLocal){
-            Future<void> pickTimes() async {
-              final f = await showTimePicker(context: ctx, initialTime: const TimeOfDay(hour: 9,minute: 0));
-              if (f == null) return;
-              final t = await showTimePicker(context: ctx, initialTime: const TimeOfDay(hour: 16,minute: 0));
-              if (t == null) return;
-              setLocal((){ from = f; to = t; });
-            }
-            return AlertDialog(
-              title: const Text("Napok kiválasztása"),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SizedBox(
-                    width: 340, height: 300,
-                    child: TableCalendar(
-                      firstDay: first, lastDay: last, focusedDay: focused,
-                      selectedDayPredicate: (d)=> selected.any((s)=> isSameDay(s,d)),
-                      onDaySelected: (d, fd){
-                        setLocal((){
-                          focused = d;
-                          final exists = selected.any((s)=> isSameDay(s,d));
-                          if (exists) {
-                            selected.removeWhere((s)=> isSameDay(s,d));
-                          } else {
-                            selected.add(DateTime(d.year,d.month,d.day));
-                          }
-                        });
-                      },
-                      onPageChanged: (d)=> setLocal(()=> focused=d),
-                      calendarFormat: CalendarFormat.month,
-                      headerStyle: const HeaderStyle(formatButtonVisible: false, titleCentered: true),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(from==null||to==null ? "Idő: nincs beállítva" : "Idő: ${_tf(from!)} – ${_tf(to!)}"),
-                    trailing: const Icon(Icons.schedule),
-                    onTap: pickTimes,
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(onPressed: ()=>Navigator.pop(ctx), child: const Text("Mégse")),
-                FilledButton(
-                  onPressed: (){
-                    if (selected.isNotEmpty && from!=null && to!=null) {
-                      Navigator.pop(ctx);
-                      setState((){
-                        for (final d in selected) {
-                          _slots.add(ServiceSlot(date: d, from: from!, to: to!));
-                        }
-                      });
-                    }
-                  },
-                  child: const Text("Hozzáadás"),
-                )
-              ],
-            );
-          },
-        );
-      },
+      barrierDismissible: false,
+      builder: (_) => const _MultiDayPickerDialog(),
     );
+    if (res == null) return;
+    setState(() {
+      for (final d in res.days) {
+        _slots.add(_Slot(date: d, from: res.from, to: res.to));
+      }
+    });
   }
 
-  void _removeSlot(int i)=> setState(()=> _slots.removeAt(i));
+  void _removeSlot(int i) => setState(() => _slots.removeAt(i));
 
   void _save() {
-    final priceRaw = priceCtrl.text.replaceAll(" ","");
-    if (_service==null || _districts.isEmpty || priceRaw.isEmpty || _slots.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Tölts ki mindent: szolgáltatás, kerület(ek), ár, napok/idő.")));
+    final priceRaw = priceCtrl.text.replaceAll(" ", "");
+    if (_service == null || _districts.isEmpty || priceRaw.isEmpty || _slots.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Tölts ki mindent: szolgáltatás, kerület(ek), ár, napok/idő.")));
       return;
     }
-    final s = ProviderService(
-      name: _service!,
-      districts: (_districts.toList()..sort()),
-      price: int.tryParse(priceRaw)??0,
-      unit: _unit,
-      slots: List<ServiceSlot>.from(_slots),
-    );
-    final arg = ModalRoute.of(context)?.settings.arguments;
-    if (arg is int) {
-      ServiceStore.instance.update(arg, s);
-    } else {
-      ServiceStore.instance.add(s);
-    }
-    Navigator.pop(context);
+    Navigator.pop(context, true);
   }
 
   @override
   Widget build(BuildContext context) {
-    final args = ModalRoute.of(context)?.settings.arguments;
-    if (args is int) {
-      final e = ServiceStore.instance.services[args];
-      _service ??= e.name;
-      if (_districts.isEmpty) _districts.addAll(e.districts);
-      if (priceCtrl.text.isEmpty) {
-        final t = e.price.toString();
-        final b = StringBuffer();
-        for (int i=0;i<t.length;i++){
-          final idx = t.length - i;
-          b.write(t[i]); if (idx>1 && idx%3==1) b.write(" ");
-        }
-        priceCtrl.text = b.toString();
-      }
-      if (_slots.isEmpty) _slots.addAll(e.slots);
-      _unit = e.unit;
-    }
-
     return Scaffold(
       appBar: AppBar(title: const Text("Új szolgáltatás")),
       body: Padding(
@@ -222,23 +91,31 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            const Text("Szolgáltatás"),
+            const SizedBox(height: 6),
             Wrap(
               spacing: 6, runSpacing: 6,
               children: _options.map((o){
-                final sel = _service==o;
-                return ChoiceChip(label: Text(o), selected: sel, onSelected: (_)=> setState(()=> _service=o));
+                final sel = _service == o;
+                return ChoiceChip(
+                  label: Text(o),
+                  selected: sel,
+                  onSelected: (_){ setState(()=> _service = o); },
+                );
               }).toList(),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 14),
             Row(
               children: [
                 const Expanded(child: Text("Budapest, kerületek")),
                 TextButton(onPressed: _pickDistricts, child: const Text("Kiválasztás")),
               ],
             ),
-            Text(_districts.isEmpty ? "Nincs kiválasztva" : (_districts.toList()..sort()).join(", "),
-              maxLines: 2, overflow: TextOverflow.ellipsis),
-            const SizedBox(height: 8),
+            Text(
+              _districts.isEmpty ? "Nincs kiválasztva" : (_districts.toList()..sort()).join(", "),
+              maxLines: 2, overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 14),
             Row(
               children: [
                 Expanded(
@@ -253,12 +130,14 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
                 ToggleButtons(
                   isSelected: [_unit==PriceUnit.ftPerHour, _unit==PriceUnit.ftPerSqm],
                   onPressed: (i)=> setState(()=> _unit = i==0? PriceUnit.ftPerHour : PriceUnit.ftPerSqm),
-                  children: const [Padding(padding: EdgeInsets.symmetric(horizontal:10), child: Text("Ft/óra")),
-                                   Padding(padding: EdgeInsets.symmetric(horizontal:10), child: Text("Ft/nm"))],
+                  children: const [
+                    Padding(padding: EdgeInsets.symmetric(horizontal:10), child: Text("Ft/óra")),
+                    Padding(padding: EdgeInsets.symmetric(horizontal:10), child: Text("Ft/nm")),
+                  ],
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             Row(
               children: [
                 const Expanded(child: Text("Elérhetőség (több nap + idő)")),
@@ -286,4 +165,150 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
 
   String _df(DateTime d)=> "${d.year}.${d.month.toString().padLeft(2,'0')}.${d.day.toString().padLeft(2,'0')}.";
   String _tf(TimeOfDay t)=> "${t.hour.toString().padLeft(2,'0')}:${t.minute.toString().padLeft(2,'0')}";
+}
+
+class _DistrictDialog extends StatefulWidget {
+  final List<String> all;
+  final Set<String> selected;
+  const _DistrictDialog({required this.all, required this.selected});
+  @override State<_DistrictDialog> createState() => _DistrictDialogState();
+}
+class _DistrictDialogState extends State<_DistrictDialog> {
+  late Set<String> sel;
+  @override void initState(){ super.initState(); sel = Set<String>.from(widget.selected); }
+  void _toggleAll(bool v) { setState(() { sel.clear(); if (v) sel.addAll(widget.all); }); }
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+    return Dialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text("Budapest, kerületek", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 10),
+            Wrap(spacing:8, runSpacing:8, children: [
+              FilterChip(
+                label: const Text("Mind"),
+                selected: sel.length == widget.all.length,
+                onSelected: (v)=> _toggleAll(v),
+              ),
+            ]),
+            const SizedBox(height: 10),
+            SizedBox(
+              width: 360,
+              child: GridView.count(
+                shrinkWrap: true,
+                crossAxisCount: 4, crossAxisSpacing: 8, mainAxisSpacing: 8,
+                children: widget.all.map((d){
+                  final picked = sel.contains(d);
+                  return SizedBox(
+                    height: 38,
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        backgroundColor: picked ? primary.withOpacity(.18) : null,
+                        side: BorderSide(color: picked ? primary : Colors.grey.shade400),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                      onPressed: (){ setState((){ picked ? sel.remove(d) : sel.add(d); }); },
+                      child: Text(d, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: picked ? primary : null)),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(onPressed: ()=> Navigator.pop(context), child: const Text("Mégse")),
+                const SizedBox(width: 8),
+                FilledButton(onPressed: ()=> Navigator.pop(context, sel), child: const Text("Mentés")),
+              ],
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MultiDayPickResult {
+  _MultiDayPickResult(this.days, this.from, this.to);
+  final Set<DateTime> days;
+  final TimeOfDay from;
+  final TimeOfDay to;
+}
+class _MultiDayPickerDialog extends StatefulWidget {
+  const _MultiDayPickerDialog({super.key});
+  @override State<_MultiDayPickerDialog> createState() => _MultiDayPickerDialogState();
+}
+class _MultiDayPickerDialogState extends State<_MultiDayPickerDialog> {
+  DateTime focused = DateTime.now();
+  final Set<DateTime> selected = {};
+  TimeOfDay? from, to;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text("Napok kiválasztása"),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: 340, height: 300,
+            child: TableCalendar(
+              firstDay: DateTime(DateTime.now().year-1,1,1),
+              lastDay:  DateTime(DateTime.now().year+2,12,31),
+              focusedDay: focused,
+              calendarFormat: CalendarFormat.month,
+              headerStyle: const HeaderStyle(formatButtonVisible: false, titleCentered: true),
+              selectedDayPredicate: (d)=> selected.any((s)=> isSameDay(s, d)),
+              onDaySelected: (d, _) {
+                setState(() {
+                  final exists = selected.any((s)=> isSameDay(s, d));
+                  if (exists) { selected.removeWhere((s)=> isSameDay(s, d)); }
+                  else { selected.add(DateTime(d.year, d.month, d.day)); }
+                });
+              },
+              onPageChanged: (d)=> setState(()=> focused = d),
+            ),
+          ),
+          const SizedBox(height: 10),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(from==null || to==null ? "Idő: nincs beállítva" : "Idő: ${_tf(from!)} – ${_tf(to!)}"),
+            trailing: const Icon(Icons.schedule),
+            onTap: () async {
+              final f = await showTimePicker(context: context, initialTime: from ?? const TimeOfDay(hour: 9, minute: 0), initialEntryMode: TimePickerEntryMode.dial);
+              if (f == null) return;
+              final t = await showTimePicker(context: context, initialTime: to ?? const TimeOfDay(hour: 16, minute: 0), initialEntryMode: TimePickerEntryMode.dial);
+              if (t == null) return;
+              setState(() { from = f; to = t; });
+            },
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(onPressed: ()=> Navigator.pop(context), child: const Text("Mégse")),
+        FilledButton(
+          onPressed: (selected.isEmpty || from==null || to==null) ? null : ()=> Navigator.pop(context, _MultiDayPickResult(selected, from!, to!)),
+          child: const Text("Hozzáadás"),
+        )
+      ],
+    );
+  }
+  String _tf(TimeOfDay t)=> "${t.hour.toString().padLeft(2,'0')}:${t.minute.toString().padLeft(2,'0')}";
+}
+
+class _Slot {
+  final DateTime date;
+  final TimeOfDay from;
+  final TimeOfDay to;
+  _Slot({required this.date, required this.from, required this.to});
 }

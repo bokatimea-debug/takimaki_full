@@ -1,104 +1,113 @@
-﻿// lib/screens/provider_edit_profile_screen.dart
-import "dart:convert";
-import "dart:typed_data";
-import "package:flutter/material.dart";
-import "package:image_picker/image_picker.dart";
-import "package:shared_preferences/shared_preferences.dart";
+﻿import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ProviderEditProfileScreen extends StatefulWidget {
   const ProviderEditProfileScreen({super.key});
-  @override
-  State<ProviderEditProfileScreen> createState() => _ProviderEditProfileScreenState();
+  @override State<ProviderEditProfileScreen> createState()=>_S();
 }
+class _S extends State<ProviderEditProfileScreen>{
+  final bio = TextEditingController();
+  String? photoPath;
+  TimeOfDay? wdFrom, wdTo, weFrom, weTo;
 
-class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
-  final TextEditingController _bioCtrl = TextEditingController();
-  Uint8List? pickedPhoto;
-  TimeOfDay? _wdFrom,_wdTo,_weFrom,_weTo;
-
-  @override
-  void initState() { super.initState(); _load(); }
-
+  @override void initState(){ super.initState(); _load(); }
   Future<void> _load() async {
     final sp = await SharedPreferences.getInstance();
-    _bioCtrl.text = sp.getString("provider_bio") ?? "";
-    final b64 = sp.getString("provider_photo_b64");
-    if (b64!=null && b64.isNotEmpty) pickedPhoto = base64Decode(b64);
-    _wdFrom = _parse(sp.getString("provider_wd_from"));
-    _wdTo   = _parse(sp.getString("provider_wd_to"));
-    _weFrom = _parse(sp.getString("provider_we_from"));
-    _weTo   = _parse(sp.getString("provider_we_to"));
-    if (mounted) setState((){});
+    bio.text = sp.getString('provider_bio') ?? '';
+    photoPath = sp.getString('provider_photo_path') ?? sp.getString('registration_photo_path');
+    wdFrom = _parse(sp.getString('provider_wd_from'));
+    wdTo   = _parse(sp.getString('provider_wd_to'));
+    weFrom = _parse(sp.getString('provider_we_from'));
+    weTo   = _parse(sp.getString('provider_we_to'));
+    if(mounted) setState((){});
   }
 
-  TimeOfDay? _parse(String? v){ if (v==null||!v.contains(":")) return null; final p=v.split(":"); return TimeOfDay(hour:int.tryParse(p[0])??0,minute:int.tryParse(p[1])??0); }
-  String _fmt(TimeOfDay? t)=> t==null? "--:--" : "${t.hour.toString().padLeft(2,'0')}:${t.minute.toString().padLeft(2,'0')}";
-
-  Future<void> _pickPhoto() async {
-    final x = await ImagePicker().pickImage(source: ImageSource.gallery, maxWidth: 1024);
-    if (x==null) return;
-    final bytes = await x.readAsBytes();
-    setState(()=> pickedPhoto = bytes);
+  TimeOfDay? _parse(String? hhmm){
+    if(hhmm==null || !hhmm.contains(':')) return null;
+    final p = hhmm.split(':'); return TimeOfDay(hour: int.parse(p[0]), minute: int.parse(p[1]));
   }
+  String _fmt(TimeOfDay? t)=> t==null? '--:--' : '${t.hour.toString().padLeft(2,'0')}:${t.minute.toString().padLeft(2,'0')}';
 
   Future<void> _pickRange({required bool weekend}) async {
-    final now = TimeOfDay.now();
-    final from = await showTimePicker(context: context, initialTime: weekend? (_weFrom??now):(_wdFrom??now));
+    final fromInit = weekend ? (weFrom ?? const TimeOfDay(hour:9, minute:0))
+                             : (wdFrom ?? const TimeOfDay(hour:9, minute:0));
+    final toInit   = weekend ? (weTo   ?? const TimeOfDay(hour:17, minute:0))
+                             : (wdTo   ?? const TimeOfDay(hour:17, minute:0));
+
+    final from = await showTimePicker(context: context, initialTime: fromInit, initialEntryMode: TimePickerEntryMode.dial);
     if (from==null) return;
-    final to = await showTimePicker(context: context, initialTime: weekend? (_weTo??now):(_wdTo??now));
+    final to   = await showTimePicker(context: context, initialTime: toInit,   initialEntryMode: TimePickerEntryMode.dial);
     if (to==null) return;
+
     setState((){
-      if (weekend){ _weFrom=from; _weTo=to; } else { _wdFrom=from; _wdTo=to; }
+      if(weekend){ weFrom = from; weTo = to; } else { wdFrom = from; wdTo = to; }
     });
+  }
+
+  Future<void> _pickPhoto() async {
+    final x = await ImagePicker().pickImage(source: ImageSource.gallery, maxWidth: 1280);
+    if (x!=null) setState(()=> photoPath = x.path);
   }
 
   Future<void> _save() async {
     final sp = await SharedPreferences.getInstance();
-    await sp.setString("provider_bio", _bioCtrl.text.trim());
-    if (pickedPhoto!=null) await sp.setString("provider_photo_b64", base64Encode(pickedPhoto!));
-    if (_wdFrom!=null) await sp.setString("provider_wd_from", _fmt(_wdFrom));
-    if (_wdTo  !=null) await sp.setString("provider_wd_to",   _fmt(_wdTo));
-    if (_weFrom!=null) await sp.setString("provider_we_from", _fmt(_weFrom));
-    if (_weTo  !=null) await sp.setString("provider_we_to",   _fmt(_weTo));
-    if (mounted) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Mentve"))); Navigator.pop(context, true); }
+    await sp.setString('provider_bio', bio.text.trim());
+    if (photoPath!=null && photoPath!.isNotEmpty){
+      await sp.setString('provider_photo_path', photoPath!);
+      await sp.setString('registration_photo_path', photoPath!); // fallback a megjelenítéshez
+    }
+    if (wdFrom!=null) await sp.setString('provider_wd_from', _fmt(wdFrom));
+    if (wdTo  !=null) await sp.setString('provider_wd_to',   _fmt(wdTo));
+    if (weFrom!=null) await sp.setString('provider_we_from', _fmt(weFrom));
+    if (weTo  !=null) await sp.setString('provider_we_to',   _fmt(weTo));
+    if(!mounted) return;
+    Navigator.pop(context, true);
   }
 
-  @override
-  Widget build(BuildContext context) {
+  @override Widget build(BuildContext context){
     return Scaffold(
-      appBar: AppBar(title: const Text("Profil szerkesztése")),
+      appBar: AppBar(title: const Text('Profil szerkesztése')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          GestureDetector(
-            onTap: _pickPhoto,
-            child: CircleAvatar(
-              radius: 50,
-              backgroundImage: pickedPhoto!=null? MemoryImage(pickedPhoto!) : null,
-              child: pickedPhoto==null? const Icon(Icons.add_a_photo, size: 36) : null,
+          Center(
+            child: GestureDetector(
+              onTap: _pickPhoto,
+              child: CircleAvatar(
+                radius: 50,
+                backgroundImage: (photoPath!=null && photoPath!.isNotEmpty)? FileImage(File(photoPath!)) : null,
+                child: (photoPath==null || photoPath!.isEmpty)? const Icon(Icons.add_a_photo, size: 36):null,
+              ),
             ),
           ),
-          const SizedBox(height: 12),
-          const Text("Bemutatkozás"),
+          const SizedBox(height: 16),
+          const Text('Bemutatkozás'),
+          const SizedBox(height: 6),
+          TextField(controller: bio, maxLines: 3, decoration: const InputDecoration(border: OutlineInputBorder())),
+          const SizedBox(height: 20),
+          const Text('Általános elérhetőségi idő', style: TextStyle(fontWeight: FontWeight.w700)),
+          const SizedBox(height: 6),
+          ListTile(
+            onTap: ()=> _pickRange(weekend: false),
+            title: const Text('Hétköznap'),
+            subtitle: Text('${_fmt(wdFrom)} – ${_fmt(wdTo)}'),
+            trailing: const Icon(Icons.access_time),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: const BorderSide(color: Color(0x22000000))),
+          ),
           const SizedBox(height: 8),
-          TextField(controller: _bioCtrl, maxLines: 3, decoration: const InputDecoration(border: OutlineInputBorder(), hintText: "Pár mondat magadról...")),
+          ListTile(
+            onTap: ()=> _pickRange(weekend: true),
+            title: const Text('Hétvége'),
+            subtitle: Text('${_fmt(weFrom)} – ${_fmt(weTo)}'),
+            trailing: const Icon(Icons.access_time),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: const BorderSide(color: Color(0x22000000))),
+          ),
           const SizedBox(height: 24),
-          const Text("Általános elérhetőségi idő", style: TextStyle(fontWeight: FontWeight.w600)),
-          const Divider(),
-          _TimeRow(label: "Hétköznap", value: "${_fmt(_wdFrom)} – ${_fmt(_wdTo)}", onTap: ()=> _pickRange(weekend: false)),
-          const SizedBox(height: 8),
-          _TimeRow(label: "Hétvége", value: "${_fmt(_weFrom)} – ${_fmt(_weTo)}", onTap: ()=> _pickRange(weekend: true)),
-          const SizedBox(height: 24),
-          SizedBox(width: double.infinity, child: FilledButton(onPressed: _save, child: const Text("Mentés"))),
+          FilledButton(onPressed: _save, child: const Text('Mentés')),
         ],
       ),
     );
   }
-}
-
-class _TimeRow extends StatelessWidget {
-  final String label; final String value; final VoidCallback onTap;
-  const _TimeRow({required this.label, required this.value, required this.onTap});
-  @override
-  Widget build(BuildContext context) => ListTile(contentPadding: EdgeInsets.zero, title: Text(label), subtitle: Text(value), trailing: const Icon(Icons.schedule), onTap: onTap);
 }

@@ -25,7 +25,7 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
     final q = _addrCtrl.text.trim();
     if (q.isEmpty) return;
     try {
-      final results = await geo.locationFromAddress(q, );
+      final results = await geo.locationFromAddress(q, locale: const Locale('hu'));
       if (results.isNotEmpty) {
         final loc = results.first;
         final p = LatLng(loc.latitude, loc.longitude);
@@ -91,6 +91,5 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
     );
   }
 }
-
 
 
