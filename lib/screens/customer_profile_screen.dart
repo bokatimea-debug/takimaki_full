@@ -22,7 +22,7 @@ class _S extends State<CustomerProfileScreen>{
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            CircleAvatar(radius:48, backgroundImage: _photo, child: _photo==null? const Icon(Icons.person, size:48):null),
+            ProfileAvatar(radius:48, backgroundImage: _photo, child: _photo==null? const Icon(Icons.person, size:48):null),
             const SizedBox(height: 12),
             FilledButton(onPressed: ()=> Navigator.pushNamed(context, '/customer/edit').then((_){_load();}), child: const Text('Profil szerkesztése')),
             const SizedBox(height: 8),
@@ -47,3 +47,4 @@ class _S extends State<CustomerProfileScreen>{
     );
   }
 }
+

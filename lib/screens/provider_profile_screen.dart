@@ -28,7 +28,7 @@ class _S extends State<ProviderProfileScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            CircleAvatar(radius: 48, backgroundImage: _photo, child: _photo==null? const Icon(Icons.person, size:48):null),
+            ProfileAvatar(radius: 48, backgroundImage: _photo, child: _photo==null? const Icon(Icons.person, size:48):null),
             const SizedBox(height: 12),
             if(_intro.isNotEmpty)...[
               Align(alignment: Alignment.centerLeft, child: Text('Bemutatkozás', style: Theme.of(context).textTheme.titleMedium)),
@@ -54,4 +54,5 @@ class _S extends State<ProviderProfileScreen> {
     );
   }
 }
+
 
