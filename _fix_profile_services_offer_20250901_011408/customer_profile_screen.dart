@@ -1,11 +1,12 @@
-﻿import '../utils/profile_photo_loader.dart';
---- customer_profile_screen.dart PATCH ---
+﻿--- customer_profile_screen.dart PATCH ---
 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
 -  ImageProvider? _photo;
 +  ImageProvider? _photo;
 
    @override
-   void initState(){ super.initState(); _load(); -    _load();
+   void initState() {
+     super.initState();
+-    _load();
 +    _load();
 +    _loadPhoto();
    }
@@ -15,4 +16,3 @@
 +    setState(()=> _photo=data);
 +  }
 }
-

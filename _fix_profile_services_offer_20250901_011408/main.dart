@@ -78,4 +78,3 @@ class TakimakiApp extends StatelessWidget {
 
 
 
-

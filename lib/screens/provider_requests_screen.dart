@@ -50,7 +50,7 @@ class _S extends State<ProviderRequestsScreen> {
                   title: Text(it['service'] ?? ''),
                   subtitle: Text('${it['address'] ?? ''}\n${it['date'] ?? ''}  ${it['time'] ?? ''}'),
                   isThreeLine: true,
-                  onTap: ()=> _open(it),
+                  onTap: () async { final res = await Navigator.pushNamed(context, '/provider/offer_reply', arguments: {'requestId': r['id']}); if (res is Map && res['ok']==true) { if(mounted) setState((){}); } },
                   trailing: Wrap(spacing:4, children:[
                     if (status=='new' || status=='offered')
                       IconButton(tooltip:'Elutasítás', onPressed: ()=> _decline(it['id']), icon: const Icon(Icons.close)),
@@ -61,4 +61,5 @@ class _S extends State<ProviderRequestsScreen> {
     );
   }
 }
+
 

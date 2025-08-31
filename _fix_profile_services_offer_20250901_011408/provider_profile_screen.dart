@@ -1,11 +1,12 @@
-﻿import '../utils/profile_photo_loader.dart';
---- provider_profile_screen.dart PATCH ---
+﻿--- provider_profile_screen.dart PATCH ---
 @@ class _S extends State<ProviderProfileScreen> {
 -  ImageProvider? _photo;
 +  ImageProvider? _photo;
 
    @override
-   void initState(){ super.initState(); _load(); -    _load();
+   void initState() {
+     super.initState();
+-    _load();
 +    _load();
 +    _loadPhoto();
    }
@@ -15,4 +16,3 @@
 +    setState(()=> _photo=data);
 +  }
 }
-
