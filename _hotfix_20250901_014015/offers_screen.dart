@@ -1,5 +1,4 @@
-﻿import '../repositories/bookings_repository.dart';
-import "package:flutter/material.dart";
+﻿import "package:flutter/material.dart";
 import "../data/mock_data.dart";
 
 class OffersScreen extends StatefulWidget {
@@ -63,5 +62,4 @@ class _OffersScreenState extends State<OffersScreen> {
     );
   }
 }
-
 

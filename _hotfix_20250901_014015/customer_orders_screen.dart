@@ -25,4 +25,3 @@ class CustomerOrdersScreen extends StatelessWidget {
   }
 }
 
-
