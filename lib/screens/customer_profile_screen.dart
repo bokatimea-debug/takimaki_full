@@ -1,9 +1,14 @@
 ﻿import "package:flutter/material.dart";
 import "../utils/profile_photo_loader.dart";
 
-class CustomerProfileScreen extends StatelessWidget {
+class CustomerProfileScreen extends StatefulWidget {
   const CustomerProfileScreen({super.key});
+  @override
+  State<CustomerProfileScreen> createState() => _CustomerProfileScreenState();
+}
 
+class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
+  void _refreshAfter() => setState((){});
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -18,7 +23,7 @@ class CustomerProfileScreen extends StatelessWidget {
             const Center(child: Text("Megrendelő profil", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
             const SizedBox(height: 12),
             OutlinedButton(
-              onPressed: ()=> Navigator.pushNamed(context, "/customer/edit_profile"),
+              onPressed: ()=> Navigator.pushNamed(context, "/customer/edit_profile").then((_){ _refreshAfter(); }),
               child: const Text("Profil szerkesztése"),
             ),
             const SizedBox(height: 12),
