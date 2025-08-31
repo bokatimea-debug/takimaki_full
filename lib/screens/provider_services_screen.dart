@@ -1,96 +1,61 @@
-﻿import "dart:convert";
-import "package:flutter/material.dart";
-import "package:shared_preferences/shared_preferences.dart";
+﻿import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ProviderServicesScreen extends StatefulWidget {
   const ProviderServicesScreen({super.key});
-  @override
-  State<ProviderServicesScreen> createState() => _ProviderServicesScreenState();
+  @override State<ProviderServicesScreen> createState() => _S();
 }
-
-class _ProviderServicesScreenState extends State<ProviderServicesScreen> {
-  static const String kNewKey = "provider_services";
-  static const List<String> kLegacyKeys = ["services","provider_services_list","my_services","providerServices"];
-
+class _S extends State<ProviderServicesScreen> {
   List<Map<String, dynamic>> _items = [];
-
+  @override void initState(){ super.initState(); _load(); }
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
-    String? raw = prefs.getString(kNewKey);
-
-    if (raw == null || raw.isEmpty) {
-      for (final lk in kLegacyKeys) {
-        final r = prefs.getString(lk);
-        if (r != null && r.isNotEmpty) {
-          raw = r; await prefs.setString(kNewKey, r); break;
-        }
-      }
-    }
-    if (raw == null || raw.isEmpty) {
-      final samples = [
-        {"id":"S1","name":"Általános takarítás","price_raw":8000,"price_fmt":"8 000","unit":"Ft/óra","districts":[1,2,5,13],"dates":[]},
-        {"id":"S2","name":"Nagytakarítás","price_raw":12000,"price_fmt":"12 000","unit":"Ft/óra","districts":[3,11,12],"dates":[]},
-        {"id":"S3","name":"Felújítás utáni takarítás","price_raw":1500,"price_fmt":"1 500","unit":"Ft/nm","districts":[4,6,7,8,9],"dates":[]},
-      ];
-      raw = json.encode(samples);
-      await prefs.setString(kNewKey, raw);
-    }
-
-    try { _items = (json.decode(raw) as List).cast<Map<String, dynamic>>(); } catch (_){ _items = []; }
-    if (mounted) setState((){});
+    final raw = prefs.getString('provider_services') ?? '[]';
+    setState(()=> _items = (json.decode(raw) as List).cast<Map<String, dynamic>>());
   }
-
-  Future<void> _save() async {
+  Future<void> _delete(String id) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(kNewKey, json.encode(_items));
-  }
-
-  Future<void> _delete(int index) async {
-    final removed = _items.removeAt(index);
-    await _save();
-    if (!mounted) return;
+    _items.removeWhere((e)=> e['id'] == id);
+    await prefs.setString('provider_services', json.encode(_items));
     setState((){});
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Törölve: ${removed["name"] ?? "szolgáltatás"}")));
   }
-
-  @override
-  void initState() { super.initState(); _load(); }
-
+  Future<void> _addOrEdit([Map<String, dynamic>? item]) async {
+    final ok = await Navigator.pushNamed(context, '/provider/add_service', arguments: item) as bool?;
+    if (ok == true) await _load();
+  }
+  String _roman(int n) => const ['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','XVII','XVIII','XIX','XX','XXI','XXII','XXIII'][n];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Szolgáltatásaim")),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () async { final res = await Navigator.pushNamed(context, "/provider/add_service"); if (res == true) await _load(); },
-        icon: const Icon(Icons.add),
-        label: const Text("Új szolgáltatás"),
-      ),
+      appBar: AppBar(title: const Text('Szolgáltatásaim')),
+      floatingActionButton: FloatingActionButton.extended(onPressed: ()=> _addOrEdit(), icon: const Icon(Icons.add), label: const Text('Új szolgáltatás')),
       body: _items.isEmpty
-        ? const Center(child: Text("Nincs mentett szolgáltatás"))
+        ? Center(
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              const Icon(Icons.cleaning_services, size: 56, color: Colors.black54),
+              const SizedBox(height: 8),
+              const Text('Még nincs felvett szolgáltatás.\nNyomd meg az Új szolgáltatás gombot.', textAlign: TextAlign.center),
+            ]),
+          )
         : ListView.separated(
             padding: const EdgeInsets.all(12),
             itemCount: _items.length,
-            separatorBuilder: (_, __)=> const SizedBox(height: 8),
-            itemBuilder: (context, i) {
+            separatorBuilder: (_, __) => const SizedBox(height: 8),
+            itemBuilder: (_, i){
               final it = _items[i];
-              final name = it["name"] ?? "";
-              final price = it["price_fmt"] ?? "";
-              final unit = it["unit"] ?? "";
-              final dcount = (it["districts"] as List?)?.length ?? 0;
-              final dates = (it["dates"] as List?)?.length ?? 0;
+              final districts = (it['districts'] as List?)?.cast<int>() ?? <int>[];
+              final ds = districts.map(_roman).join(', ');
+              final unit = (it['unit'] ?? '') as String;
+              final priceFmt = (it['price_fmt'] ?? '') as String;
               return Card(
                 child: ListTile(
-                  title: Text(name),
-                  subtitle: Text("$price $unit • Kerületek: $dcount • Napok: $dates"),
-                  trailing: Row(mainAxisSize: MainAxisSize.min, children: [
-                    IconButton(
-                      onPressed: () async {
-                        final res = await Navigator.pushNamed(context, "/provider/add_service", arguments: it);
-                        if (res == true) await _load();
-                      },
-                      icon: const Icon(Icons.edit),
-                    ),
-                    IconButton(onPressed: ()=> _delete(i), icon: const Icon(Icons.close)),
+                  title: Text(it['name'] ?? ''),
+                  subtitle: Text('Ár: $priceFmt $unit\nKerületek: $ds'),
+                  isThreeLine: true,
+                  trailing: Wrap(spacing: 4, children: [
+                    IconButton(tooltip: 'Szerkesztés', onPressed: ()=> _addOrEdit(it), icon: const Icon(Icons.edit)),
+                    IconButton(tooltip: 'Törlés', onPressed: ()=> _delete(it['id']), icon: const Icon(Icons.close)),
                   ]),
                 ),
               );

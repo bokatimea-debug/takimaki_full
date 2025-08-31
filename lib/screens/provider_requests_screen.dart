@@ -1,76 +1,63 @@
-﻿import "dart:convert";
-import "package:flutter/material.dart";
-import "package:shared_preferences/shared_preferences.dart";
+﻿import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ProviderRequestsScreen extends StatefulWidget {
   const ProviderRequestsScreen({super.key});
-  @override
-  State<ProviderRequestsScreen> createState() => _ProviderRequestsScreenState();
+  @override State<ProviderRequestsScreen> createState() => _S();
 }
-
-class _ProviderRequestsScreenState extends State<ProviderRequestsScreen> {
-  static const String kKey = "provider_requests";
+class _S extends State<ProviderRequestsScreen> {
   List<Map<String, dynamic>> _items = [];
-
-  Future<void> _load() async {
-    final p = await SharedPreferences.getInstance();
-    String? raw = p.getString(kKey);
-    if (raw == null || raw.isEmpty) {
-      // minimál minta
-      final samples = [
-        {"id":"R1","service":"Általános takarítás","customer":"Kiss Anna","address":"Budapest, XI.","date":"2025-09-02","time":"10:00","status":"pending"},
-        {"id":"R2","service":"Vízszerelés","customer":"Nagy Péter","address":"Budapest, XIII.","date":"2025-09-03","time":"14:30","status":"pending"},
+  @override void initState(){ super.initState(); _load(); }
+  Future<void> _seedIfEmpty() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString('provider_requests');
+    if (raw == null || raw.isEmpty || raw == '[]') {
+      final demo = [
+        { 'id':'rq1','service':'Általános takarítás','address':'1138 Budapest, Váci út 99.','date':'2025-09-02','time':'10:00','status':'new','suggested_price':'12000' },
+        { 'id':'rq2','service':'Vízszerelés','address':'1053 Budapest, Kossuth Lajos u. 1.','date':'2025-09-03','time':'14:30','status':'new','suggested_price':'18000' },
       ];
-      raw = json.encode(samples);
-      await p.setString(kKey, raw);
+      await prefs.setString('provider_requests', json.encode(demo));
     }
-    _items = (json.decode(raw) as List).cast<Map<String, dynamic>>();
-    if (mounted) setState((){});
   }
-
-  Future<void> _save() async {
-    final p = await SharedPreferences.getInstance();
-    await p.setString(kKey, json.encode(_items));
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    await _seedIfEmpty();
+    final raw = prefs.getString('provider_requests') ?? '[]';
+    setState(()=> _items = (json.decode(raw) as List).cast<Map<String, dynamic>>());
   }
-
-  Future<void> _reject(int i) async {
-    _items.removeAt(i);
-    await _save();
-    if (mounted) setState((){});
+  Future<void> _decline(String id) async {
+    final prefs = await SharedPreferences.getInstance();
+    _items.removeWhere((e)=> e['id'] == id);
+    await prefs.setString('provider_requests', json.encode(_items));
+    setState((){});
   }
-
-  @override
-  void initState() { super.initState(); _load(); }
-
+  Future<void> _open(Map<String, dynamic> it) async {
+    final ok = await Navigator.pushNamed(context, '/provider/offer_reply', arguments: it) as bool?;
+    if (ok == true) await _load(); else await _load();
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Beérkezett ajánlatkérések")),
-      body: ListView.separated(
-        padding: const EdgeInsets.all(12),
-        itemCount: _items.length,
-        separatorBuilder: (_, __)=> const SizedBox(height: 8),
-        itemBuilder: (context, i) {
-          final it = _items[i];
-          final title = it["service"] ?? "";
-          final sub = "${it["customer"] ?? ""} • ${it["address"] ?? ""} • ${it["date"] ?? ""} ${it["time"] ?? ""}";
-          return Card(
-            child: ListTile(
-              title: Text(title),
-              subtitle: Text(sub),
-              onTap: () async {
-                final res = await Navigator.pushNamed(context, "/provider/offer_reply", arguments: it);
-                if (res == true) await _load();
-              },
-              trailing: IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: ()=> _reject(i),
-                tooltip: "Elutasítás",
-              ),
-            ),
-          );
-        },
-      ),
+      appBar: AppBar(title: const Text('Beérkezett ajánlatkérések')),
+      body: _items.isEmpty ? const Center(child: Text('Jelenleg nincs beérkezett kérés.'))
+        : ListView.separated(padding: const EdgeInsets.all(12), itemCount: _items.length,
+            separatorBuilder: (_, __)=> const SizedBox(height:8),
+            itemBuilder: (_, i){
+              final it=_items[i]; final status=(it['status']??'new') as String;
+              return Card(
+                child: ListTile(
+                  title: Text(it['service'] ?? ''),
+                  subtitle: Text('${it['address'] ?? ''}\n${it['date'] ?? ''}  ${it['time'] ?? ''}'),
+                  isThreeLine: true,
+                  onTap: ()=> _open(it),
+                  trailing: Wrap(spacing:4, children:[
+                    if (status=='new' || status=='offered')
+                      IconButton(tooltip:'Elutasítás', onPressed: ()=> _decline(it['id']), icon: const Icon(Icons.close)),
+                  ]),
+                ),
+              );
+            }),
     );
   }
 }

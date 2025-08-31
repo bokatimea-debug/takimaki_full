@@ -1,96 +1,29 @@
-﻿// lib/screens/map_picker_screen.dart
-import "package:flutter/material.dart";
-import "package:google_maps_flutter/google_maps_flutter.dart";
-import "package:geocoding/geocoding.dart" as geo;
+﻿import 'package:flutter/material.dart';
 
 class MapPickerScreen extends StatefulWidget {
   const MapPickerScreen({super.key});
-  @override
-  State<MapPickerScreen> createState() => _MapPickerScreenState();
+  @override State<MapPickerScreen> createState() => _S();
 }
-
-class _MapPickerScreenState extends State<MapPickerScreen> {
-  GoogleMapController? _ctrl;
-  LatLng _center = const LatLng(47.4979, 19.0402); // Budapest
-  final _addrCtrl = TextEditingController();
-  Marker? _pin;
-
-  @override
-  void dispose() {
-    _addrCtrl.dispose();
-    super.dispose();
-  }
-
-  Future<void> _search() async {
-    final q = _addrCtrl.text.trim();
-    if (q.isEmpty) return;
-    try {
-      final results = await geo.locationFromAddress(q, );
-      if (results.isNotEmpty) {
-        final loc = results.first;
-        final p = LatLng(loc.latitude, loc.longitude);
-        setState(() {
-          _center = p;
-          _pin = Marker(markerId: const MarkerId("pick"), position: p);
-        });
-        await _ctrl?.animateCamera(CameraUpdate.newLatLngZoom(p, 15));
-      }
-    } catch (_) {}
-  }
-
-  void _use() {
-    Navigator.pop(context, _addrCtrl.text.trim());
-  }
-
+class _S extends State<MapPickerScreen> {
+  final _c = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Cím kiválasztása (Google Maps)")),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _addrCtrl,
-                    decoration: const InputDecoration(
-                      hintText: "Írd be a címet...",
-                      border: OutlineInputBorder(),
-                    ),
-                    onSubmitted: (_) => _search(),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                FilledButton(onPressed: _search, child: const Text("Keresés")),
-              ],
-            ),
-          ),
-          Expanded(
-            child: GoogleMap(
-              initialCameraPosition: CameraPosition(target: _center, zoom: 12),
-              onMapCreated: (c) => _ctrl = c,
-              markers: _pin == null ? {} : {_pin!},
-              onTap: (p) => setState(() {
-                _pin = Marker(markerId: const MarkerId("pick"), position: p);
-              }),
-              myLocationButtonEnabled: false,
-              zoomControlsEnabled: false,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: SizedBox(
-              width: double.infinity,
-              child: FilledButton(onPressed: _use, child: const Text("Cím beillesztése")),
-            ),
-          ),
-        ],
+      appBar: AppBar(title: const Text('Cím kiválasztása')),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          const Text('Írd be a címet (Google Maps integráció később):'),
+          const SizedBox(height: 8),
+          TextField(controller:_c, decoration: const InputDecoration(hintText:'pl. 1138 Budapest, Váci út 99.', border: OutlineInputBorder())),
+          const Spacer(),
+          FilledButton(onPressed: (){
+            final v=_c.text.trim();
+            if(v.isEmpty){ ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Adj meg címet'))); return; }
+            Navigator.pop(context, v);
+          }, child: const Text('Mentés')),
+        ]),
       ),
     );
   }
 }
-
-
-
