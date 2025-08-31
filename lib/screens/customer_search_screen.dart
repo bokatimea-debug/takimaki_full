@@ -1,5 +1,4 @@
 ﻿import "package:flutter/material.dart";
-import "map_pick_screen.dart";
 
 class CustomerSearchScreen extends StatefulWidget {
   const CustomerSearchScreen({super.key});
@@ -23,7 +22,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
   ];
 
   Future<void> _pickAddress() async {
-    final res = await Navigator.push(context, MaterialPageRoute(builder: (_)=> const MapPickScreen()));
+    final res = await Navigator.pushNamed(context, "/map_picker");
     if (res is String && res.isNotEmpty) setState(()=> _address = res);
   }
 
@@ -79,8 +78,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
             ),
             const SizedBox(height: 16),
 
-            // >>> Itt NINCS kerület mező <<<
-            // CÍM Google Maps-szel
+            // CÍM (Google Maps külön képernyő)
             ListTile(
               onTap: _pickAddress,
               leading: const Icon(Icons.map),

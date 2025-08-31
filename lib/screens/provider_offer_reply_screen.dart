@@ -1,24 +1,27 @@
-﻿import "dart:convert";
-import "package:flutter/material.dart";
+﻿import "package:flutter/material.dart";
 import "package:shared_preferences/shared_preferences.dart";
+import "dart:convert";
 
 class ProviderOfferReplyScreen extends StatefulWidget {
   const ProviderOfferReplyScreen({super.key});
   @override
-  State<ProviderOfferReplyScreen> createState() => _ProviderOfferReplyScreenState();
+  State<ProviderOfferReplyScreen> createState() => _State();
 }
 
-class _ProviderOfferReplyScreenState extends State<ProviderOfferReplyScreen> {
+class _State extends State<ProviderOfferReplyScreen> {
+  late final Map<String, dynamic> data;
   final _priceCtrl = TextEditingController();
-  final _noteCtrl  = TextEditingController();
-  Map<String, dynamic>? _req;
+  final _noteCtrl = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_){
       final args = ModalRoute.of(context)?.settings.arguments;
-      if (args is Map<String, dynamic>) setState(()=> _req = args);
+      data = (args is Map<String, dynamic>) ? args : <String, dynamic>{};
+      setState(() {
+        _priceCtrl.text = (data["suggested_price"] ?? "").toString();
+      });
     });
   }
 
@@ -34,68 +37,68 @@ class _ProviderOfferReplyScreenState extends State<ProviderOfferReplyScreen> {
   }
 
   Future<void> _send() async {
-    final raw = _priceCtrl.text.replaceAll(" ", "");
-    final price = int.tryParse(raw);
-    if (price == null || price <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Adj meg érvényes árat (Ft).")));
+    final priceRaw = int.tryParse(_priceCtrl.text.replaceAll(" ", ""));
+    if (priceRaw == null || priceRaw <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Adj meg érvényes árat."))
+      );
       return;
     }
-    if (_req == null) return;
-
-    final p = await SharedPreferences.getInstance();
-    final key = "provider_requests";
-    final list = (json.decode(p.getString(key) ?? "[]") as List).cast<Map<String, dynamic>>();
-    final idx = list.indexWhere((e)=> e["id"] == _req!["id"]);
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString("provider_requests") ?? "[]";
+    final list = (json.decode(raw) as List).cast<Map<String, dynamic>>();
+    final idx = list.indexWhere((e)=> e["id"] == data["id"]);
     if (idx >= 0) {
       list[idx]["status"] = "offered";
-      list[idx]["offered_price"] = price;
-      list[idx]["offered_price_fmt"] = _fmtTh(price);
+      list[idx]["offered_price"] = priceRaw;
       list[idx]["note"] = _noteCtrl.text.trim();
-      await p.setString(key, json.encode(list));
+      await prefs.setString("provider_requests", json.encode(list));
     }
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Ajánlat elküldve")));
     Navigator.pop(context, true);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Ajánlat elküldve"))
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final r = _req;
     return Scaffold(
       appBar: AppBar(title: const Text("Ajánlat küldése")),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: r == null
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(r["service"] ?? "", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 4),
-                Text("${r["customer"] ?? ""} • ${r["address"] ?? ""} • ${r["date"] ?? ""} ${r["time"] ?? ""}"),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _priceCtrl,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: "Ajánlott ár (Ft)"),
-                  onChanged: (v){
-                    final n = int.tryParse(v.replaceAll(" ",""));
-                    if (n != null) {
-                      final txt = _fmtTh(n);
-                      _priceCtrl.value = TextEditingValue(text: txt, selection: TextSelection.collapsed(offset: txt.length));
-                    }
-                  },
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _noteCtrl,
-                  maxLines: 3,
-                  decoration: const InputDecoration(labelText: "Megjegyzés (opcionális)"),
-                ),
-                const Spacer(),
-                FilledButton(onPressed: _send, child: const Text("Ajánlat elküldése")),
-              ],
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(data["service"] ?? "", style: const TextStyle(fontWeight: FontWeight.w600)),
+            const SizedBox(height: 8),
+            Text(data["address"] ?? ""),
+            Text("${data["date"] ?? ""}  ${data["time"] ?? ""}"),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _priceCtrl,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: "Ajánlott ár (Ft)"),
+              onChanged: (v){
+                final num = int.tryParse(v.replaceAll(" ", ""));
+                if (num != null) {
+                  final t = _fmtTh(num);
+                  _priceCtrl.value = TextEditingValue(
+                    text: t,
+                    selection: TextSelection.collapsed(offset: t.length),
+                  );
+                }
+              },
             ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _noteCtrl,
+              decoration: const InputDecoration(labelText: "Megjegyzés (opcionális)"),
+            ),
+            const Spacer(),
+            FilledButton(onPressed: _send, child: const Text("Ajánlat elküldése")),
+          ],
+        ),
       ),
     );
   }

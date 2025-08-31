@@ -68,11 +68,7 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
     if (d != null) {
       setState(() {
         final day = DateTime(d.year, d.month, d.day);
-        if (_dates.contains(day)) {
-          _dates.remove(day);
-        } else {
-          _dates.add(day);
-        }
+        if (_dates.contains(day)) _dates.remove(day); else _dates.add(day);
       });
     }
   }
@@ -99,11 +95,8 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
     final args = ModalRoute.of(context)?.settings.arguments;
     if (args is Map<String, dynamic>) {
       final idx = list.indexWhere((e) => e["id"] == args["id"]);
-      if (idx >= 0) {
-        list[idx] = _buildItem(args["id"]);
-      } else {
-        list.add(_buildItem(args["id"] ?? DateTime.now().millisecondsSinceEpoch.toString()));
-      }
+      final item = _buildItem(args["id"] ?? DateTime.now().millisecondsSinceEpoch.toString());
+      if (idx >= 0) list[idx] = item; else list.add(item);
     } else {
       list.add(_buildItem(DateTime.now().millisecondsSinceEpoch.toString()));
     }
@@ -180,7 +173,7 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
                   ]),
                   onSelected: (_){
                     setState(() {
-                      if (sel) { _districts.remove(n); } else { _districts.add(n); }
+                      if (sel) _districts.remove(n); else _districts.add(n);
                     });
                   },
                 );
@@ -230,7 +223,6 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
               const SizedBox(height: 8),
               Wrap(
                 spacing: 6, runSpacing: 6,
-                // <<< Itt a javítás: a rendezett List<DateTime>-ből Widget listát készítünk >>>
                 children: ((_dates.toList()..sort((a,b)=> a.compareTo(b)))
                   .map<Widget>((d)=> Chip(label: Text(_fmtDate(d))))
                   .toList()),
