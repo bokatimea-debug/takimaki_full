@@ -8,64 +8,42 @@ class ProviderOfferReplyScreen extends StatefulWidget {
 }
 
 class _ProviderOfferReplyScreenState extends State<ProviderOfferReplyScreen> {
-  final _priceCtrl = TextEditingController();
-  final _noteCtrl  = TextEditingController();
-
-  @override
-  void dispose() {
-    _priceCtrl.dispose();
-    _noteCtrl.dispose();
-    super.dispose();
-  }
+  final _priceController = TextEditingController();
+  final _noteController = TextEditingController();
 
   void _submit() {
-    final p = _priceCtrl.text.replaceAll(RegExp(r'[^0-9]'), '');
-    if (p.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Adj meg árat (Ft)!')));
-      return;
-    }
-    Navigator.pop(context, {
-      'ok': true,
-      'price': int.parse(p),
-      'note': _noteCtrl.text.trim(),
-    });
+    // TODO: backend integráció Firestore offers collection
+    final price = _priceController.text.trim();
+    final note = _noteController.text.trim();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Ajánlat elküldve: $price Ft, $note")),
+    );
+    Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
-    final args = (ModalRoute.of(context)?.settings.arguments as Map?) ?? {};
-    final reqId = args['requestId']?.toString() ?? '-';
-
     return Scaffold(
-      appBar: AppBar(title: const Text('Ajánlat küldése')),
+      appBar: AppBar(title: const Text("Ajánlat küldése")),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Ajánlatkérés #$reqId', style: const TextStyle(fontWeight: FontWeight.w600)),
-            const SizedBox(height: 12),
             TextField(
-              controller: _priceCtrl,
+              controller: _priceController,
+              decoration: const InputDecoration(labelText: "Ajánlott ár (Ft)"),
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Ár (Ft)',
-                helperText: 'Ezres tagolás nélkül írd (pl. 15000)',
-              ),
             ),
             const SizedBox(height: 12),
             TextField(
-              controller: _noteCtrl,
-              maxLines: 3,
-              decoration: const InputDecoration(
-                labelText: 'Megjegyzés (opcionális)',
-              ),
+              controller: _noteController,
+              decoration: const InputDecoration(labelText: "Megjegyzés"),
+              maxLines: 2,
             ),
             const Spacer(),
-            FilledButton.icon(
+            ElevatedButton(
               onPressed: _submit,
-              icon: const Icon(Icons.send),
-              label: const Text('Ajánlat elküldése'),
+              child: const Text("Elküldés"),
             ),
           ],
         ),

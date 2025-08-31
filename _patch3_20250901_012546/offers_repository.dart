@@ -45,15 +45,3 @@ class OffersRepository {
     }
   }
 }
-extension OffersExpiry on OffersRepository {
-  /// Egyszerű lejártatás: createdAt (millis) + 24h
-  static Future<List<Map<String,dynamic>>> expireOld(List<Map<String,dynamic>> items) async {
-    final now = DateTime.now().millisecondsSinceEpoch;
-    for (final e in items) {
-      final created = (e["createdAt"]??now) as int;
-      final expired = now - created > 24*60*60*1000;
-      if (expired) { e["status"] = "expired"; }
-    }
-    return items;
-  }
-}
