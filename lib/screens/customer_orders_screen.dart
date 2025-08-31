@@ -1,4 +1,5 @@
-﻿// lib/screens/customer_orders_screen.dart
+﻿import '../widgets/star_rating.dart';
+// lib/screens/customer_orders_screen.dart
 import "package:flutter/material.dart";
 import "../services/demo_data.dart";
 
@@ -23,3 +24,4 @@ class CustomerOrdersScreen extends StatelessWidget {
     );
   }
 }
+
