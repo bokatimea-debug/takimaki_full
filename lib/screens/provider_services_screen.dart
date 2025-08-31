@@ -24,9 +24,13 @@ class _ProviderServicesScreenState extends State<ProviderServicesScreen> {
   }
 
   Future<void> _delete(int index) async {
-    _items.removeAt(index);
+    final removed = _items.removeAt(index);
     await _save();
-    if (mounted) setState((){});
+    if (!mounted) return;
+    setState((){});
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Törölve: ${removed["name"] ?? "szolgáltatás"}"))
+    );
   }
 
   @override

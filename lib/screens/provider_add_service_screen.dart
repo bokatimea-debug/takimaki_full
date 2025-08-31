@@ -54,6 +54,9 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
     return buf.join();
   }
 
+  String _fmtDate(DateTime d) =>
+    "${d.year}.${d.month.toString().padLeft(2,'0')}.${d.day.toString().padLeft(2,'0')}.";
+
   Future<void> _pickDate() async {
     final now = DateTime.now();
     final d = await showDatePicker(
@@ -76,12 +79,16 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
 
   Future<void> _save() async {
     if (_service == null || _districts.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Válassz szolgáltatást és kerületeket.")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Válassz szolgáltatást és kerületeket."))
+      );
       return;
     }
     final priceRaw = int.tryParse(_priceCtrl.text.replaceAll(" ", ""));
     if (priceRaw == null || priceRaw <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Adj meg érvényes árat.")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Adj meg érvényes árat."))
+      );
       return;
     }
 
@@ -102,7 +109,12 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
     }
 
     await prefs.setString("provider_services", json.encode(list));
-    if (mounted) Navigator.pop(context, true);
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Szolgáltatás mentve"))
+    );
+    Navigator.pop(context, true);
   }
 
   Map<String, dynamic> _buildItem(String id) => {
@@ -131,7 +143,13 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
               children: _serviceOptions.map((s){
                 final sel = _service == s;
                 return ChoiceChip(
-                  label: Text(s),
+                  label: Row(mainAxisSize: MainAxisSize.min, children: [
+                    if (sel) const Padding(
+                      padding: EdgeInsets.only(right: 6),
+                      child: Icon(Icons.check, size: 16),
+                    ),
+                    Text(s, style: TextStyle(fontWeight: sel ? FontWeight.w600 : FontWeight.w400)),
+                  ]),
                   selected: sel,
                   onSelected: (_)=> setState(()=> _service = s),
                 );
@@ -146,10 +164,20 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
               children: List.generate(23, (i){
                 final n = i+1;
                 final sel = _districts.contains(n);
-                final label = (n==1)?"I":(n==2)?"II":(n==3)?"III":(n==20)?"XX":(n==21)?"XXI":(n==22)?"XXII":(n==23)?"XXIII": "$n";
+                final label = switch (n) {
+                  1 => "I", 2 => "II", 3 => "III",
+                  20 => "XX", 21 => "XXI", 22 => "XXII", 23 => "XXIII",
+                  _ => "$n"
+                };
                 return FilterChip(
-                  label: Text(label),
                   selected: sel,
+                  label: Row(mainAxisSize: MainAxisSize.min, children: [
+                    if (sel) const Padding(
+                      padding: EdgeInsets.only(right: 4),
+                      child: Icon(Icons.check, size: 16),
+                    ),
+                    Text(label, style: TextStyle(fontWeight: sel ? FontWeight.w600 : FontWeight.w400)),
+                  ]),
                   onSelected: (_){
                     setState(() {
                       if (sel) { _districts.remove(n); } else { _districts.add(n); }
@@ -197,6 +225,15 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
               icon: const Icon(Icons.event),
               label: Text(_dates.isEmpty ? "Napok kiválasztása (több is lehet)" : "Kiválasztott napok: ${_dates.length}"),
             ),
+            if (_dates.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 6, runSpacing: 6,
+                children: _dates.toList()
+                  ..sort((a,b)=> a.compareTo(b))
+                  ..map((d)=> Chip(label: Text(_fmtDate(d)))).toList(),
+              ),
+            ],
 
             const Spacer(),
             FilledButton(

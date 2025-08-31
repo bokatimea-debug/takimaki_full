@@ -23,7 +23,12 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
             ),
             const SizedBox(height: 20),
             FilledButton(
-              onPressed: (){ Navigator.pop(context); },
+              onPressed: (){
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Profil mentve"))
+                );
+                Navigator.pop(context);
+              },
               child: const Text("Mentés"),
             ),
           ],
