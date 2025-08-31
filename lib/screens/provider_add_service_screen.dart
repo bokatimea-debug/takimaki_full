@@ -22,7 +22,7 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
   final _priceCtrl = TextEditingController();
   String _unit = "Ft/óra";
   final Set<int> _districts = {};
-  final Set<DateTime> _dates = {}; // több nap kijelölhető
+  final Set<DateTime> _dates = {};
 
   @override
   void initState() {
@@ -55,7 +55,7 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
   }
 
   String _fmtDate(DateTime d) =>
-    "${d.year}.${d.month.toString().padLeft(2,'0')}.${d.day.toString().padLeft(2,'0')}.";
+      "${d.year}.${d.month.toString().padLeft(2,'0')}.${d.day.toString().padLeft(2,'0')}.";
 
   Future<void> _pickDate() async {
     final now = DateTime.now();
@@ -155,8 +155,8 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
                 );
               }).toList(),
             ),
-            const SizedBox(height: 12),
 
+            const SizedBox(height: 12),
             const Text("Kerületek (Budapest I–XXIII)"),
             const SizedBox(height: 6),
             Wrap(
@@ -225,21 +225,20 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
               icon: const Icon(Icons.event),
               label: Text(_dates.isEmpty ? "Napok kiválasztása (több is lehet)" : "Kiválasztott napok: ${_dates.length}"),
             ),
+
             if (_dates.isNotEmpty) ...[
               const SizedBox(height: 8),
               Wrap(
                 spacing: 6, runSpacing: 6,
-                children: _dates.toList()
-                  ..sort((a,b)=> a.compareTo(b))
-                  ..map((d)=> Chip(label: Text(_fmtDate(d)))).toList(),
+                // <<< Itt a javítás: a rendezett List<DateTime>-ből Widget listát készítünk >>>
+                children: ((_dates.toList()..sort((a,b)=> a.compareTo(b)))
+                  .map<Widget>((d)=> Chip(label: Text(_fmtDate(d))))
+                  .toList()),
               ),
             ],
 
             const Spacer(),
-            FilledButton(
-              onPressed: _save,
-              child: const Text("Mentés"),
-            ),
+            FilledButton(onPressed: _save, child: const Text("Mentés")),
           ],
         ),
       ),
