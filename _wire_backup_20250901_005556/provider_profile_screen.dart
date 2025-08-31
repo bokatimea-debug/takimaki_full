@@ -40,4 +40,3 @@ class _S extends State<ProviderProfileScreen> {
     );
   }
 }
-

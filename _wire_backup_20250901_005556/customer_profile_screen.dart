@@ -29,7 +29,13 @@ class _S extends State<CustomerProfileScreen> {
           const SizedBox(height: 16),
           FilledButton(onPressed: () async { await Navigator.pushNamed(context, '/customer/edit_profile'); await _load(); }, child: const Text('Profil szerkesztése')),
           const SizedBox(height: 8),
-          OutlinedButton(onPressed: ()=> Navigator.pushNamed(context, '/customer/search');
+          OutlinedButton(onPressed: ()=> Navigator.pushNamed(context, '/customer/orders'), child: const Text('Rendeléseim')),
+          const SizedBox(height: 8),
+          OutlinedButton(onPressed: ()=> Navigator.pushNamed(context, '/customer/messages'), child: const Text('Üzenetek')),
+          const SizedBox(height: 8),
+          FilledButton(onPressed: ()=> Navigator.pushNamed(context, '/customer/search'), child: const Text('Új rendelés leadása')),
+        ]),
+      ),
+    );
   }
 }
-
