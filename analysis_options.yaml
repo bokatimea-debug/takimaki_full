@@ -6,11 +6,14 @@ analyzer:
     - _backup/**
     - backup_*/**
     - _hotfix_*/**
+    - _patch*/**
+    - "*_patch*.*"
     - lib/**/_archive/**
     - lib/**/_backup/**
     - lib/**/backup_*/**
     - lib/**/_hotfix_*/**
-    # ha bármi ideiglenes fájl van még:
+    - lib/**/_patch*/**
+    - lib/**/_patch*/**
     - "**/*.g.dart"
     - "build/**"
     - ".dart_tool/**"
