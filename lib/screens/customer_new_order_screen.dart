@@ -8,53 +8,33 @@ class CustomerNewOrderScreen extends StatefulWidget {
 }
 
 class _CustomerNewOrderScreenState extends State<CustomerNewOrderScreen> {
-  String? _service;
-
-  final _services = const [
-    "Általános takarítás",
-    "Nagytakarítás",
-    "Felújítás utáni takarítás",
-    "Karbantartás",
-    "Vízszerelés",
-    "Villanyszerelés",
-  ];
-
-  void _submit() {
-    if (_service == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Válassz szolgáltatást")));
-      return;
-    }
-    Navigator.pushNamed(context, "/offers", arguments: {"service": _service});
-  }
+  final _formKey = GlobalKey<FormState>();
+  final _addressController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Új rendelés leadása")),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
+      appBar: AppBar(title: const Text("Új rendelés")),
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
           children: [
-            const Text("Szolgáltatás"),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              children: _services.map((s) {
-                final sel = _service == s;
-                return ChoiceChip(
-                  label: Text(s),
-                  selected: sel,
-                  onSelected: (_) => setState(()=> _service = s),
-                );
-              }).toList(),
+            // Ha Maps működik: Autocomplete widget; ha nem: sima TextField fallback
+            TextFormField(
+              controller: _addressController,
+              decoration: const InputDecoration(labelText: "Cím (szöveges)"),
+              validator: (v) => (v == null || v.trim().isEmpty) ? "Adj meg címet" : null,
             ),
-            const Spacer(),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: _submit,
-                child: const Text("Mentés"),
-              ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: () async {
+                if (!_formKey.currentState!.validate()) return;
+                final address = _addressController.text.trim();
+                // TODO: itt mentjük Firestore-ba a címet (megye/kerület később kinyerhető geokódból)
+                if (mounted) Navigator.pop(context, true);
+              },
+              child: const Text("Rendelés mentése"),
             ),
           ],
         ),
