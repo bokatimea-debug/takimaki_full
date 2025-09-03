@@ -1,53 +1,41 @@
-﻿import "dart:convert";
-import "package:shared_preferences/shared_preferences.dart";
-
-enum UserRole { customer, provider }
-
-class SubscriptionInfo {
-  final bool active;
-  final DateTime? trialUntil;
-  final DateTime? paidUntil;
-  const SubscriptionInfo({required this.active, this.trialUntil, this.paidUntil});
-
-  Map<String, dynamic> toJson() => {
-    "active": active,
-    "trialUntil": trialUntil?.toIso8601String(),
-    "paidUntil": paidUntil?.toIso8601String(),
-  };
-  static SubscriptionInfo fromJson(Map<String, dynamic> m) => SubscriptionInfo(
-    active: m["active"] == true,
-    trialUntil: m["trialUntil"]!=null ? DateTime.tryParse(m["trialUntil"]) : null,
-    paidUntil: m["paidUntil"]!=null ? DateTime.tryParse(m["paidUntil"]) : null,
-  );
-}
+﻿import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../models/subscription.dart';
 
 class SubscriptionService {
-  static String _key(UserRole role) => "sub_${role.name}";
-  static Future<SubscriptionInfo> get(UserRole role) async {
-    final sp = await SharedPreferences.getInstance();
-    final raw = sp.getString(_key(role));
-    if (raw == null) return _defaultFor(role);
-    try { return SubscriptionInfo.fromJson(jsonDecode(raw)); } catch (_) { return _defaultFor(role); }
+  static Future<SubscriptionState> loadForRole(String role) async {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+    final userDoc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+    final data = userDoc.data() ?? {};
+    final subs = (data['subscriptions'] ?? {}) as Map<String, dynamic>;
+    final roleSub = (subs[role] ?? {}) as Map<String, dynamic>;
+    final isActive = (roleSub['isActive'] ?? false) as bool;
+    final ts = roleSub['activeUntil'];
+    DateTime? until;
+    if (ts is Timestamp) until = ts.toDate();
+
+    final stats = (data['stats'] ?? {}) as Map<String, dynamic>;
+    final successfulCount = (stats['${role}_successful_orders'] ?? 0) as int;
+
+    return SubscriptionState(
+      isActive: isActive,
+      activeUntil: until,
+      role: role,
+      successfulCount: successfulCount,
+    );
   }
 
-  static Future<void> startTrial(UserRole role) async {
-    final sp = await SharedPreferences.getInstance();
-    final now = DateTime.now();
-    final trialEnd = role==UserRole.customer ? now.add(const Duration(days: 90)) : now.add(const Duration(days: 30));
-    final info = SubscriptionInfo(active: true, trialUntil: trialEnd, paidUntil: null);
-    await sp.setString(_key(role), jsonEncode(info.toJson()));
+  static Future<void> markSubscribed(String role, DateTime until) async {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+    final userRef = FirebaseFirestore.instance.collection('users').doc(uid);
+    await userRef.set({
+      'subscriptions': {
+        role: {
+          'isActive': true,
+          'activeUntil': Timestamp.fromDate(until),
+          'updatedAt': FieldValue.serverTimestamp(),
+        }
+      }
+    }, SetOptions(merge: true));
   }
-
-  static Future<void> setPaid(UserRole role, DateTime until) async {
-    final sp = await SharedPreferences.getInstance();
-    final info = SubscriptionInfo(active: true, trialUntil: null, paidUntil: until);
-    await sp.setString(_key(role), jsonEncode(info.toJson()));
-  }
-
-  static Future<void> cancel(UserRole role) async {
-    final sp = await SharedPreferences.getInstance();
-    await sp.remove(_key(role));
-  }
-
-  static SubscriptionInfo _defaultFor(UserRole role) => const SubscriptionInfo(active:false);
 }
