@@ -1,8 +1,8 @@
-﻿import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
+﻿import "package:cloud_firestore/cloud_firestore.dart";
+import "package:firebase_auth/firebase_auth.dart";
+import "package:firebase_storage/firebase_storage.dart";
+import "package:flutter/material.dart";
+import "package:image_picker/image_picker.dart";
 
 class ProviderEditProfileScreen extends StatefulWidget {
   const ProviderEditProfileScreen({super.key});
@@ -16,22 +16,23 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
   final _picker = ImagePicker();
   final _formKey = GlobalKey<FormState>();
   String? _displayName;
+  String? _bio;
 
   Future<String?> _uploadIfNeeded(String uid) async {
     if (_picked == null) return null;
-    final path = 'profile_photos/$uid.jpg';
+    final path = "profile_photos/$uid.jpg";
     final ref = FirebaseStorage.instance.ref(path);
-    await ref.putData(await _picked!.readAsBytes(), SettableMetadata(contentType: 'image/jpeg'));
+    await ref.putData(await _picked!.readAsBytes(), SettableMetadata(contentType: "image/jpeg"));
     return await ref.getDownloadURL();
   }
 
   @override
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser!.uid;
-    final userDoc = FirebaseFirestore.instance.collection('users').doc(uid);
+    final userDoc = FirebaseFirestore.instance.collection("users").doc(uid);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Profil szerkesztése')),
+      appBar: AppBar(title: const Text("Profil szerkesztése")),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -43,11 +44,17 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
                 setState(() {});
               },
               icon: const Icon(Icons.photo),
-              label: Text(_picked == null ? 'Profilkép kiválasztása' : 'Kép kiválasztva'),
+              label: Text(_picked == null ? "Profilkép kiválasztása" : "Kép kiválasztva"),
             ),
             TextFormField(
-              decoration: const InputDecoration(labelText: 'Megjelenített név'),
+              decoration: const InputDecoration(labelText: "Megjelenített név"),
               onSaved: (v) => _displayName = v?.trim(),
+            ),
+            TextFormField(
+              decoration: const InputDecoration(labelText: "Bemutatkozás (max 200 karakter)"),
+              maxLines: 3,
+              maxLength: 200,
+              onSaved: (v) => _bio = v?.trim(),
             ),
             const SizedBox(height: 16),
             ElevatedButton(
@@ -55,12 +62,13 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
                 _formKey.currentState!.save();
                 final url = await _uploadIfNeeded(uid);
                 final update = <String, dynamic>{};
-                if (_displayName != null && _displayName!.isNotEmpty) update['displayName'] = _displayName!;
-                if (url != null) update['photoUrl'] = url;
-                if (update.isNotEmpty) await userDoc.update(update);
-                if (mounted) Navigator.pop(context, true);
+                if (_displayName != null && _displayName!.isNotEmpty) update["displayName"] = _displayName!;
+                if (_bio != null && _bio!.isNotEmpty) update["bio"] = _bio!;
+                if (url != null) update["photoUrl"] = url;
+                if (update.isNotEmpty) await userDoc.set(update, SetOptions(merge: true));
+                if (mounted) Navigator.pop(context, true); // StreamBuilder a profilon frissít
               },
-              child: const Text('Mentés'),
+              child: const Text("Mentés"),
             ),
           ],
         ),
