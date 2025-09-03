@@ -1,49 +1,74 @@
-﻿import 'package:flutter/material.dart';
+﻿import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 
 class ProviderOfferReplyScreen extends StatefulWidget {
-  const ProviderOfferReplyScreen({super.key});
+  final String requestId;
+  final Map<String, dynamic> initial;
+  const ProviderOfferReplyScreen({super.key, required this.requestId, required this.initial});
 
   @override
   State<ProviderOfferReplyScreen> createState() => _ProviderOfferReplyScreenState();
 }
 
 class _ProviderOfferReplyScreenState extends State<ProviderOfferReplyScreen> {
-  final _priceController = TextEditingController();
-  final _noteController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  final _price = TextEditingController();
+  final _note = TextEditingController();
 
-  void _submit() {
-    // TODO: backend integráció Firestore offers collection
-    final price = _priceController.text.trim();
-    final note = _noteController.text.trim();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Ajánlat elküldve: $price Ft, $note")),
-    );
-    Navigator.pop(context);
+  @override
+  void initState() {
+    super.initState();
+    _price.text = widget.initial['suggestedPrice']?.toString() ?? '';
+    _note.text = widget.initial['note']?.toString() ?? '';
   }
 
   @override
   Widget build(BuildContext context) {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+    final requests = FirebaseFirestore.instance.collection('requests');
+
     return Scaffold(
-      appBar: AppBar(title: const Text("Ajánlat küldése")),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
+      appBar: AppBar(title: const Text('Ajánlat megadása')),
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
           children: [
-            TextField(
-              controller: _priceController,
-              decoration: const InputDecoration(labelText: "Ajánlott ár (Ft)"),
+            Text('Megrendelő: ${widget.initial['customerName'] ?? '-'}'),
+            const SizedBox(height: 8),
+            Text('Feladat: ${widget.initial['serviceName'] ?? '-'}'),
+            const Divider(height: 24),
+            TextFormField(
+              controller: _price,
               keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Ajánlott ár (Ft)'),
+              validator: (v) => (v == null || int.tryParse(v) == null) ? 'Adj meg számot' : null,
             ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _noteController,
-              decoration: const InputDecoration(labelText: "Megjegyzés"),
-              maxLines: 2,
+            TextFormField(
+              controller: _note,
+              maxLines: 3,
+              decoration: const InputDecoration(labelText: 'Megjegyzés (opcionális)'),
             ),
-            const Spacer(),
-            ElevatedButton(
-              onPressed: _submit,
-              child: const Text("Elküldés"),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.send),
+              label: const Text('Ajánlat küldése'),
+              onPressed: () async {
+                if (!_formKey.currentState!.validate()) return;
+                final offer = {
+                  'providerId': uid,
+                  'price': int.parse(_price.text),
+                  'note': _note.text.trim(),
+                  'status': 'sent',
+                  'sentAt': FieldValue.serverTimestamp(),
+                };
+                await requests.doc(widget.requestId).collection('offers').doc(uid).set(offer, SetOptions(merge: true));
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ajánlat elküldve')));
+                  Navigator.pop(context, true);
+                }
+              },
             ),
           ],
         ),
