@@ -1,112 +1,77 @@
-﻿import 'dart:io';
-import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+﻿import "package:cloud_firestore/cloud_firestore.dart";
+import "package:firebase_auth/firebase_auth.dart";
+import "package:firebase_storage/firebase_storage.dart";
+import "package:flutter/material.dart";
+import "package:image_picker/image_picker.dart";
 
 class ProviderEditProfileScreen extends StatefulWidget {
   const ProviderEditProfileScreen({super.key});
-  @override State<ProviderEditProfileScreen> createState()=>_S();
+
+  @override
+  State<ProviderEditProfileScreen> createState() => _ProviderEditProfileScreenState();
 }
-class _S extends State<ProviderEditProfileScreen>{
-  final bio = TextEditingController();
-  String? photoPath;
-  TimeOfDay? wdFrom, wdTo, weFrom, weTo;
 
-  @override void initState(){ super.initState(); _load(); }
-  Future<void> _load() async {
-    final sp = await SharedPreferences.getInstance();
-    bio.text = sp.getString('provider_bio') ?? '';
-    photoPath = sp.getString('provider_photo_path') ?? sp.getString('registration_photo_path');
-    wdFrom = _parse(sp.getString('provider_wd_from'));
-    wdTo   = _parse(sp.getString('provider_wd_to'));
-    weFrom = _parse(sp.getString('provider_we_from'));
-    weTo   = _parse(sp.getString('provider_we_to'));
-    if(mounted) setState((){});
+class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
+  XFile? _picked;
+  final _picker = ImagePicker();
+  final _formKey = GlobalKey<FormState>();
+  String? _displayName;
+  String? _bio;
+
+  Future<String?> _uploadIfNeeded(String uid) async {
+    if (_picked == null) return null;
+    final path = "profile_photos/$uid.jpg";
+    final ref = FirebaseStorage.instance.ref(path);
+    await ref.putData(await _picked!.readAsBytes(), SettableMetadata(contentType: "image/jpeg"));
+    return await ref.getDownloadURL();
   }
 
-  TimeOfDay? _parse(String? hhmm){
-    if(hhmm==null || !hhmm.contains(':')) return null;
-    final p = hhmm.split(':'); return TimeOfDay(hour: int.parse(p[0]), minute: int.parse(p[1]));
-  }
-  String _fmt(TimeOfDay? t)=> t==null? '--:--' : '${t.hour.toString().padLeft(2,'0')}:${t.minute.toString().padLeft(2,'0')}';
+  @override
+  Widget build(BuildContext context) {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+    final userDoc = FirebaseFirestore.instance.collection("users").doc(uid);
 
-  Future<void> _pickRange({required bool weekend}) async {
-    final fromInit = weekend ? (weFrom ?? const TimeOfDay(hour:9, minute:0))
-                             : (wdFrom ?? const TimeOfDay(hour:9, minute:0));
-    final toInit   = weekend ? (weTo   ?? const TimeOfDay(hour:17, minute:0))
-                             : (wdTo   ?? const TimeOfDay(hour:17, minute:0));
-
-    final from = await showTimePicker(context: context, initialTime: fromInit, initialEntryMode: TimePickerEntryMode.dial);
-    if (from==null) return;
-    final to   = await showTimePicker(context: context, initialTime: toInit,   initialEntryMode: TimePickerEntryMode.dial);
-    if (to==null) return;
-
-    setState((){
-      if(weekend){ weFrom = from; weTo = to; } else { wdFrom = from; wdTo = to; }
-    });
-  }
-
-  Future<void> _pickPhoto() async {
-    final x = await ImagePicker().pickImage(source: ImageSource.gallery, maxWidth: 1280);
-    if (x!=null) setState(()=> photoPath = x.path);
-  }
-
-  Future<void> _save() async {
-    final sp = await SharedPreferences.getInstance();
-    await sp.setString('provider_bio', bio.text.trim());
-    if (photoPath!=null && photoPath!.isNotEmpty){
-      await sp.setString('provider_photo_path', photoPath!);
-      await sp.setString('registration_photo_path', photoPath!); // fallback a megjelenítéshez
-    }
-    if (wdFrom!=null) await sp.setString('provider_wd_from', _fmt(wdFrom));
-    if (wdTo  !=null) await sp.setString('provider_wd_to',   _fmt(wdTo));
-    if (weFrom!=null) await sp.setString('provider_we_from', _fmt(weFrom));
-    if (weTo  !=null) await sp.setString('provider_we_to',   _fmt(weTo));
-    if(!mounted) return;
-    Navigator.pop(context, true);
-  }
-
-  @override Widget build(BuildContext context){
     return Scaffold(
-      appBar: AppBar(title: const Text('Profil szerkesztése')),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Center(
-            child: GestureDetector(
-              onTap: _pickPhoto,
-              child: CircleAvatar(
-                radius: 50,
-                backgroundImage: (photoPath!=null && photoPath!.isNotEmpty)? FileImage(File(photoPath!)) : null,
-                child: (photoPath==null || photoPath!.isEmpty)? const Icon(Icons.add_a_photo, size: 36):null,
-              ),
+      appBar: AppBar(title: const Text("Profil szerkesztése")),
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            OutlinedButton.icon(
+              onPressed: () async {
+                _picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+                setState(() {});
+              },
+              icon: const Icon(Icons.photo),
+              label: Text(_picked == null ? "Profilkép kiválasztása" : "Kép kiválasztva"),
             ),
-          ),
-          const SizedBox(height: 16),
-          const Text('Bemutatkozás'),
-          const SizedBox(height: 6),
-          TextField(controller: bio, maxLines: 3, decoration: const InputDecoration(border: OutlineInputBorder())),
-          const SizedBox(height: 20),
-          const Text('Általános elérhetőségi idő', style: TextStyle(fontWeight: FontWeight.w700)),
-          const SizedBox(height: 6),
-          ListTile(
-            onTap: ()=> _pickRange(weekend: false),
-            title: const Text('Hétköznap'),
-            subtitle: Text('${_fmt(wdFrom)} – ${_fmt(wdTo)}'),
-            trailing: const Icon(Icons.access_time),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: const BorderSide(color: Color(0x22000000))),
-          ),
-          const SizedBox(height: 8),
-          ListTile(
-            onTap: ()=> _pickRange(weekend: true),
-            title: const Text('Hétvége'),
-            subtitle: Text('${_fmt(weFrom)} – ${_fmt(weTo)}'),
-            trailing: const Icon(Icons.access_time),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: const BorderSide(color: Color(0x22000000))),
-          ),
-          const SizedBox(height: 24),
-          FilledButton(onPressed: _save, child: const Text('Mentés')),
-        ],
+            TextFormField(
+              decoration: const InputDecoration(labelText: "Megjelenített név"),
+              onSaved: (v) => _displayName = v?.trim(),
+            ),
+            TextFormField(
+              decoration: const InputDecoration(labelText: "Bemutatkozás (max 200 karakter)"),
+              maxLines: 3,
+              maxLength: 200,
+              onSaved: (v) => _bio = v?.trim(),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () async {
+                _formKey.currentState!.save();
+                final url = await _uploadIfNeeded(uid);
+                final update = <String, dynamic>{};
+                if (_displayName != null && _displayName!.isNotEmpty) update["displayName"] = _displayName!;
+                if (_bio != null && _bio!.isNotEmpty) update["bio"] = _bio!;
+                if (url != null) update["photoUrl"] = url;
+                if (update.isNotEmpty) await userDoc.set(update, SetOptions(merge: true));
+                if (mounted) Navigator.pop(context, true); // StreamBuilder a profilon frissít
+              },
+              child: const Text("Mentés"),
+            ),
+          ],
+        ),
       ),
     );
   }

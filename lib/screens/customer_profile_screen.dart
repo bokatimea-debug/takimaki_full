@@ -1,78 +1,52 @@
-﻿import "package:flutter/material.dart";
-import "package:shared_preferences/shared_preferences.dart";
-import "../utils/profile_photo_loader.dart";
+﻿import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class CustomerProfileScreen extends StatefulWidget {
+class CustomerProfileScreen extends StatelessWidget {
   const CustomerProfileScreen({super.key});
-  @override
-  State<CustomerProfileScreen> createState() => _S();
-}
-
-class _S extends State<CustomerProfileScreen> {
-  ImageProvider? _photo;
-  String _name = "";
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    final prefs = await SharedPreferences.getInstance();
-    final p = await ProfilePhotoLoader.loadAny();
-    final first = prefs.getString("customer_first_name") ?? "";
-    final last = prefs.getString("customer_last_name") ?? "";
-    setState(() {
-      _photo = p;
-      _name = [first, last].where((e)=> e.trim().isNotEmpty).join(" ");
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Megrendelő profil")),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Center(
-              child: ProfileAvatar(
-                background: _photo,
-                radius: 48,
-                childWhenEmpty: const Icon(Icons.person, size: 48),
-              ),
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+    final userDoc = FirebaseFirestore.instance.collection('users').doc(uid);
+
+    return StreamBuilder<DocumentSnapshot>(
+      stream: userDoc.snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        }
+        final data = snapshot.data!.data() as Map<String, dynamic>? ?? {};
+
+        final photoUrl = data['photoUrl'] ?? '';
+        final name = data['displayName'] ?? 'Név hiányzik';
+        final bio = data['bio'] ?? '';
+        final successes = data['stats']?['customer_successful_orders'] ?? 0;
+
+        return Scaffold(
+          appBar: AppBar(title: const Text('Megrendelői profil (simple)')),
+          body: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                CircleAvatar(
+                  radius: 50,
+                  backgroundImage: photoUrl != '' ? NetworkImage(photoUrl) : null,
+                  child: photoUrl == '' ? const Icon(Icons.person, size: 50) : null,
+                ),
+                const SizedBox(height: 12),
+                Text(name, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                if (bio != '') ...[
+                  const SizedBox(height: 8),
+                  Text(bio, textAlign: TextAlign.center),
+                ],
+                const SizedBox(height: 8),
+                Text('Sikeres rendelések: $successes'),
+              ],
             ),
-            const SizedBox(height: 12),
-            Center(child: Text(_name.isEmpty ? "Megrendelő" : _name)),
-            const SizedBox(height: 16),
-            FilledButton(
-              onPressed: () async {
-                await Navigator.pushNamed(context, "/customer/edit_profile");
-                await _load();
-              },
-              child: const Text("Profil szerkesztése"),
-            ),
-            const SizedBox(height: 8),
-            OutlinedButton(
-              onPressed: ()=> Navigator.pushNamed(context, "/customer/orders"),
-              child: const Text("Rendeléseim"),
-            ),
-            const SizedBox(height: 8),
-            OutlinedButton(
-              onPressed: ()=> Navigator.pushNamed(context, "/customer/messages"),
-              child: const Text("Üzenetek"),
-            ),
-            const SizedBox(height: 8),
-            FilledButton(
-              onPressed: ()=> Navigator.pushNamed(context, "/customer/search"),
-              child: const Text("Új rendelés leadása"),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }

@@ -1,7 +1,5 @@
-﻿// lib/screens/map_picker_screen.dart
-import "package:flutter/material.dart";
-import "package:google_maps_flutter/google_maps_flutter.dart";
-import "package:geocoding/geocoding.dart" as geo;
+﻿import 'package:flutter/material.dart';
+import 'package:google_place/google_place.dart';
 
 class MapPickerScreen extends StatefulWidget {
   const MapPickerScreen({super.key});
@@ -10,87 +8,50 @@ class MapPickerScreen extends StatefulWidget {
 }
 
 class _MapPickerScreenState extends State<MapPickerScreen> {
-  GoogleMapController? _ctrl;
-  LatLng _center = const LatLng(47.4979, 19.0402); // Budapest
-  final _addrCtrl = TextEditingController();
-  Marker? _pin;
+  late GooglePlace _googlePlace;
+  List<AutocompletePrediction> predictions = [];
 
   @override
-  void dispose() {
-    _addrCtrl.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    _googlePlace = GooglePlace("YOUR_GOOGLE_API_KEY"); // TODO: API kulcs
   }
 
-  Future<void> _search() async {
-    final q = _addrCtrl.text.trim();
-    if (q.isEmpty) return;
-    try {
-      final results = await geo.locationFromAddress(q, );
-      if (results.isNotEmpty) {
-        final loc = results.first;
-        final p = LatLng(loc.latitude, loc.longitude);
-        setState(() {
-          _center = p;
-          _pin = Marker(markerId: const MarkerId("pick"), position: p);
-        });
-        await _ctrl?.animateCamera(CameraUpdate.newLatLngZoom(p, 15));
-      }
-    } catch (_) {}
-  }
-
-  void _use() {
-    Navigator.pop(context, _addrCtrl.text.trim());
+  void _autoCompleteSearch(String value) async {
+    var result = await _googlePlace.autocomplete.get(value, language: "hu");
+    if (result != null && result.predictions != null && mounted) {
+      setState(() {
+        predictions = result.predictions!;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Cím kiválasztása (Google Maps)")),
+      appBar: AppBar(title: const Text("Válassz címet")),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _addrCtrl,
-                    decoration: const InputDecoration(
-                      hintText: "Írd be a címet...",
-                      border: OutlineInputBorder(),
-                    ),
-                    onSubmitted: (_) => _search(),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                FilledButton(onPressed: _search, child: const Text("Keresés")),
-              ],
-            ),
+          TextField(
+            decoration: const InputDecoration(hintText: "Írd be a címet"),
+            onChanged: _autoCompleteSearch,
           ),
           Expanded(
-            child: GoogleMap(
-              initialCameraPosition: CameraPosition(target: _center, zoom: 12),
-              onMapCreated: (c) => _ctrl = c,
-              markers: _pin == null ? {} : {_pin!},
-              onTap: (p) => setState(() {
-                _pin = Marker(markerId: const MarkerId("pick"), position: p);
-              }),
-              myLocationButtonEnabled: false,
-              zoomControlsEnabled: false,
+            child: ListView.builder(
+              itemCount: predictions.length,
+              itemBuilder: (context, index) {
+                final p = predictions[index];
+                return ListTile(
+                  title: Text(p.description ?? ""),
+                  onTap: () {
+                    Navigator.pop(context, p.description);
+                  },
+                );
+              },
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: SizedBox(
-              width: double.infinity,
-              child: FilledButton(onPressed: _use, child: const Text("Cím beillesztése")),
-            ),
-          ),
+          )
         ],
       ),
     );
   }
 }
-
-
-

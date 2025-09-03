@@ -2,7 +2,18 @@
 
 analyzer:
   exclude:
-    - _backup/**
     - _archive/**
-    - build/**
-    - .dart_tool/**
+    - _backup/**
+    - backup_*/**
+    - _hotfix_*/**
+    - _patch*/**
+    - "*_patch*.*"
+    - lib/**/_archive/**
+    - lib/**/_backup/**
+    - lib/**/backup_*/**
+    - lib/**/_hotfix_*/**
+    - lib/**/_patch*/**
+    - lib/**/_patch*/**
+    - "**/*.g.dart"
+    - "build/**"
+    - ".dart_tool/**"

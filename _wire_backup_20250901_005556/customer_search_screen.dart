@@ -54,4 +54,3 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
     );
   }
 }
-
