@@ -1,4 +1,4 @@
-Ôªøimport "package:cloud_firestore/cloud_firestore.dart";
+import "package:cloud_firestore/cloud_firestore.dart";
 import "package:firebase_auth/firebase_auth.dart";
 import "package:flutter/material.dart";
 
@@ -18,14 +18,14 @@ class ProviderProfileScreen extends StatelessWidget {
         }
         final data = (snap.data!.data() as Map<String, dynamic>? ?? {});
         final photoUrl = (data["photoUrl"] as String?) ?? "";
-        final displayName = (data["displayName"] as String?) ?? "Nincs n√©v";
+        final displayName = (data["displayName"] as String?) ?? "Nincs nÈv";
         final bio = (data["bio"] as String?) ?? "";
 
-        // Sikeres teljes√≠t√©sek (spec: providers)
+        // Sikeres teljesÌtÈsek (spec: providers)
         final stats = (data["stats"] as Map<String, dynamic>?) ?? {};
         final successful = (stats["provider_successful_orders"] as int?) ?? 0;
 
-        // √ârt√©kel√©s ‚Äì csak 5 teljes√≠t√©s ut√°n mutatjuk az √°tlagot; csillagkomponens mindig l√°tszik
+        // …rtÈkelÈs ñ csak 5 teljesÌtÈs ut·n mutatjuk az ·tlagot; csillagkomponens mindig l·tszik
         double ratingAvg = 0.0;
         int ratingCount = 0;
         if (data["rating"] is Map) {
@@ -39,7 +39,7 @@ class ProviderProfileScreen extends StatelessWidget {
         }
         final showAvg = ratingCount >= 5 && ratingAvg > 0;
 
-        // El≈ëfizet√©s st√°tusz chip (provider)
+        // ElıfizetÈs st·tusz chip (provider)
         final subs = (data["subscriptions"] as Map<String, dynamic>?) ?? {};
         final prov = (subs["provider"] as Map<String, dynamic>?) ?? {};
         final isActive = (prov["isActive"] as bool?) ?? false;
@@ -52,18 +52,18 @@ class ProviderProfileScreen extends StatelessWidget {
         final now = DateTime.now();
         final activeOk = isActive && (activeUntil == null || activeUntil!.isAfter(now));
         if (activeOk) {
-          subLabel = "Akt√≠v el≈ëfizet√©s";
+          subLabel = "AktÌv elıfizetÈs";
           subColor = Colors.green.shade600;
         } else if (successful >= 1) {
-          subLabel = "Lej√°rt el≈ëfizet√©s";
+          subLabel = "Lej·rt elıfizetÈs";
           subColor = Colors.orange.shade700;
         } else {
-          subLabel = "Ingyenes id≈ëszak";
+          subLabel = "Ingyenes idıszak";
           subColor = Colors.blueGrey.shade600;
         }
 
         return Scaffold(
-          appBar: AppBar(title: const Text("Szolg√°ltat√≥i profil")),
+          appBar: AppBar(title: const Text("Szolg·ltatÛi profil ∑ v3.3")),
           body: ListView(
             padding: const EdgeInsets.all(16),
             children: [
@@ -78,7 +78,7 @@ class ProviderProfileScreen extends StatelessWidget {
               Center(child: Text(displayName, style: Theme.of(context).textTheme.titleMedium)),
               const SizedBox(height: 8),
 
-              // √ârt√©kel√©s sor
+              // …rtÈkelÈs sor
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -86,7 +86,7 @@ class ProviderProfileScreen extends StatelessWidget {
                   const SizedBox(width: 8),
                   Text(
                     showAvg ? "${ratingAvg.toStringAsFixed(1)} (${ratingCount})"
-                            : "‚Äî",
+                            : "ó",
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ],
@@ -101,16 +101,16 @@ class ProviderProfileScreen extends StatelessWidget {
               ),
 
               const SizedBox(height: 12),
-              // Sikeres rendel√©sek
+              // Sikeres rendelÈsek
               Center(
-                child: Text("Sikeres rendel√©sek: $successful",
+                child: Text("Sikeres rendelÈsek: $successful",
                     style: Theme.of(context).textTheme.bodyMedium),
               ),
 
               const SizedBox(height: 12),
-              // Bemutatkoz√°s (max 3 sor)
+              // Bemutatkoz·s (max 3 sor)
               if (bio.isNotEmpty) ...[
-                Text("Bemutatkoz√°s",
+                Text("Bemutatkoz·s",
                     style: Theme.of(context).textTheme.titleSmall),
                 const SizedBox(height: 4),
                 Text(
@@ -121,33 +121,33 @@ class ProviderProfileScreen extends StatelessWidget {
               ],
 
               const SizedBox(height: 16),
-              // Gyors men√º ‚Äì semleges (nem z√∂ld) gombok, csak interakci√≥kor sz√≠nez a rendszer
+              // Gyors men¸ ñ semleges (nem zˆld) gombok, csak interakciÛkor szÌnez a rendszer
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  _quickButton(context, Icons.map, "M≈±k√∂d√©si ter√ºlet", () {
+                  _quickButton(context, Icons.map, "M˚kˆdÈsi ter¸let", () {
                     // Navigator.pushNamed(context, "/provider/area");
                   }),
-                  _quickButton(context, Icons.build, "Szolg√°ltat√°saim", () {
+                  _quickButton(context, Icons.build, "Szolg·ltat·saim", () {
                     // Navigator.pushNamed(context, "/provider/services");
                   }),
-                  _quickButton(context, Icons.inbox, "Aj√°nlatk√©r√©sek", () {
+                  _quickButton(context, Icons.inbox, "Aj·nlatkÈrÈsek", () {
                     // Navigator.pushNamed(context, "/provider/requests");
                   }),
-                  _quickButton(context, Icons.chat_bubble, "√úzenetek", () {
+                  _quickButton(context, Icons.chat_bubble, "‹zenetek", () {
                     // Navigator.pushNamed(context, "/messages");
                   }),
-                  _quickButton(context, Icons.list_alt, "Rendel√©sek", () {
+                  _quickButton(context, Icons.list_alt, "RendelÈsek", () {
                     // Navigator.pushNamed(context, "/provider/orders");
                   }),
-                  _quickButton(context, Icons.star, "√ârt√©kel√©sek", () {
+                  _quickButton(context, Icons.star, "…rtÈkelÈsek", () {
                     // Navigator.pushNamed(context, "/provider/reviews");
                   }),
-                  _quickButton(context, Icons.notifications, "√ârtes√≠t√©sek", () {
+                  _quickButton(context, Icons.notifications, "…rtesÌtÈsek", () {
                     // Navigator.pushNamed(context, "/notifications");
                   }),
-                  _quickButton(context, Icons.workspace_premium, "El≈ëfizet√©s", () {
+                  _quickButton(context, Icons.workspace_premium, "ElıfizetÈs", () {
                     // Navigator.pushNamed(context, "/subscription");
                   }),
                 ],
@@ -160,7 +160,7 @@ class ProviderProfileScreen extends StatelessWidget {
   }
 
   static Widget _buildStars(double rating) {
-    // 0..5 csillag, f√©lcsillag t√°mogat√°s
+    // 0..5 csillag, fÈlcsillag t·mogat·s
     int full = rating.floor();
     bool hasHalf = (rating - full) >= 0.5;
     return Row(

@@ -1,4 +1,4 @@
-Ôªøimport "package:cloud_firestore/cloud_firestore.dart";
+import "package:cloud_firestore/cloud_firestore.dart";
 import "package:firebase_auth/firebase_auth.dart";
 import "package:flutter/material.dart";
 
@@ -18,14 +18,14 @@ class CustomerProfileScreen extends StatelessWidget {
         }
         final data = (snap.data!.data() as Map<String, dynamic>? ?? {});
         final photoUrl = (data["photoUrl"] as String?) ?? "";
-        final displayName = (data["displayName"] as String?) ?? "Nincs n√©v";
+        final displayName = (data["displayName"] as String?) ?? "Nincs nÈv";
         final bio = (data["bio"] as String?) ?? "";
 
-        // Sikeres rendel√©sek sz√°ma
+        // Sikeres rendelÈsek sz·ma
         final stats = (data["stats"] as Map<String, dynamic>?) ?? {};
         final successful = (stats["customer_successful_orders"] as int?) ?? 0;
 
-        // √ârt√©kel√©s ‚Äì csak 5 teljes√≠t√©s ut√°n mutatjuk az √°tlagot; csillagok mindig l√°tszanak
+        // …rtÈkelÈs ñ csak 5 teljesÌtÈs ut·n mutatjuk az ·tlagot; csillagok mindig l·tszanak
         double ratingAvg = 0.0;
         int ratingCount = 0;
         if (data["rating"] is Map) {
@@ -35,7 +35,7 @@ class CustomerProfileScreen extends StatelessWidget {
         }
         final showAvg = ratingCount >= 5 && ratingAvg > 0;
 
-        // El≈ëfizet√©s st√°tusz chip (customer)
+        // ElıfizetÈs st·tusz chip (customer)
         final subs = (data["subscriptions"] as Map<String, dynamic>?) ?? {};
         final cust = (subs["customer"] as Map<String, dynamic>?) ?? {};
         final isActive = (cust["isActive"] as bool?) ?? false;
@@ -48,18 +48,18 @@ class CustomerProfileScreen extends StatelessWidget {
         final now = DateTime.now();
         final activeOk = isActive && (activeUntil == null || activeUntil!.isAfter(now));
         if (activeOk) {
-          subLabel = "Akt√≠v el≈ëfizet√©s";
+          subLabel = "AktÌv elıfizetÈs";
           subColor = Colors.green.shade600;
         } else if (successful >= 3) {
-          subLabel = "Lej√°rt el≈ëfizet√©s";
+          subLabel = "Lej·rt elıfizetÈs";
           subColor = Colors.orange.shade700;
         } else {
-          subLabel = "Ingyenes id≈ëszak";
+          subLabel = "Ingyenes idıszak";
           subColor = Colors.blueGrey.shade600;
         }
 
         return Scaffold(
-          appBar: AppBar(title: const Text("Profilom")),
+          appBar: AppBar(title: const Text("Profilom ∑ v3.3")),
           body: ListView(
             padding: const EdgeInsets.all(16),
             children: [
@@ -79,7 +79,7 @@ class CustomerProfileScreen extends StatelessWidget {
                 children: [
                   _buildStars(showAvg ? ratingAvg : 0),
                   const SizedBox(width: 8),
-                  Text(showAvg ? "${ratingAvg.toStringAsFixed(1)} ($ratingCount)" : "‚Äî"),
+                  Text(showAvg ? "${ratingAvg.toStringAsFixed(1)} ($ratingCount)" : "ó"),
                 ],
               ),
 
@@ -92,11 +92,11 @@ class CustomerProfileScreen extends StatelessWidget {
               ),
 
               const SizedBox(height: 12),
-              Center(child: Text("Sikeres rendel√©sek: $successful")),
+              Center(child: Text("Sikeres rendelÈsek: $successful")),
 
               const SizedBox(height: 12),
               if (bio.isNotEmpty) ...[
-                Text("Bemutatkoz√°s", style: Theme.of(context).textTheme.titleSmall),
+                Text("Bemutatkoz·s", style: Theme.of(context).textTheme.titleSmall),
                 const SizedBox(height: 4),
                 Text(bio, maxLines: 3, overflow: TextOverflow.ellipsis),
               ],
@@ -106,22 +106,22 @@ class CustomerProfileScreen extends StatelessWidget {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  _quickButton(context, Icons.add_circle, "√öj rendel√©s", () {
+                  _quickButton(context, Icons.add_circle, "⁄j rendelÈs", () {
                     // Navigator.pushNamed(context, "/customer/new_order");
                   }),
                   _quickButton(context, Icons.favorite, "Kedvencek", () {
                     // Navigator.pushNamed(context, "/customer/favorites");
                   }),
-                  _quickButton(context, Icons.list_alt, "Rendel√©seim", () {
+                  _quickButton(context, Icons.list_alt, "RendelÈseim", () {
                     // Navigator.pushNamed(context, "/customer/orders");
                   }),
-                  _quickButton(context, Icons.chat_bubble, "√úzenetek", () {
+                  _quickButton(context, Icons.chat_bubble, "‹zenetek", () {
                     // Navigator.pushNamed(context, "/messages");
                   }),
-                  _quickButton(context, Icons.workspace_premium, "El≈ëfizet√©s", () {
+                  _quickButton(context, Icons.workspace_premium, "ElıfizetÈs", () {
                     // Navigator.pushNamed(context, "/subscription");
                   }),
-                  _quickButton(context, Icons.edit, "Profil szerkeszt√©se", () {
+                  _quickButton(context, Icons.edit, "Profil szerkesztÈse", () {
                     // Navigator.pushNamed(context, "/customer/edit_profile");
                   }),
                 ],
