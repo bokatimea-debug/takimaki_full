@@ -37,7 +37,8 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
   @override
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser!.uid;
-    final col = FirebaseFirestore.instance.collection("users").doc(uid).collection("services");
+    final col = FirebaseFirestore.instance
+        .collection("users").doc(uid).collection("services");
 
     return Scaffold(
       appBar: AppBar(title: Text(widget.serviceId == null ? "Új szolgáltatás" : "Szolgáltatás szerkesztése")),
