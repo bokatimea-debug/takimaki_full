@@ -25,7 +25,7 @@ dependencies:
   firebase_auth: 5.2.0
   firebase_storage: 12.3.0
   cached_network_image: 3.3.1
-  cloud_firestore: 5.4.4   # <<< EZ HIÁNYZOTT
+  cloud_firestore: 5.4.4   # <<< EZ KELL
 
 dev_dependencies:
   flutter_localizations:
