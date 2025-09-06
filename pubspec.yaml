@@ -1,4 +1,4 @@
-name: takimaki_full
+﻿name: takimaki_full
 description: Takimaki mobile app
 publish_to: "none"
 
@@ -25,6 +25,7 @@ dependencies:
   firebase_auth: 5.2.0
   firebase_storage: 12.3.0
   cached_network_image: 3.3.1
+  cloud_firestore: 5.4.4   # <<< EZ HIÁNYZOTT
 
 dev_dependencies:
   flutter_localizations:
@@ -44,4 +45,3 @@ flutter_icons:
   ios: true
   image_path: assets/icons/takimaki_icon.png
   remove_alpha_ios: true
-
