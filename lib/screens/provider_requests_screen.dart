@@ -7,14 +7,19 @@ class ProviderRequestsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final col = FirebaseFirestore.instance.collection("requests");
+
     return Scaffold(
       appBar: AppBar(title: const Text("Beérkezett ajánlatkérések")),
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
         stream: col.orderBy("createdAt", descending: true).snapshots(),
         builder: (c, s) {
-          if (!s.hasData) return const Center(child: CircularProgressIndicator());
+          if (s.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (!s.hasData || s.data!.docs.isEmpty) {
+            return const Center(child: Text("Nincs beérkezett ajánlatkérés"));
+          }
           final docs = s.data!.docs;
-          if (docs.isEmpty) return const Center(child: Text("Nincs beérkezett ajánlatkérés"));
           return ListView.separated(
             itemCount: docs.length,
             separatorBuilder: (_, __) => const Divider(height: 1),
@@ -25,7 +30,8 @@ class ProviderRequestsScreen extends StatelessWidget {
                 title: Text(d["serviceName"]?.toString() ?? "Ajánlatkérés"),
                 subtitle: Text(d["whenStr"]?.toString() ?? ""),
                 onTap: () => Navigator.pushNamed(
-                  context, "/provider/offer_reply",
+                  context,
+                  "/provider/offer_reply",
                   arguments: {"requestId": doc.id, "initial": d},
                 ),
                 trailing: IconButton(
@@ -42,7 +48,7 @@ class ProviderRequestsScreen extends StatelessWidget {
                         ],
                       ),
                     );
-                    if (ok==true) await doc.reference.delete();
+                    if (ok == true) await doc.reference.delete();
                   },
                 ),
               );

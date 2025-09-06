@@ -1,5 +1,5 @@
-﻿import "package:firebase_auth/firebase_auth.dart";
-import "package:cloud_firestore/cloud_firestore.dart";
+﻿import "package:cloud_firestore/cloud_firestore.dart";
+import "package:firebase_auth/firebase_auth.dart";
 
 Future<String?> loadProfilePhotoUrl(String uid) async {
   try {
@@ -7,6 +7,7 @@ Future<String?> loadProfilePhotoUrl(String uid) async {
     String? url = (doc.data()?["photoUrl"] as String?)?.trim();
     url ??= FirebaseAuth.instance.currentUser?.photoURL;
     if (url == null || url.isEmpty) return null;
+
     final updatedAt = doc.data()?["updatedAt"];
     if (updatedAt is Timestamp) {
       final t = updatedAt.seconds;
