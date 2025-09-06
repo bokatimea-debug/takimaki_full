@@ -1,4 +1,6 @@
 ﻿import "package:flutter/material.dart";
+import "package:firebase_auth/firebase_auth.dart";
+import "package:cloud_firestore/cloud_firestore.dart";
 
 class ProviderAddServiceScreen extends StatefulWidget {
   final String? serviceId;
@@ -25,49 +27,40 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
   }
 
   @override
-  void dispose() {
-    _name.dispose();
-    _price.dispose();
-    _duration.dispose();
-    super.dispose();
-  }
+  void dispose() { _name.dispose(); _price.dispose(); _duration.dispose(); super.dispose(); }
 
   @override
   Widget build(BuildContext context) {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+    final col = FirebaseFirestore.instance.collection("users").doc(uid).collection("services");
+
     return Scaffold(
-      appBar: AppBar(title: Text(widget.serviceId == null ? "Új szolgáltatás" : "Szolgáltatás szerkesztése")),
+      appBar: AppBar(title: Text(widget.serviceId==null ? "Új szolgáltatás" : "Szolgáltatás szerkesztése")),
       body: Form(
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            TextFormField(
-              controller: _name,
-              decoration: const InputDecoration(labelText: "Megnevezés"),
-              validator: (v) => (v == null || v.trim().isEmpty) ? "Adj meg nevet" : null,
-            ),
-            TextFormField(
-              controller: _price,
-              decoration: const InputDecoration(labelText: "Ár (Ft)"),
-              keyboardType: TextInputType.number,
-              validator: (v) => (v == null || int.tryParse(v) == null) ? "Adj meg számot" : null,
-            ),
-            TextFormField(
-              controller: _duration,
-              decoration: const InputDecoration(labelText: "Időtartam (perc)"),
-              keyboardType: TextInputType.number,
-              validator: (v) => (v == null || int.tryParse(v) == null) ? "Adj meg számot" : null,
-            ),
+            TextFormField(controller: _name, decoration: const InputDecoration(labelText: "Megnevezés"), validator: (v)=> (v==null||v.trim().isEmpty)?"Adj meg nevet":null),
+            TextFormField(controller: _price, decoration: const InputDecoration(labelText: "Ár (Ft)"), keyboardType: TextInputType.number, validator: (v)=> (v==null||int.tryParse(v)==null)?"Adj meg számot":null),
+            TextFormField(controller: _duration, decoration: const InputDecoration(labelText: "Időtartam (perc)"), keyboardType: TextInputType.number, validator: (v)=> (v==null||int.tryParse(v)==null)?"Adj meg számot":null),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () async {
                 if (!_formKey.currentState!.validate()) return;
-                // ÁTMENETI: itt nem írunk Firestore-ba, csak visszalépünk és jelezzük a hívónak
-                if (mounted) Navigator.pop(context, {"ok": true, "local": {
+                final data = {
                   "name": _name.text.trim(),
                   "price": int.parse(_price.text),
                   "duration": int.parse(_duration.text),
-                }});
+                  "updatedAt": FieldValue.serverTimestamp(),
+                };
+                if (widget.serviceId == null) {
+                  data["createdAt"] = FieldValue.serverTimestamp();
+                  await col.add(data);
+                } else {
+                  await col.doc(widget.serviceId!).update(data);
+                }
+                if (mounted) Navigator.pop(context, {"ok": true});
               },
               child: const Text("Mentés"),
             ),

@@ -1,39 +1,52 @@
 ﻿import "package:flutter/material.dart";
+import "package:cloud_firestore/cloud_firestore.dart";
 
 class ProviderRequestsScreen extends StatelessWidget {
   const ProviderRequestsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // ÁTMENETI: dummy adatok, hogy a build menjen
-    final docs = List.generate(5, (i) => {
-      "id": "req_$i",
-      "serviceName": "Ajánlatkérés #$i",
-      "whenStr": "2025-09-0${(i%9)+1} 10:00",
-    });
-
+    final col = FirebaseFirestore.instance.collection("requests");
     return Scaffold(
       appBar: AppBar(title: const Text("Beérkezett ajánlatkérések")),
-      body: ListView.separated(
-        itemCount: docs.length,
-        separatorBuilder: (_, __) => const Divider(height: 1),
-        itemBuilder: (context, i) {
-          final d = docs[i];
-          return ListTile(
-            title: Text(d["serviceName"] as String),
-            subtitle: Text(d["whenStr"] as String),
-            onTap: () async {
-              final res = await Navigator.pushNamed(
-                context,
-                "/provider/offer_reply",
-                arguments: {"requestId": d["id"], "initial": d},
+      body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+        stream: col.orderBy("createdAt", descending: true).snapshots(),
+        builder: (c, s) {
+          if (!s.hasData) return const Center(child: CircularProgressIndicator());
+          final docs = s.data!.docs;
+          if (docs.isEmpty) return const Center(child: Text("Nincs beérkezett ajánlatkérés"));
+          return ListView.separated(
+            itemCount: docs.length,
+            separatorBuilder: (_, __) => const Divider(height: 1),
+            itemBuilder: (_, i) {
+              final doc = docs[i];
+              final d = doc.data();
+              return ListTile(
+                title: Text(d["serviceName"]?.toString() ?? "Ajánlatkérés"),
+                subtitle: Text(d["whenStr"]?.toString() ?? ""),
+                onTap: () => Navigator.pushNamed(
+                  context, "/provider/offer_reply",
+                  arguments: {"requestId": doc.id, "initial": d},
+                ),
+                trailing: IconButton(
+                  icon: const Icon(Icons.delete_outline),
+                  onPressed: () async {
+                    final ok = await showDialog<bool>(
+                      context: context,
+                      builder: (_) => AlertDialog(
+                        title: const Text("Törlés"),
+                        content: const Text("Biztosan törlöd az ajánlatkérést?"),
+                        actions: [
+                          TextButton(onPressed: ()=>Navigator.pop(context,false), child: const Text("Mégse")),
+                          ElevatedButton(onPressed: ()=>Navigator.pop(context,true), child: const Text("Törlés")),
+                        ],
+                      ),
+                    );
+                    if (ok==true) await doc.reference.delete();
+                  },
+                ),
               );
-              // no-op
             },
-            trailing: IconButton(
-              icon: const Icon(Icons.delete_outline),
-              onPressed: () {},
-            ),
           );
         },
       ),

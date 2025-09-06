@@ -1,9 +1,11 @@
 ﻿import "package:flutter/material.dart";
+import "package:firebase_auth/firebase_auth.dart";
+import "package:cloud_firestore/cloud_firestore.dart";
 
 class ProviderOfferReplyScreen extends StatefulWidget {
-  final String requestId;
+  final String? requestId;
   final Map<String, dynamic>? initial;
-  const ProviderOfferReplyScreen({super.key, required this.requestId, this.initial});
+  const ProviderOfferReplyScreen({super.key, this.requestId, this.initial});
 
   @override
   State<ProviderOfferReplyScreen> createState() => _ProviderOfferReplyScreenState();
@@ -15,47 +17,71 @@ class _ProviderOfferReplyScreenState extends State<ProviderOfferReplyScreen> {
   final _noteCtrl = TextEditingController();
 
   @override
-  void dispose() {
-    _priceCtrl.dispose();
-    _noteCtrl.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    final m = widget.initial ?? {};
+    if (m["suggestedPrice"] != null) _priceCtrl.text = "${m["suggestedPrice"]}";
+    if (m["note"] != null) _noteCtrl.text = m["note"].toString();
   }
 
   @override
+  void dispose() { _priceCtrl.dispose(); _noteCtrl.dispose(); super.dispose(); }
+
+  @override
   Widget build(BuildContext context) {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+    final requests = FirebaseFirestore.instance.collection("requests");
+
+    final title = (widget.initial?["serviceName"] as String?) ?? "Ajánlat válasz";
+    final whenStr = (widget.initial?["whenStr"] as String?) ?? "";
+
     return Scaffold(
-      appBar: AppBar(title: const Text("Ajánlat küldése (stub)")),
+      appBar: AppBar(title: const Text("Ajánlat küldése")),
       body: Form(
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            Text("Ajánlat ID: ${widget.requestId}"),
-            const SizedBox(height: 12),
+            Text(title, style: Theme.of(context).textTheme.titleLarge),
+            if (whenStr.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(whenStr),
+            ],
+            const SizedBox(height: 16),
             TextFormField(
               controller: _priceCtrl,
               decoration: const InputDecoration(labelText: "Ajánlott ár (Ft)"),
               keyboardType: TextInputType.number,
-              validator: (v) => (v == null || v.trim().isEmpty) ? "Adj meg árat" : null,
+              validator: (v)=> (v==null || int.tryParse(v)==null) ? "Adj meg számot" : null,
             ),
+            const SizedBox(height: 8),
             TextFormField(
               controller: _noteCtrl,
               decoration: const InputDecoration(labelText: "Megjegyzés"),
-              maxLines: 2,
+              maxLines: 3,
             ),
             const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                if (!_formKey.currentState!.validate()) return;
-                final offer = {
-                  "price": _priceCtrl.text.trim(),
-                  "note": _noteCtrl.text.trim(),
-                  "sentAt": DateTime.now().toIso8601String(),
-                };
-                // ÁTMENETI: csak visszaadjuk a hívónak, nincs Firestore írás
-                Navigator.pop(context, {"ok": true, "offer": offer});
-              },
-              child: const Text("Ajánlat küldése"),
+            Row(
+              children: [
+                Expanded(child: OutlinedButton(onPressed: ()=>Navigator.pop(context, {"ok": false}), child: const Text("Mégse"))),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      if (!_formKey.currentState!.validate()) return;
+                      final offer = {
+                        "price": int.parse(_priceCtrl.text),
+                        "note": _noteCtrl.text.trim(),
+                        "sentAt": FieldValue.serverTimestamp(),
+                        "providerId": uid,
+                      };
+                      await requests.doc(widget.requestId).collection("offers").doc(uid).set(offer, SetOptions(merge: true));
+                      if (mounted) Navigator.pop(context, {"ok": true});
+                    },
+                    child: const Text("Ajánlat küldése"),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

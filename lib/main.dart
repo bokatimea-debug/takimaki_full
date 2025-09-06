@@ -1,4 +1,4 @@
-import 'screens/provider_offer_reply_screen.dart';
+﻿import 'screens/provider_offer_reply_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
@@ -51,30 +51,38 @@ class TakimakiApp extends StatelessWidget {
       locale: const Locale('hu'),
       home: const SplashLoginScreen(),
       routes: <String, WidgetBuilder>{
-        '/role_select': (_) => const RoleSelectScreen(),
+  '/provider/profile':      (_) => const ProviderProfileScreen(),
+  '/provider/edit_profile': (_) => const ProviderEditProfileScreen(),
+  '/provider/services':     (_) => const ProviderServicesScreen(),
+  '/provider/add_service':  (ctx) {
+    final args = ModalRoute.of(ctx)!.settings.arguments as Map?;
+    return ProviderAddServiceScreen(
+      serviceId: args?["serviceId"] as String?,
+      initial: (args?["initial"] as Map?)?.cast<String, dynamic>(),
+    );
+  },
+  '/provider/requests':     (_) => const ProviderRequestsScreen(),
+  '/provider/offer_reply':  (ctx) {
+    final args = ModalRoute.of(ctx)!.settings.arguments as Map?;
+    return ProviderOfferReplyScreen(
+      requestId: args?["requestId"] as String?,
+      initial: (args?["initial"] as Map?)?.cast<String, dynamic>(),
+    );
+  },
 
-        '/customer/profile':      (_) => const CustomerProfileScreen(),
-        '/customer/edit_profile': (_) => const CustomerEditProfileScreen(),
-        '/customer/search':       (_) => const CustomerSearchScreen(),
-        '/customer/orders':       (_) => const CustomerOrdersScreen(),
-        '/customer/messages':     (_) => const CustomerMessagesScreen(),
+  '/customer/profile':      (_) => const CustomerProfileScreen(),
+  '/customer/edit_profile': (_) => const CustomerEditProfileScreen(),
 
-        '/offers': (_) => const OffersScreen(),
-        '/chat':   (_) => const ChatListScreen(),
-
-        '/provider/profile':      (_) => const ProviderProfileScreen(),
-        '/provider/edit_profile': (_) => const ProviderEditProfileScreen(),
-        '/provider/services':     (_) => const ProviderServicesScreen(),
-        '/provider/add_service':  (_) => const ProviderAddServiceScreen(),
-        '/provider/requests':     (_) => const ProviderRequestsScreen(),
-        '/provider/messages':     (_) => const ProviderMessagesScreen(),
-        '/provider/all_orders':   (_) => const ProviderAllOrdersScreen(),
-
-        '/map_picker': (_) => const MapPickerScreen(),
-      },
+  // példa rendelés részlet route (ha a listából hívod, add át az order Map-et)
+  '/orders/detail':         (ctx) {
+    final args = ModalRoute.of(ctx)!.settings.arguments as Map;
+    return OrderDetailScreen(order: args["order"] as Map<String, dynamic>);
+  },
+},
     );
   }
 }
+
 
 
 
