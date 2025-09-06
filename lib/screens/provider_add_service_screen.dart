@@ -1,6 +1,4 @@
 ﻿import "package:flutter/material.dart";
-import "package:firebase_auth/firebase_auth.dart";
-import "package:cloud_firestore/cloud_firestore.dart";
 
 class ProviderAddServiceScreen extends StatefulWidget {
   final String? serviceId;
@@ -36,10 +34,6 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final uid = FirebaseAuth.instance.currentUser!.uid;
-    final col = FirebaseFirestore.instance
-        .collection("users").doc(uid).collection("services");
-
     return Scaffold(
       appBar: AppBar(title: Text(widget.serviceId == null ? "Új szolgáltatás" : "Szolgáltatás szerkesztése")),
       body: Form(
@@ -68,19 +62,12 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
             ElevatedButton(
               onPressed: () async {
                 if (!_formKey.currentState!.validate()) return;
-                final data = <String, dynamic>{
+                // ÁTMENETI: itt nem írunk Firestore-ba, csak visszalépünk és jelezzük a hívónak
+                if (mounted) Navigator.pop(context, {"ok": true, "local": {
                   "name": _name.text.trim(),
                   "price": int.parse(_price.text),
                   "duration": int.parse(_duration.text),
-                  "updatedAt": FieldValue.serverTimestamp(),
-                };
-                if (widget.serviceId == null) {
-                  data["createdAt"] = FieldValue.serverTimestamp();
-                  await col.add(data);
-                } else {
-                  await col.doc(widget.serviceId!).set(data, SetOptions(merge: true));
-                }
-                if (mounted) Navigator.pop(context, true);
+                }});
               },
               child: const Text("Mentés"),
             ),
