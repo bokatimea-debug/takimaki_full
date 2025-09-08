@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+﻿import "package:flutter/material.dart";
 
 class RoleSelectScreen extends StatelessWidget {
   const RoleSelectScreen({super.key});
@@ -6,21 +6,21 @@ class RoleSelectScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Szerepválasztó')),
+      appBar: AppBar(title: const Text("Szerepválasztó")),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
             Expanded(
               child: InkWell(
-                onTap: ()=> Navigator.pushReplacementNamed(context, '/provider/profile'),
+                onTap: ()=> Navigator.pushReplacementNamed(context, "/register_provider"),
                 child: Card(
                   child: Center(child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: const [
                       Icon(Icons.home_repair_service, size: 48),
                       SizedBox(height: 12),
-                      Text('Szolgáltatást kínálok', style: TextStyle(fontWeight: FontWeight.w600)),
+                      Text("Szolgáltatást kínálok", style: TextStyle(fontWeight: FontWeight.w600)),
                     ],
                   )),
                 ),
@@ -28,14 +28,14 @@ class RoleSelectScreen extends StatelessWidget {
             ),
             Expanded(
               child: InkWell(
-                onTap: ()=> Navigator.pushReplacementNamed(context, '/customer/profile'),
+                onTap: ()=> Navigator.pushReplacementNamed(context, "/register_customer"),
                 child: Card(
                   child: Center(child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: const [
                       Icon(Icons.shopping_bag, size: 48),
                       SizedBox(height: 12),
-                      Text('Szolgáltatást rendelek', style: TextStyle(fontWeight: FontWeight.w600)),
+                      Text("Szolgáltatást rendelek", style: TextStyle(fontWeight: FontWeight.w600)),
                     ],
                   )),
                 ),
