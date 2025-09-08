@@ -1,9 +1,9 @@
-﻿import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
+﻿import "package:flutter/material.dart";
+import "package:firebase_core/firebase_core.dart";
 
-import 'screens/role_select_screen.dart';
-import 'screens/customer_profile_screen.dart';
-import 'screens/provider_profile_screen.dart';
+import "screens/role_select_screen.dart";
+import "screens/customer_profile_screen.dart";
+import "screens/provider_profile_screen.dart";
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,13 +17,13 @@ class TakimakiApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Takimaki',
+      title: "Takimaki",
       debugShowCheckedModeBanner: false,
-      initialRoute: '/role_select',
+      initialRoute: "/role_select",
       routes: <String, WidgetBuilder>{
-        '/role_select':           (_) => const RoleSelectScreen(),
-        '/customer/profile':      (_) => const CustomerProfileScreen(),
-        '/provider/profile':      (_) => const ProviderProfileScreen(),
+        "/role_select":      (_) => const RoleSelectScreen(),
+        "/customer/profile": (_) => const CustomerProfileScreen(),
+        "/provider/profile": (_) => const ProviderProfileScreen(),
       },
     );
   }
