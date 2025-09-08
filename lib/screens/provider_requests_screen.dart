@@ -11,31 +11,38 @@ class ProviderRequestsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text("Beérkezett ajánlatkérések")),
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        stream: col.snapshots(),
+        stream: col.orderBy("createdAt", descending: true).snapshots(),
         builder: (context, snap) {
-          if (!snap.hasData) {
-            return const Center(child: CircularProgressIndicator());
-          }
+          if (!snap.hasData) return const Center(child: CircularProgressIndicator());
           final docs = snap.data!.docs;
-          if (docs.isEmpty) {
-            return const Center(child: Text("Nincsenek beérkezett ajánlatkérések."));
-          }
+          if (docs.isEmpty) return const Center(child: Text("Nincs beérkezett ajánlatkérés"));
           return ListView.separated(
             itemCount: docs.length,
             separatorBuilder: (_, __) => const Divider(height: 1),
-            itemBuilder: (context, i) {
-              final d = docs[i].data();
+            itemBuilder: (_, i) {
+              final doc = docs[i]; final d = doc.data();
               return ListTile(
-                title: Text(d["serviceName"] ?? "Ajánlatkérés"),
-                subtitle: Text(d["whenStr"] ?? ""),
-                onTap: () {
-                  Navigator.pushNamed(context, "/provider/offer_reply",
-                      arguments: {"requestId": docs[i].id, "initial": d});
-                },
+                title: Text((d["serviceName"] ?? "Ajánlatkérés").toString()),
+                subtitle: Text((d["whenStr"] ?? "").toString()),
+                onTap: () => Navigator.pushNamed(
+                  context, "/provider/offer_reply",
+                  arguments: {"requestId": doc.id, "initial": d},
+                ),
                 trailing: IconButton(
                   icon: const Icon(Icons.delete_outline),
-                  onPressed: () {
-                    docs[i].reference.delete();
+                  onPressed: () async {
+                    final ok = await showDialog<bool>(
+                      context: context,
+                      builder: (_) => AlertDialog(
+                        title: const Text("Törlés"),
+                        content: const Text("Biztosan törlöd az ajánlatkérést?"),
+                        actions: [
+                          TextButton(onPressed: ()=>Navigator.pop(context,false), child: const Text("Mégse")),
+                          ElevatedButton(onPressed: ()=>Navigator.pop(context,true), child: const Text("Törlés")),
+                        ],
+                      ),
+                    );
+                    if (ok == true) await doc.reference.delete();
                   },
                 ),
               );

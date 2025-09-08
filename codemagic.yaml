@@ -9,8 +9,7 @@
         script: |
           set -e
           flutter clean
-          rm -rf ~/.pub-cache
-          dart pub cache clear || true
+          dart pub cache clean || true
           flutter pub get --suppress-analytics
       - name: Build APK
         script: |

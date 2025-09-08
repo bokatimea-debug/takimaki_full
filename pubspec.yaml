@@ -21,11 +21,11 @@ dependencies:
   table_calendar: ^3.2.0
   geocoding: ^4.0.0
   google_place: ^0.4.7
-  firebase_core: 3.5.0
+  firebase_core: ^3.15.0
   firebase_auth: 5.2.0
   firebase_storage: 12.3.0
   cached_network_image: 3.3.1
-  cloud_firestore: 5.4.4   # <<< EZ KELL
+  cloud_firestore: ^5.4.4
 
 dev_dependencies:
   flutter_localizations:
