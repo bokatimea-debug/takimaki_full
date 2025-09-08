@@ -1,4 +1,4 @@
-ï»¿import 'screens/provider_offer_reply_screen.dart';
+import 'screens/provider_offer_reply_screen.dart';
 import 'package:flutter/material.dart';
 
 import 'package:firebase_core/firebase_core.dart';
@@ -77,7 +77,7 @@ class TakimakiApp extends StatelessWidget {
   '/customer/profile':      (_) => const CustomerProfileScreen(),
   '/customer/edit_profile': (_) => const CustomerEditProfileScreen(),
 
-  // pÃ©lda rendelÃ©s rÃ©szlet route (ha a listÃ¡bÃ³l hÃ­vod, add Ã¡t az order Map-et)
+  // példa rendelés részlet route (ha a listából hívod, add át az order Map-et)
   '/orders/detail':         (ctx) {
     final args = ModalRoute.of(ctx)!.settings.arguments as Map;
     return OrderDetailScreen(order: args["order"] as Map<String, dynamic>);
