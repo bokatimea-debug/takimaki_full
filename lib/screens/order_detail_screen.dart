@@ -6,24 +6,39 @@ class OrderDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final rating = (order["rating"] as Map<String, dynamic>?) ?? {};
-    final txt = (rating["text"] as String?) ?? "Nincs értékelés";
-    final stars = (rating["stars"] as num?)?.toDouble() ?? 0.0;
+    final title = (order["serviceName"] ?? "Rendelés").toString();
+    final when  = (order["whenStr"] ?? "").toString();
+    final note  = (order["note"] ?? "").toString();
+    final rating = order["rating"] is Map ? order["rating"] as Map : null;
 
     return Scaffold(
       appBar: AppBar(title: const Text("Rendelés részletei")),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text("Szolgáltatás: ${order["serviceName"] ?? "-"}", style: const TextStyle(fontWeight: FontWeight.w600)),
-          const SizedBox(height: 8),
-          Text("Időpont: ${order["whenStr"] ?? "-"}"),
+          Text(title, style: Theme.of(context).textTheme.titleLarge),
+          if (when.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Row(children: [const Icon(Icons.schedule), const SizedBox(width: 8), Text(when)]),
+          ],
+          if (note.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            const Text("Megjegyzés:", style: TextStyle(fontWeight: FontWeight.w600)),
+            const SizedBox(height: 4),
+            Text(note),
+          ],
           const SizedBox(height: 16),
-          const Text("Értékelés:"),
-          const SizedBox(height: 8),
-          Text("Csillagok: $stars / 5"),
-          const SizedBox(height: 4),
-          Text(txt),
+          if (rating != null) ...[
+            const Divider(),
+            const SizedBox(height: 8),
+            const Text("Értékelés", style: TextStyle(fontWeight: FontWeight.w600)),
+            const SizedBox(height: 8),
+            Text("Csillag: ${rating["stars"] ?? "-"}"),
+            if ((rating["text"] ?? "").toString().isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text((rating["text"] ?? "").toString()),
+            ],
+          ],
         ],
       ),
     );
