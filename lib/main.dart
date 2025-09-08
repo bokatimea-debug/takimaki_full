@@ -1,3 +1,8 @@
+import 'screens/onboarding.dart';
+import 'screens/settings_notifications_screen.dart';
+import 'screens/moderation_demo_screen.dart';
+import 'screens/offers_demo_screen.dart';
+import 'screens/chat_demo_screen.dart';
 ﻿import 'screens/provider_offer_reply_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -51,6 +56,14 @@ class TakimakiApp extends StatelessWidget {
       locale: const Locale('hu'),
       home: const SplashLoginScreen(),
       routes: <String, WidgetBuilder>{
+        '/role': (_) => const RoleSelectScreen(),
+        '/provider/setup': (_) => const OnboardingScreen(),
+        '/provider/edit': (_) => const ProviderEditProfileScreen(),
+        '/provider/offer_reply': (_) => const ProviderOfferReplyScreen(),
+        '/settings/notifications': (_) => const SettingsNotificationsScreen(),
+        '/moderation/demo': (_) => const ModerationDemoScreen(),
+        '/offers/demo': (_) => const OffersDemoScreen(),
+        '/chat/demo': (_) => const ChatDemoScreen(),
         '/role_select': (_) => const RoleSelectScreen(),
 
         '/customer/profile':      (_) => const CustomerProfileScreen(),
