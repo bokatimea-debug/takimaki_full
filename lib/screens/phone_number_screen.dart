@@ -12,6 +12,26 @@ class _PhoneNumberScreenState extends State<PhoneNumberScreen> {
   final TextEditingController _phoneCtrl = TextEditingController(text: "+36 ");
 
   @override
+  void dispose() {
+    _phoneCtrl.dispose();
+    super.dispose();
+  }
+
+  void _continue() {
+    final phone = _phoneCtrl.text.replaceAll(RegExp(r'[^0-9+]'), '');
+    if (!RegExp(r'^\+36\d{9}$').hasMatch(phone)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Adj meg érvényes magyar telefonszámot.')),
+      );
+      return;
+    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => OtpVerifyScreen(phone)),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -33,17 +53,7 @@ class _PhoneNumberScreenState extends State<PhoneNumberScreen> {
             ),
             const SizedBox(height: 30),
             ElevatedButton(
-              onPressed: () {
-                final phone = _phoneCtrl.text.trim();
-                if (phone.isNotEmpty) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => OtpVerifyScreen(phone),
-                    ),
-                  );
-                }
-              },
+              onPressed: _continue,
               child: const Text("Kód kérése"),
             ),
           ],
@@ -52,4 +62,3 @@ class _PhoneNumberScreenState extends State<PhoneNumberScreen> {
     );
   }
 }
-

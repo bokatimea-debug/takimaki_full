@@ -9,6 +9,8 @@ class LocalMarketplaceStore {
   static const providerOrdersKey = 'provider_orders';
   static const providerFirstAcceptedKey = 'provider_first_order_accepted';
   static const providerSubscriptionKey = 'provider_subscription_active';
+  static const customerTrialStartedKey = 'customer_trial_started_at';
+  static const customerSubscriptionKey = 'customer_subscription_active';
 
   static Future<List<Map<String, dynamic>>> _read(String key) async {
     final prefs = await SharedPreferences.getInstance();
@@ -153,6 +155,16 @@ class LocalMarketplaceStore {
     final usedFreeOrder = prefs.getBool(providerFirstAcceptedKey) ?? false;
     final paid = prefs.getBool(providerSubscriptionKey) ?? false;
     return !usedFreeOrder || paid;
+  }
+
+  static Future<bool> canCustomerCreateOrder() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool(customerSubscriptionKey) ?? false) return true;
+    final rawStart = prefs.getString(customerTrialStartedKey);
+    if (rawStart == null) return true;
+    final start = DateTime.tryParse(rawStart);
+    if (start == null) return true;
+    return DateTime.now().isBefore(start.add(const Duration(days: 90)));
   }
 
   static Future<List<Map<String, dynamic>>> customerOrders() => _read(customerOrdersKey);

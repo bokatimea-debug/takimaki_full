@@ -1,6 +1,7 @@
 ﻿import "package:flutter/material.dart";
 import "package:shared_preferences/shared_preferences.dart";
 import "../utils/profile_photo_loader.dart";
+import "../services/local_marketplace_store.dart";
 
 class CustomerProfileScreen extends StatefulWidget {
   const CustomerProfileScreen({super.key});
@@ -33,6 +34,30 @@ class _S extends State<CustomerProfileScreen> {
       _success = prefs.getInt("customer_success_count") ?? 0;
       _rating = prefs.getDouble("customer_rating") ?? 0;
     });
+  }
+
+  Future<void> _newOrder() async {
+    final allowed = await LocalMarketplaceStore.canCustomerCreateOrder();
+    if (!mounted) return;
+    if (allowed) {
+      Navigator.pushNamed(context, "/customer/search");
+      return;
+    }
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Előfizetés szükséges"),
+        content: const Text(
+          "A 3 hónapos ingyenes időszak lejárt. Új rendeléshez 3 000 Ft/hó megrendelői előfizetés szükséges.",
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Rendben"),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -103,7 +128,7 @@ class _S extends State<CustomerProfileScreen> {
             ),
             const SizedBox(height: 8),
             FilledButton(
-              onPressed: ()=> Navigator.pushNamed(context, "/customer/search"),
+              onPressed: _newOrder,
               child: const Text("Új rendelés leadása"),
             ),
           ],

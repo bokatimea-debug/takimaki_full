@@ -12,8 +12,9 @@ workflows:
     scripts:
       - name: Get Flutter dependencies
         script: flutter pub get
+      - name: Generate Takimaki launcher icon
+        script: dart run flutter_launcher_icons
       - name: Build release APK
         script: flutter build apk --release
     artifacts:
       - build/app/outputs/flutter-apk/app-release.apk
-

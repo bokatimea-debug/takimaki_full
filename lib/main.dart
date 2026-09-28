@@ -9,7 +9,6 @@ import 'screens/customer_profile_screen.dart';
 import 'screens/customer_edit_profile_screen.dart';
 import 'screens/customer_search_screen.dart';
 import 'screens/customer_orders_screen.dart';
-import 'screens/customer_messages_screen.dart';
 
 import 'screens/offers_screen.dart';
 import 'screens/chat_screens.dart';
@@ -19,7 +18,6 @@ import 'screens/provider_edit_profile_screen.dart';
 import 'screens/provider_services_screen.dart';
 import 'screens/provider_add_service_screen.dart';
 import 'screens/provider_requests_screen.dart';
-import 'screens/provider_messages_screen.dart';
 import 'screens/provider_all_orders_screen.dart';
 import 'screens/order_details_screen.dart';
 
@@ -95,7 +93,7 @@ class TakimakiApp extends StatelessWidget {
         '/customer/edit_profile': (_) => const CustomerEditProfileScreen(),
         '/customer/search':       (_) => const CustomerSearchScreen(),
         '/customer/orders':       (_) => const CustomerOrdersScreen(),
-        '/customer/messages':     (_) => const CustomerMessagesScreen(),
+        '/customer/messages':     (_) => const ChatListScreen(),
 
         '/offers': (_) => const OffersScreen(),
         '/chat':   (_) => const ChatListScreen(),
@@ -106,7 +104,7 @@ class TakimakiApp extends StatelessWidget {
         '/provider/add_service':  (_) => const ProviderAddServiceScreen(),
         '/provider/requests':     (_) => const ProviderRequestsScreen(),
         '/provider/offer_reply':  (_) => const ProviderOfferReplyScreen(),
-        '/provider/messages':     (_) => const ProviderMessagesScreen(),
+        '/provider/messages':     (_) => const ChatListScreen(),
         '/provider/all_orders':   (_) => const ProviderAllOrdersScreen(),
 
         '/map_picker': (_) => const MapPickerScreen(),
@@ -115,4 +113,3 @@ class TakimakiApp extends StatelessWidget {
     );
   }
 }
-

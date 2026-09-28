@@ -35,11 +35,25 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
         });
         await _ctrl?.animateCamera(CameraUpdate.newLatLngZoom(p, 15));
       }
-    } catch (_) {}
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("A térképes keresés nem elérhető. A címet kézzel is megadhatod."),
+        ),
+      );
+    }
   }
 
   void _use() {
-    Navigator.pop(context, _addrCtrl.text.trim());
+    final address = _addrCtrl.text.trim();
+    if (address.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Add meg a címet.")),
+      );
+      return;
+    }
+    Navigator.pop(context, address);
   }
 
   @override
@@ -91,6 +105,5 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
     );
   }
 }
-
 
 
