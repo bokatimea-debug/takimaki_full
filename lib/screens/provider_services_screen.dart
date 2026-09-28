@@ -30,7 +30,7 @@ class _ProviderServicesScreenState extends State<ProviderServicesScreen> {
       final samples = [
         {"id":"S1","name":"Általános takarítás","price_raw":8000,"price_fmt":"8 000","unit":"Ft/óra","districts":[1,2,5,13],"dates":[]},
         {"id":"S2","name":"Nagytakarítás","price_raw":12000,"price_fmt":"12 000","unit":"Ft/óra","districts":[3,11,12],"dates":[]},
-        {"id":"S3","name":"Felújítás utáni takarítás","price_raw":1500,"price_fmt":"1 500","unit":"Ft/nm","districts":[4,6,7,8,9],"dates":[]},
+        {"id":"S3","name":"Bútorszerelés","price_raw":15000,"price_fmt":"15 000","unit":"Ft/óra","districts":[4,6,7,8,9],"dates":[]},
       ];
       raw = json.encode(samples);
       await prefs.setString(kNewKey, raw);

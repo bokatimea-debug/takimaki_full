@@ -62,8 +62,8 @@ class MockData {
     ),
     MockOffer(
       id: "of3",
-      service: "Villanyszerelés",
-      providerName: "Fény Mester Bt.",
+      service: "Bútorszerelés",
+      providerName: "Bútor Mester Bt.",
       district: "VIII",
       dateTime: DateTime.now().add(const Duration(days: 3, hours: 14)),
       priceFt: 18000,

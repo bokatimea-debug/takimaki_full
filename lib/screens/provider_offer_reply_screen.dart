@@ -1,6 +1,7 @@
 ﻿import "package:flutter/material.dart";
 import "package:shared_preferences/shared_preferences.dart";
 import "dart:convert";
+import "../services/local_marketplace_store.dart";
 
 class ProviderOfferReplyScreen extends StatefulWidget {
   const ProviderOfferReplyScreen({super.key});
@@ -9,7 +10,7 @@ class ProviderOfferReplyScreen extends StatefulWidget {
 }
 
 class _State extends State<ProviderOfferReplyScreen> {
-  late final Map<String, dynamic> data;
+  Map<String, dynamic> data = <String, dynamic>{};
   final _priceCtrl = TextEditingController();
   final _noteCtrl = TextEditingController();
 
@@ -17,12 +18,22 @@ class _State extends State<ProviderOfferReplyScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_){
+      if (!mounted) return;
       final args = ModalRoute.of(context)?.settings.arguments;
-      data = (args is Map<String, dynamic>) ? args : <String, dynamic>{};
       setState(() {
+        data = args is Map
+            ? Map<String, dynamic>.from(args)
+            : <String, dynamic>{};
         _priceCtrl.text = (data["suggested_price"] ?? "").toString();
       });
     });
+  }
+
+  @override
+  void dispose() {
+    _priceCtrl.dispose();
+    _noteCtrl.dispose();
+    super.dispose();
   }
 
   String _fmtTh(int v) {
@@ -37,6 +48,26 @@ class _State extends State<ProviderOfferReplyScreen> {
   }
 
   Future<void> _send() async {
+    final allowed = await LocalMarketplaceStore.canProviderSendOffer();
+    if (!allowed) {
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text("Előfizetés szükséges"),
+          content: const Text(
+            "Az első elfogadott megrendelés ingyenes. További ajánlatok küldéséhez 3 000 Ft/hó szolgáltatói előfizetés szükséges.",
+          ),
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Rendben"),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
     final priceRaw = int.tryParse(_priceCtrl.text.replaceAll(" ", ""));
     if (priceRaw == null || priceRaw <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -54,11 +85,13 @@ class _State extends State<ProviderOfferReplyScreen> {
       list[idx]["note"] = _noteCtrl.text.trim();
       await prefs.setString("provider_requests", json.encode(list));
     }
+    await LocalMarketplaceStore.sendOffer(
+      request: data,
+      price: priceRaw,
+      note: _noteCtrl.text.trim(),
+    );
     if (!mounted) return;
     Navigator.pop(context, true);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Ajánlat elküldve"))
-    );
   }
 
   @override

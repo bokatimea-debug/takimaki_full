@@ -11,12 +11,14 @@ class _CustomerNewOrderScreenState extends State<CustomerNewOrderScreen> {
   String? _service;
 
   final _services = const [
+    "Apartmantakarítás",
     "Általános takarítás",
     "Nagytakarítás",
-    "Felújítás utáni takarítás",
-    "Karbantartás",
     "Vízszerelés",
-    "Villanyszerelés",
+    "Gázszerelés",
+    "Karbantartás",
+    "Klíma",
+    "Bútorszerelés",
   ];
 
   void _submit() {

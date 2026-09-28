@@ -1,5 +1,8 @@
 ﻿import "package:flutter/material.dart";
 
+import "../services/local_marketplace_store.dart";
+import "../utils/district_utils.dart";
+
 class CustomerSearchScreen extends StatefulWidget {
   const CustomerSearchScreen({super.key});
   @override
@@ -11,14 +14,19 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
   String? _address;
   DateTime? _date;
   TimeOfDay? _time;
+  int? _district;
+  bool _laundryAndIroning = false;
+  final _noteController = TextEditingController();
 
   final _services = const [
+    {"name":"Apartmantakarítás","icon": Icons.apartment},
     {"name":"Általános takarítás","icon": Icons.cleaning_services},
     {"name":"Nagytakarítás","icon": Icons.soap},
-    {"name":"Felújítás utáni takarítás","icon": Icons.construction},
-    {"name":"Karbantartás","icon": Icons.build},
     {"name":"Vízszerelés","icon": Icons.water_damage},
-    {"name":"Villanyszerelés","icon": Icons.electric_bolt},
+    {"name":"Gázszerelés","icon": Icons.local_fire_department},
+    {"name":"Karbantartás","icon": Icons.build},
+    {"name":"Klíma","icon": Icons.ac_unit},
+    {"name":"Bútorszerelés","icon": Icons.chair_alt},
   ];
 
   Future<void> _pickAddress() async {
@@ -37,14 +45,44 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
     if (t!=null) setState(()=> _time=t);
   }
 
-  void _search() {
-    if (_service==null || _address==null || _date==null || _time==null) {
+  Future<void> _search() async {
+    if (_service==null || _district == null || _address==null || _date==null || _time==null) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Töltsd ki a szolgáltatás, cím, dátum és idő mezőket.")));
       return;
     }
+    final dateTime = DateTime(
+      _date!.year,
+      _date!.month,
+      _date!.day,
+      _time!.hour,
+      _time!.minute,
+    );
+    final requestId = await LocalMarketplaceStore.createRequest(
+      service: _service!,
+      district: romanFromDistrict(_district!),
+      address: _address!,
+      dateTime: dateTime,
+      note: _noteController.text.trim(),
+      laundryAndIroning:
+          _service == "Apartmantakarítás" && _laundryAndIroning,
+    );
+    if (!mounted) return;
     Navigator.pushNamed(context, "/offers", arguments: {
-      "service": _service, "address": _address, "date": _date, "time": _time
+      "request_id": requestId,
+      "service": _service,
+      "district": romanFromDistrict(_district!),
+      "address": _address,
+      "date": _date,
+      "time": _time,
+      "laundry_and_ironing":
+          _service == "Apartmantakarítás" && _laundryAndIroning,
     });
+  }
+
+  @override
+  void dispose() {
+    _noteController.dispose();
+    super.dispose();
   }
 
   @override
@@ -56,7 +94,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
       appBar: AppBar(title: const Text("Szolgáltató keresése")),
       body: Padding(
         padding: const EdgeInsets.all(12),
-        child: Column(
+        child: ListView(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Text("Szolgáltatás"),
@@ -72,11 +110,46 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
                     Text(o["name"] as String),
                   ]),
                   selected: sel,
-                  onSelected: (_)=> setState(()=> _service = o["name"] as String),
+                  onSelected: (_) => setState(() {
+                    _service = o["name"] as String;
+                    if (_service != "Apartmantakarítás") {
+                      _laundryAndIroning = false;
+                    }
+                  }),
                 );
               }).toList(),
             ),
+            if (_service == "Apartmantakarítás") ...[
+              const SizedBox(height: 10),
+              CheckboxListTile(
+                contentPadding: EdgeInsets.zero,
+                value: _laundryAndIroning,
+                title: const Text("Mosással és vasalással"),
+                subtitle: Text(
+                  _laundryAndIroning
+                      ? "A rendelés mosást és vasalást is tartalmaz."
+                      : "A rendelés mosás és vasalás nélkül készül.",
+                ),
+                controlAffinity: ListTileControlAffinity.leading,
+                onChanged: (value) =>
+                    setState(() => _laundryAndIroning = value ?? false),
+              ),
+            ],
             const SizedBox(height: 16),
+
+            DropdownButtonFormField<int>(
+              value: _district,
+              decoration: const InputDecoration(labelText: "Budapest kerület"),
+              items: List.generate(
+                23,
+                (index) => DropdownMenuItem(
+                  value: index + 1,
+                  child: Text("Budapest ${romanFromDistrict(index + 1)}. kerület"),
+                ),
+              ),
+              onChanged: (value) => setState(() => _district = value),
+            ),
+            const SizedBox(height: 12),
 
             // CÍM (Google Maps külön képernyő)
             ListTile(
@@ -95,7 +168,15 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
                 Expanded(child: OutlinedButton(onPressed: _pickTime, child: Align(alignment: Alignment.centerLeft, child: Text(tFmt(_time))))),
               ],
             ),
-            const Spacer(),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _noteController,
+              maxLines: 2,
+              decoration: const InputDecoration(
+                labelText: "Megjegyzés (opcionális)",
+              ),
+            ),
+            const SizedBox(height: 24),
             SizedBox(width: double.infinity, child: FilledButton(onPressed: _search, child: const Text("Keresés"))),
           ],
         ),

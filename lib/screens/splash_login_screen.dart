@@ -17,7 +17,15 @@ class SplashLoginScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const CircleAvatar(radius: 44, child: Icon(Icons.cleaning_services, size: 40)),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(28),
+              child: Image.asset(
+                'assets/icons/takimaki_icon.png',
+                width: 112,
+                height: 112,
+                fit: BoxFit.cover,
+              ),
+            ),
             const SizedBox(height: 18),
             const Text('Takimaki', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
             const SizedBox(height: 28),

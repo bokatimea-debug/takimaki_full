@@ -16,12 +16,13 @@ Future<List<int>?> pickDistricts(BuildContext context, List<int> initial) {
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
     ),
-    builder: (_) => SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
+    builder: (context) => StatefulBuilder(
+      builder: (context, setModalState) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
             const Text('Kerületek (I–XXIII)', style: TextStyle(fontWeight: FontWeight.w600)),
             const SizedBox(height: 10),
             Wrap(
@@ -33,7 +34,13 @@ Future<List<int>?> pickDistricts(BuildContext context, List<int> initial) {
                   selected: active,
                   label: Text(_roman[i]),
                   onSelected: (_) {
-                    if (active) { sel.remove(idx); } else { sel.add(idx); }
+                    setModalState(() {
+                      if (active) {
+                        sel.remove(idx);
+                      } else {
+                        sel.add(idx);
+                      }
+                    });
                   },
                 );
               }),
@@ -45,10 +52,11 @@ Future<List<int>?> pickDistricts(BuildContext context, List<int> initial) {
                 const Spacer(),
                 TextButton(onPressed: () => Navigator.pop(context, null), child: const Text('Mégse')),
                 const SizedBox(width: 8),
-                FilledButton(onPressed: () => Navigator.pop(context, sel.toList()), child: const Text('OK')),
+                FilledButton(onPressed: () => Navigator.pop(context, sel.toList()..sort()), child: const Text('Kész')),
               ],
             ),
-          ],
+            ],
+          ),
         ),
       ),
     ),
@@ -62,4 +70,3 @@ String summarizeDistricts(List<int> selected) {
   if (romans.length <= 3) return 'Budapest: ${romans.join(", ")}';
   return 'Budapest: ${romans.take(2).join(", ")} +${romans.length - 2}';
 }
-

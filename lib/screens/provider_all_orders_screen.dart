@@ -61,6 +61,11 @@ class _ProviderAllOrdersScreenState extends State<ProviderAllOrdersScreen> {
               title: Text(title),
               subtitle: Text(when),
               trailing: _stars(rating),
+              onTap: () => Navigator.pushNamed(
+                context,
+                '/order/details',
+                arguments: it,
+              ),
             ),
           );
         },

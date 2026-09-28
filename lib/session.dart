@@ -15,6 +15,7 @@ class UserSession {
   UserRole? role;                 // customer | provider
   DateTime? subscriptionStartAt;  // első szerep-választáskor állítjuk be
   bool paidActive = false;        // demó: gombbal aktiválható
+  bool providerHasAcceptedFirstOrder = false;
 
   bool get isRegistered =>
       (firstName != null && firstName!.trim().isNotEmpty && hasPhoto);
@@ -27,6 +28,7 @@ class UserSession {
       role: role!,
       startAt: subscriptionStartAt!,
       paidActive: paidActive,
+      providerHasAcceptedFirstOrder: providerHasAcceptedFirstOrder,
     );
   }
 
@@ -48,5 +50,6 @@ class UserSession {
     role = null;
     subscriptionStartAt = null;
     paidActive = false;
+    providerHasAcceptedFirstOrder = false;
   }
 }

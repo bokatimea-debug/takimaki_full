@@ -1,5 +1,5 @@
 ﻿import "dart:convert";
-import "dart:typed_data";
+import "dart:io";
 import "package:flutter/material.dart";
 import "package:shared_preferences/shared_preferences.dart";
 
@@ -36,6 +36,18 @@ class ProfilePhotoLoader {
             } catch (_) {}
           }
         }
+      }
+    }
+
+    for (final key in const [
+      "customer_photo_path",
+      "provider_photo_path",
+      "registration_photo_path",
+    ]) {
+      final path = prefs.getString(key);
+      if (path != null && path.isNotEmpty) {
+        final file = File(path);
+        if (await file.exists()) return FileImage(file);
       }
     }
     return null;

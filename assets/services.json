@@ -2,7 +2,7 @@
   "services": [
     {
       "id": "apartment_cleaning",
-      "label": "Apartman takarítás"
+      "label": "Apartmantakarítás"
     },
     {
       "id": "general_cleaning",
@@ -11,10 +11,6 @@
     {
       "id": "deep_cleaning",
       "label": "Nagytakarítás"
-    },
-    {
-      "id": "post_renovation",
-      "label": "Felújítás utáni takarítás"
     },
     {
       "id": "maintenance",
@@ -30,15 +26,11 @@
     },
     {
       "id": "aircon",
-      "label": "Légkondicionáló szerelés"
+      "label": "Klíma"
     },
     {
       "id": "furniture",
-      "label": "Bútorösszeszerelés"
-    },
-    {
-      "id": "electricity",
-      "label": "Villanyszerelés"
+      "label": "Bútorszerelés"
     }
   ]
 }

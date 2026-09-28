@@ -2,13 +2,13 @@
 class DemoOrders {
   static final customerOrders = <Map<String, String>>[
     {"title":"Általános takarítás","status":"Teljesítve","date":"2025.08.10"},
-    {"title":"Villanyszerelés","status":"Folyamatban","date":"2025.08.28"},
+    {"title":"Bútorszerelés","status":"Folyamatban","date":"2025.08.28"},
     {"title":"Nagytakarítás","status":"Lemondva","date":"2025.08.05"},
   ];
 
   static final providerOrders = <Map<String, String>>[
     {"title":"Takarítás – V. ker.","status":"Teljesítve","date":"2025.08.12"},
-    {"title":"Villany – XIII. ker.","status":"Folyamatban","date":"2025.08.27"},
+    {"title":"Klíma – XIII. ker.","status":"Folyamatban","date":"2025.08.27"},
     {"title":"Karbantartás – XI. ker.","status":"Függőben","date":"2025.08.30"},
   ];
 }
@@ -24,6 +24,6 @@ class DemoMessages {
 class DemoRequests {
   static final incoming = <Map<String, String>>[
     {"customer":"Kiss Anna","service":"Általános takarítás","when":"2025.09.05 • 09:00","address":"Budapest, Lázár u. 1."},
-    {"customer":"Nagy Péter","service":"Villanyszerelés","when":"2025.09.06 • 14:00","address":"Budapest, Váci út 10."},
+    {"customer":"Nagy Péter","service":"Bútorszerelés","when":"2025.09.06 • 14:00","address":"Budapest, Váci út 10."},
   ];
 }

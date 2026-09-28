@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'phone_number_screen.dart';
 
 class ProfileInfoScreen extends StatefulWidget {
@@ -25,10 +26,23 @@ class _ProfileInfoScreenState extends State<ProfileInfoScreen> {
       firstCtrl.text.trim().isNotEmpty &&
       photo != null;
 
-  void _next() {
+  Future<void> _next() async {
     if (!_canContinue) return;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('customer_last_name', lastCtrl.text.trim());
+    await prefs.setString('customer_first_name', firstCtrl.text.trim());
+    await prefs.setString('registration_photo_path', photo!.path);
+    await prefs.setString('customer_photo_path', photo!.path);
+    if (!mounted) return;
     Navigator.push(context,
       MaterialPageRoute(builder: (_) => const PhoneNumberScreen()));
+  }
+
+  @override
+  void dispose() {
+    lastCtrl.dispose();
+    firstCtrl.dispose();
+    super.dispose();
   }
 
   @override

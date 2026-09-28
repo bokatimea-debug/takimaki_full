@@ -17,10 +17,10 @@ class _S extends State<ProviderEditProfileScreen>{
     final sp = await SharedPreferences.getInstance();
     bio.text = sp.getString('provider_bio') ?? '';
     photoPath = sp.getString('provider_photo_path') ?? sp.getString('registration_photo_path');
-    wdFrom = _parse(sp.getString('provider_wd_from'));
-    wdTo   = _parse(sp.getString('provider_wd_to'));
-    weFrom = _parse(sp.getString('provider_we_from'));
-    weTo   = _parse(sp.getString('provider_we_to'));
+    wdFrom = _parse(sp.getString('provider_wd_from')) ?? const TimeOfDay(hour: 9, minute: 0);
+    wdTo   = _parse(sp.getString('provider_wd_to')) ?? const TimeOfDay(hour: 18, minute: 0);
+    weFrom = _parse(sp.getString('provider_we_from')) ?? const TimeOfDay(hour: 9, minute: 0);
+    weTo   = _parse(sp.getString('provider_we_to')) ?? const TimeOfDay(hour: 18, minute: 0);
     if(mounted) setState((){});
   }
 
@@ -66,6 +66,41 @@ class _S extends State<ProviderEditProfileScreen>{
     Navigator.pop(context, true);
   }
 
+  Future<void> _deleteProfile() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Profil törlése'),
+        content: const Text('Biztosan törölni szeretnéd a profilodat?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Mégse')),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Törlés')),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    final sp = await SharedPreferences.getInstance();
+    for (final key in <String>[
+      'provider_bio',
+      'provider_photo_path',
+      'provider_services',
+      'provider_wd_from',
+      'provider_wd_to',
+      'provider_we_from',
+      'provider_we_to',
+    ]) {
+      await sp.remove(key);
+    }
+    if (!mounted) return;
+    Navigator.pushNamedAndRemoveUntil(context, '/role_select', (_) => false);
+  }
+
+  @override
+  void dispose() {
+    bio.dispose();
+    super.dispose();
+  }
+
   @override Widget build(BuildContext context){
     return Scaffold(
       appBar: AppBar(title: const Text('Profil szerkesztése')),
@@ -106,6 +141,12 @@ class _S extends State<ProviderEditProfileScreen>{
           ),
           const SizedBox(height: 24),
           FilledButton(onPressed: _save, child: const Text('Mentés')),
+          const SizedBox(height: 12),
+          TextButton(
+            onPressed: _deleteProfile,
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Profil törlése'),
+          ),
         ],
       ),
     );

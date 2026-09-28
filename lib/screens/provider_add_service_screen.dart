@@ -1,14 +1,17 @@
 ﻿import "package:flutter/material.dart";
 import "package:shared_preferences/shared_preferences.dart";
 import "dart:convert";
+import "../widgets/district_picker.dart";
 
 const _serviceOptions = [
+  "Apartmantakarítás",
   "Általános takarítás",
   "Nagytakarítás",
-  "Felújítás utáni takarítás",
-  "Karbantartás",
   "Vízszerelés",
-  "Villanyszerelés",
+  "Gázszerelés",
+  "Karbantartás",
+  "Klíma",
+  "Bútorszerelés",
 ];
 
 class ProviderAddServiceScreen extends StatefulWidget {
@@ -23,24 +26,36 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
   String _unit = "Ft/óra";
   final Set<int> _districts = {};
   final Set<DateTime> _dates = {};
+  bool _argumentsLoaded = false;
+  bool _isEditing = false;
 
   @override
   void initState() {
     super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_argumentsLoaded) return;
+    _argumentsLoaded = true;
     final args = ModalRoute.of(context)?.settings.arguments;
-    WidgetsBinding.instance.addPostFrameCallback((_){
-      if (args is Map<String, dynamic>) {
-        setState(() {
-          _service = args["name"] as String?;
-          _priceCtrl.text = (args["price_raw"]?.toString() ?? "");
-          _unit = args["unit"] ?? _unit;
-          final ds = (args["districts"] as List?)?.cast<int>() ?? <int>[];
-          _districts.addAll(ds);
-          final dts = (args["dates"] as List?)?.cast<String>() ?? <String>[];
-          _dates.addAll(dts.map((e)=> DateTime.tryParse(e)!).whereType<DateTime>());
-        });
-      }
-    });
+    if (args is Map<String, dynamic>) {
+      _isEditing = true;
+      _service = args["name"] as String?;
+      _priceCtrl.text = (args["price_raw"]?.toString() ?? "");
+      _unit = args["unit"] ?? _unit;
+      final ds = (args["districts"] as List?)?.whereType<int>() ?? <int>[];
+      _districts.addAll(ds);
+      final dts = (args["dates"] as List?)?.whereType<String>() ?? <String>[];
+      _dates.addAll(dts.map(DateTime.tryParse).whereType<DateTime>());
+    }
+  }
+
+  @override
+  void dispose() {
+    _priceCtrl.dispose();
+    super.dispose();
   }
 
   String _fmtTh(int v) {
@@ -58,6 +73,12 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
       "${d.year}.${d.month.toString().padLeft(2,'0')}.${d.day.toString().padLeft(2,'0')}.";
 
   Future<void> _pickDate() async {
+    if (_dates.length >= 10) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Legfeljebb 10 egyedi nap választható.")),
+      );
+      return;
+    }
     final now = DateTime.now();
     final d = await showDatePicker(
       context: context,
@@ -69,6 +90,17 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
       setState(() {
         final day = DateTime(d.year, d.month, d.day);
         if (_dates.contains(day)) _dates.remove(day); else _dates.add(day);
+      });
+    }
+  }
+
+  Future<void> _pickDistricts() async {
+    final result = await pickDistricts(context, _districts.toList());
+    if (result != null) {
+      setState(() {
+        _districts
+          ..clear()
+          ..addAll(result);
       });
     }
   }
@@ -123,10 +155,12 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Új szolgáltatás")),
+      appBar: AppBar(
+        title: Text(_isEditing ? "Szolgáltatás szerkesztése" : "Új szolgáltatás"),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(12),
-        child: Column(
+        child: ListView(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Text("Szolgáltatás"),
@@ -150,34 +184,17 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
             ),
 
             const SizedBox(height: 12),
-            const Text("Kerületek (Budapest I–XXIII)"),
+            const Text("Működési terület"),
             const SizedBox(height: 6),
-            Wrap(
-              spacing: 6, runSpacing: 6,
-              children: List.generate(23, (i){
-                final n = i+1;
-                final sel = _districts.contains(n);
-                final label = switch (n) {
-                  1 => "I", 2 => "II", 3 => "III",
-                  20 => "XX", 21 => "XXI", 22 => "XXII", 23 => "XXIII",
-                  _ => "$n"
-                };
-                return FilterChip(
-                  selected: sel,
-                  label: Row(mainAxisSize: MainAxisSize.min, children: [
-                    if (sel) const Padding(
-                      padding: EdgeInsets.only(right: 4),
-                      child: Icon(Icons.check, size: 16),
-                    ),
-                    Text(label, style: TextStyle(fontWeight: sel ? FontWeight.w600 : FontWeight.w400)),
-                  ]),
-                  onSelected: (_){
-                    setState(() {
-                      if (sel) _districts.remove(n); else _districts.add(n);
-                    });
-                  },
-                );
-              }),
+            Card(
+              margin: EdgeInsets.zero,
+              child: ListTile(
+                onTap: _pickDistricts,
+                leading: const Icon(Icons.location_city_outlined),
+                title: const Text("Budapest"),
+                subtitle: Text(summarizeDistricts(_districts.toList())),
+                trailing: const Icon(Icons.chevron_right),
+              ),
             ),
 
             const SizedBox(height: 12),
@@ -216,7 +233,7 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
             OutlinedButton.icon(
               onPressed: _pickDate,
               icon: const Icon(Icons.event),
-              label: Text(_dates.isEmpty ? "Napok kiválasztása (több is lehet)" : "Kiválasztott napok: ${_dates.length}"),
+              label: Text(_dates.isEmpty ? "Egyedi napok kiválasztása" : "Kiválasztott napok: ${_dates.length}/10"),
             ),
 
             if (_dates.isNotEmpty) ...[
@@ -229,7 +246,7 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
               ),
             ],
 
-            const Spacer(),
+            const SizedBox(height: 24),
             FilledButton(onPressed: _save, child: const Text("Mentés")),
           ],
         ),

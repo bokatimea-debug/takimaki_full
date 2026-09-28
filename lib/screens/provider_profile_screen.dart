@@ -11,6 +11,9 @@ class ProviderProfileScreen extends StatefulWidget {
 class _S extends State<ProviderProfileScreen> {
   ImageProvider? _photo;
   int _success = 0;
+  String _name = "";
+  String _bio = "";
+  double _rating = 0;
 
   @override
   void initState() {
@@ -24,13 +27,31 @@ class _S extends State<ProviderProfileScreen> {
     setState(() {
       _photo = p;
       _success = prefs.getInt("provider_success_count") ?? 0;
+      final first = prefs.getString("provider_first_name") ??
+          prefs.getString("customer_first_name") ??
+          "";
+      final last = prefs.getString("provider_last_name") ??
+          prefs.getString("customer_last_name") ??
+          "";
+      _name = [first, last].where((e) => e.trim().isNotEmpty).join(" ");
+      _bio = prefs.getString("provider_bio") ?? "";
+      _rating = prefs.getDouble("provider_rating") ?? 0;
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Szolgáltató profil")),
+      appBar: AppBar(
+        title: const Text("Szolgáltató profil"),
+        actions: [
+          IconButton(
+            tooltip: "Szerepváltás",
+            onPressed: () => Navigator.pushReplacementNamed(context, '/role_select'),
+            icon: const Icon(Icons.swap_horiz),
+          ),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -44,7 +65,32 @@ class _S extends State<ProviderProfileScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            Center(child: Text("Sikeres rendelések: $_success")),
+            Center(
+              child: Text(
+                _name.isEmpty ? "Szolgáltató" : _name,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+            ),
+            if (_bio.isNotEmpty) ...[
+              const SizedBox(height: 6),
+              Center(child: Text(_bio, textAlign: TextAlign.center)),
+            ],
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.star, size: 20, color: Color(0xFFFF8C42)),
+                Text(
+                  _success < 5 || _rating == 0
+                      ? " 5 munka után látható"
+                      : " ${_rating.toStringAsFixed(1)}",
+                ),
+                const SizedBox(width: 18),
+                Text("$_success sikeres munka"),
+              ],
+            ),
             const SizedBox(height: 16),
             FilledButton(
               onPressed: () async {

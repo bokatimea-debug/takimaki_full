@@ -11,6 +11,9 @@ class CustomerProfileScreen extends StatefulWidget {
 class _S extends State<CustomerProfileScreen> {
   ImageProvider? _photo;
   String _name = "";
+  String _bio = "";
+  int _success = 0;
+  double _rating = 0;
 
   @override
   void initState() {
@@ -26,13 +29,25 @@ class _S extends State<CustomerProfileScreen> {
     setState(() {
       _photo = p;
       _name = [first, last].where((e)=> e.trim().isNotEmpty).join(" ");
+      _bio = prefs.getString("customer_bio") ?? "";
+      _success = prefs.getInt("customer_success_count") ?? 0;
+      _rating = prefs.getDouble("customer_rating") ?? 0;
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Megrendelő profil")),
+      appBar: AppBar(
+        title: const Text("Megrendelő profil"),
+        actions: [
+          IconButton(
+            tooltip: "Szerepváltás",
+            onPressed: () => Navigator.pushReplacementNamed(context, '/role_select'),
+            icon: const Icon(Icons.swap_horiz),
+          ),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -46,7 +61,28 @@ class _S extends State<CustomerProfileScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            Center(child: Text(_name.isEmpty ? "Megrendelő" : _name)),
+            Center(
+              child: Text(
+                _name.isEmpty ? "Megrendelő" : _name,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+            ),
+            if (_bio.isNotEmpty) ...[
+              const SizedBox(height: 6),
+              Center(child: Text(_bio, textAlign: TextAlign.center)),
+            ],
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.star, size: 20, color: Color(0xFFFF8C42)),
+                Text(_rating == 0 ? " Még nincs értékelés" : " ${_rating.toStringAsFixed(1)}"),
+                const SizedBox(width: 18),
+                Text("$_success sikeres rendelés"),
+              ],
+            ),
             const SizedBox(height: 16),
             FilledButton(
               onPressed: () async {

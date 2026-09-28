@@ -1,63 +1,142 @@
-﻿import "package:flutter/material.dart";
-import "../data/mock_data.dart";
+import 'package:flutter/material.dart';
+
+import '../data/mock_data.dart';
+import '../services/local_marketplace_store.dart';
 
 class OffersScreen extends StatefulWidget {
   const OffersScreen({super.key});
+
   @override
   State<OffersScreen> createState() => _OffersScreenState();
 }
 
 class _OffersScreenState extends State<OffersScreen> {
-  late List<MockOffer> _items;
+  List<Map<String, dynamic>> _items = [];
+  String? _requestId;
+  bool _loaded = false;
 
   @override
-  void initState() {
-    super.initState();
-    _items = List<MockOffer>.from(MockData.offers);
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_loaded) return;
+    _loaded = true;
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is Map) _requestId = args['request_id']?.toString();
+    _load();
   }
 
-  void _accept(MockOffer o) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Elfogadva: ${o.providerName} • ${o.service} • ${ft(o.priceFt)}")),
-    );
-    setState(() => _items.removeWhere((e) => e.id == o.id));
+  Future<void> _load() async {
+    if (_requestId == null) {
+      _items = MockData.offers.map((offer) => <String, dynamic>{
+        'id': offer.id,
+        'request_id': 'demo',
+        'service': offer.service,
+        'provider_name': offer.providerName,
+        'district': offer.district,
+        'date': dt(context, offer.dateTime),
+        'time': '',
+        'price': offer.priceFt,
+        'status': 'pending',
+      }).toList();
+    } else {
+      _items = await LocalMarketplaceStore.offersFor(_requestId!);
+    }
+    if (mounted) setState(() {});
   }
 
-  void _reject(MockOffer o) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Elutasítva: ${o.providerName} • ${o.service}")),
+  Future<void> _accept(Map<String, dynamic> offer) async {
+    if (_requestId != null) await LocalMarketplaceStore.acceptOffer(offer);
+    if (!mounted) return;
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        icon: const Icon(Icons.check_circle, color: Color(0xFF0FA3A9), size: 42),
+        title: const Text('Ajánlat elfogadva'),
+        content: Text('${offer['provider_name']} ajánlatát elfogadtad. A rendelés megjelent a Rendeléseim között.'),
+        actions: [
+          FilledButton(onPressed: () => Navigator.pop(context), child: const Text('Rendben')),
+        ],
+      ),
     );
-    setState(() => _items.removeWhere((e) => e.id == o.id));
+    if (!mounted) return;
+    Navigator.pushReplacementNamed(context, '/customer/orders');
+  }
+
+  void _reject(Map<String, dynamic> offer) {
+    setState(() => _items.removeWhere((item) => item['id'] == offer['id']));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Beérkezett ajánlatok")),
+      appBar: AppBar(title: const Text('Beérkezett ajánlatok')),
       body: _items.isEmpty
-          ? const Center(child: Text("Nincs beérkezett ajánlat"))
-          : ListView.separated(
-              padding: const EdgeInsets.all(12),
-              itemCount: _items.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 8),
-              itemBuilder: (_, i) {
-                final o = _items[i];
-                return Card(
-                  child: ListTile(
-                    leading: const Icon(Icons.local_offer),
-                    title: Text("${o.service} • ${ft(o.priceFt)}"),
-                    subtitle: Text("Szolgáltató: ${o.providerName}\nIdőpont: ${dt(context, o.dateTime)} • ${o.district}. ker."),
-                    isThreeLine: true,
-                    trailing: Wrap(
-                      spacing: 8,
-                      children: [
-                        IconButton(onPressed: () => _reject(o), icon: const Icon(Icons.close, color: Colors.red), tooltip: "Elutasítás"),
-                        IconButton(onPressed: () => _accept(o), icon: const Icon(Icons.check_circle, color: Colors.green), tooltip: "Elfogadás"),
-                      ],
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.schedule_outlined, size: 56, color: Theme.of(context).colorScheme.primary),
+                    const SizedBox(height: 12),
+                    const Text('A kérés elküldve', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 6),
+                    const Text('Itt jelennek meg a szolgáltatók ajánlatai.', textAlign: TextAlign.center),
+                  ],
+                ),
+              ),
+            )
+          : RefreshIndicator(
+              onRefresh: _load,
+              child: ListView.separated(
+                padding: const EdgeInsets.all(12),
+                itemCount: _items.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 8),
+                itemBuilder: (context, index) {
+                  final offer = _items[index];
+                  final price = int.tryParse(offer['price'].toString()) ?? 0;
+                  return Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(14),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            children: [
+                              const CircleAvatar(child: Icon(Icons.person_outline)),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(offer['provider_name']?.toString() ?? 'Szolgáltató', style: const TextStyle(fontWeight: FontWeight.w700)),
+                                    Text(offer['service']?.toString() ?? ''),
+                                  ],
+                                ),
+                              ),
+                              Text(ft(price), style: const TextStyle(color: Color(0xFFFF8C42), fontWeight: FontWeight.w800)),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          Text('${offer['date'] ?? ''} ${offer['time'] ?? ''} • Budapest ${offer['district'] ?? ''}. kerület'),
+                          if ((offer['note']?.toString() ?? '').isNotEmpty) ...[
+                            const SizedBox(height: 6),
+                            Text(offer['note'].toString()),
+                          ],
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(child: OutlinedButton(onPressed: () => _reject(offer), child: const Text('Elutasítás'))),
+                              const SizedBox(width: 8),
+                              Expanded(child: FilledButton(onPressed: () => _accept(offer), child: const Text('Elfogadás'))),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
     );
   }
