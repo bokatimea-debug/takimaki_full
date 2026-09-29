@@ -53,8 +53,8 @@ class _CustomerOrdersScreenState extends State<CustomerOrdersScreen> {
                 onTap: () => Navigator.pushNamed(
                   context,
                   '/order/details',
-                  arguments: item,
-                ),
+                  arguments: {...item, 'view_role': 'customer'},
+                ).then((_) => _load()),
               ),
             );
           },

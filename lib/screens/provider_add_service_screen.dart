@@ -186,6 +186,20 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
             const SizedBox(height: 12),
             const Text("Működési terület"),
             const SizedBox(height: 6),
+            CheckboxListTile(
+              contentPadding: EdgeInsets.zero,
+              value: _districts.length == 23,
+              title: const Text("Egész Budapest"),
+              controlAffinity: ListTileControlAffinity.leading,
+              onChanged: (selected) {
+                setState(() {
+                  _districts.clear();
+                  if (selected == true) {
+                    _districts.addAll(List.generate(23, (index) => index + 1));
+                  }
+                });
+              },
+            ),
             Card(
               margin: EdgeInsets.zero,
               child: ListTile(

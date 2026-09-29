@@ -59,6 +59,13 @@ class _State extends State<ProviderOfferReplyScreen> {
             "Az első elfogadott megrendelés ingyenes. További ajánlatok küldéséhez 3 000 Ft/hó szolgáltatói előfizetés szükséges.",
           ),
           actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, "/subscriptions");
+              },
+              child: const Text("Előfizetések"),
+            ),
             FilledButton(
               onPressed: () => Navigator.pop(context),
               child: const Text("Rendben"),

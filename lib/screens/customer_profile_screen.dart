@@ -27,6 +27,7 @@ class _S extends State<CustomerProfileScreen> {
     final p = await ProfilePhotoLoader.loadAny();
     final first = prefs.getString("customer_first_name") ?? "";
     final last = prefs.getString("customer_last_name") ?? "";
+    if (!mounted) return;
     setState(() {
       _photo = p;
       _name = [first, last].where((e)=> e.trim().isNotEmpty).join(" ");
@@ -51,6 +52,13 @@ class _S extends State<CustomerProfileScreen> {
           "A 3 hónapos ingyenes időszak lejárt. Új rendeléshez 3 000 Ft/hó megrendelői előfizetés szükséges.",
         ),
         actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pushNamed(context, '/subscriptions');
+            },
+            child: const Text("Előfizetések"),
+          ),
           FilledButton(
             onPressed: () => Navigator.pop(context),
             child: const Text("Rendben"),
@@ -67,6 +75,11 @@ class _S extends State<CustomerProfileScreen> {
         title: const Text("Megrendelő profil"),
         actions: [
           IconButton(
+            tooltip: "Beállítások",
+            onPressed: () => Navigator.pushNamed(context, '/settings'),
+            icon: const Icon(Icons.settings_outlined),
+          ),
+          IconButton(
             tooltip: "Szerepváltás",
             onPressed: () => Navigator.pushReplacementNamed(context, '/role_select'),
             icon: const Icon(Icons.swap_horiz),
@@ -75,7 +88,7 @@ class _S extends State<CustomerProfileScreen> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
+        child: ListView(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Center(

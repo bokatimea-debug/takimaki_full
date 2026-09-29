@@ -12,6 +12,27 @@ class LocalMarketplaceStore {
   static const customerTrialStartedKey = 'customer_trial_started_at';
   static const customerSubscriptionKey = 'customer_subscription_active';
 
+  static DateTime? responseDeadline(Map<String, dynamic> item) {
+    final created = DateTime.tryParse(item['created_at']?.toString() ?? '');
+    final date = item['date']?.toString() ?? '';
+    final time = item['time']?.toString() ?? '';
+    final workAt = DateTime.tryParse('${date}T$time:00');
+    if (created == null && workAt == null) return null;
+    final normalDeadline = (created ?? DateTime.now()).add(
+      const Duration(hours: 24),
+    );
+    final workDeadline = workAt?.subtract(const Duration(hours: 1));
+    if (workDeadline == null) return normalDeadline;
+    return workDeadline.isBefore(normalDeadline)
+        ? workDeadline
+        : normalDeadline;
+  }
+
+  static bool isResponseExpired(Map<String, dynamic> item) {
+    final deadline = responseDeadline(item);
+    return deadline != null && !DateTime.now().isBefore(deadline);
+  }
+
   static Future<List<Map<String, dynamic>>> _read(String key) async {
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getString(key);
@@ -168,4 +189,68 @@ class LocalMarketplaceStore {
   }
 
   static Future<List<Map<String, dynamic>>> customerOrders() => _read(customerOrdersKey);
+
+  static Future<List<Map<String, dynamic>>> providerOrders() =>
+      _read(providerOrdersKey);
+
+  static Future<void> updateOrderStatus(
+    String requestId,
+    String status,
+  ) async {
+    for (final key in [customerOrdersKey, providerOrdersKey]) {
+      final orders = await _read(key);
+      final index = orders.indexWhere(
+        (item) => (item['request_id'] ?? item['id']).toString() == requestId,
+      );
+      if (index >= 0) {
+        orders[index]['status'] = status;
+        await _write(key, orders);
+      }
+    }
+    if (status == 'Teljesítve') {
+      final prefs = await SharedPreferences.getInstance();
+      final providerOrders = await _read(providerOrdersKey);
+      final providerCompleted = providerOrders
+          .where((item) => item['status'] == 'Teljesítve')
+          .length;
+      final customerOrders = await _read(customerOrdersKey);
+      final customerCompleted = customerOrders
+          .where((item) => item['status'] == 'Teljesítve')
+          .length;
+      await prefs.setInt('provider_success_count', providerCompleted);
+      await prefs.setInt('customer_success_count', customerCompleted);
+    }
+  }
+
+  static Future<void> rateOrder({
+    required String requestId,
+    required int rating,
+    required String review,
+  }) async {
+    final safeRating = rating.clamp(1, 5);
+    for (final key in [customerOrdersKey, providerOrdersKey]) {
+      final orders = await _read(key);
+      final index = orders.indexWhere(
+        (item) => (item['request_id'] ?? item['id']).toString() == requestId,
+      );
+      if (index >= 0) {
+        orders[index]['rating'] = safeRating;
+        orders[index]['review'] = review;
+        await _write(key, orders);
+      }
+    }
+
+    final providerOrders = await _read(providerOrdersKey);
+    final ratings = providerOrders
+        .map((item) => item['rating'])
+        .whereType<num>()
+        .map((value) => value.toDouble())
+        .toList();
+    if (ratings.isNotEmpty) {
+      final average = ratings.reduce((a, b) => a + b) / ratings.length;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setDouble('provider_rating', average);
+      await prefs.setInt('provider_rating_count', ratings.length);
+    }
+  }
 }

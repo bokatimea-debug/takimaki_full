@@ -1,6 +1,7 @@
 ﻿import "dart:convert";
 import "package:flutter/material.dart";
 import "package:shared_preferences/shared_preferences.dart";
+import "../services/local_marketplace_store.dart";
 
 class ProviderAllOrdersScreen extends StatefulWidget {
   const ProviderAllOrdersScreen({super.key});
@@ -13,6 +14,12 @@ class _ProviderAllOrdersScreenState extends State<ProviderAllOrdersScreen> {
   List<Map<String, dynamic>> _items = [];
 
   Future<void> _load() async {
+    final stored = await LocalMarketplaceStore.providerOrders();
+    if (stored.isNotEmpty) {
+      _items = stored;
+      if (mounted) setState(() {});
+      return;
+    }
     final p = await SharedPreferences.getInstance();
     String? raw = p.getString(kKey);
     if (raw == null || raw.isEmpty) {
@@ -64,8 +71,8 @@ class _ProviderAllOrdersScreenState extends State<ProviderAllOrdersScreen> {
               onTap: () => Navigator.pushNamed(
                 context,
                 '/order/details',
-                arguments: it,
-              ),
+                arguments: {...it, 'view_role': 'provider'},
+              ).then((_) => _load()),
             ),
           );
         },

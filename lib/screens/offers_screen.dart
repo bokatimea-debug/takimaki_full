@@ -40,6 +40,13 @@ class _OffersScreenState extends State<OffersScreen> {
       }).toList();
     } else {
       _items = await LocalMarketplaceStore.offersFor(_requestId!);
+      _items = _items
+          .where(
+            (offer) =>
+                offer['status'] == 'pending' &&
+                !LocalMarketplaceStore.isResponseExpired(offer),
+          )
+          .toList();
     }
     if (mounted) setState(() {});
   }

@@ -20,6 +20,8 @@ import 'screens/provider_add_service_screen.dart';
 import 'screens/provider_requests_screen.dart';
 import 'screens/provider_all_orders_screen.dart';
 import 'screens/order_details_screen.dart';
+import 'screens/settings_screen.dart';
+import 'screens/subscription_screen.dart';
 
 import 'screens/map_picker_screen.dart';
 
@@ -109,6 +111,8 @@ class TakimakiApp extends StatelessWidget {
 
         '/map_picker': (_) => const MapPickerScreen(),
         '/order/details': (_) => const OrderDetailsScreen(),
+        '/settings': (_) => const SettingsScreen(),
+        '/subscriptions': (_) => const SubscriptionScreen(),
       },
     );
   }

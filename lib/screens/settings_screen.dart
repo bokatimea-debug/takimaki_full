@@ -23,6 +23,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _load() async {
     final sp = await SharedPreferences.getInstance();
+    if (!mounted) return;
     setState(() {
       push = sp.getBool(_pushKey) ?? true;
       email = sp.getBool(_emailKey) ?? true;
@@ -45,6 +46,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
       appBar: AppBar(title: const Text('Beállítások')),
       body: ListView(
         children: [
+          ListTile(
+            leading: const Icon(Icons.workspace_premium_outlined),
+            title: const Text('Előfizetések'),
+            subtitle: const Text('Megrendelői és szolgáltatói csomag'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.pushNamed(context, '/subscriptions'),
+          ),
+          const Divider(height: 1),
           SwitchListTile(
             value: push,
             title: const Text('Push értesítések'),
