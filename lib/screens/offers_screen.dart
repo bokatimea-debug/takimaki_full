@@ -53,13 +53,34 @@ class _OffersScreenState extends State<OffersScreen> {
 
   Future<void> _accept(Map<String, dynamic> offer) async {
     if (_requestId != null) await LocalMarketplaceStore.acceptOffer(offer);
+    final providerName =
+        offer['provider_name']?.toString() ?? 'Szolgáltató';
+    if (!MockData.threads.any((thread) => thread.peerName == providerName)) {
+      final threadId = 'th_${offer['request_id'] ?? offer['id']}';
+      MockData.threads.insert(
+        0,
+        MockThread(
+          id: threadId,
+          peerName: providerName,
+          messages: [
+            MockMessage(
+              id: 'm_${DateTime.now().millisecondsSinceEpoch}',
+              threadId: threadId,
+              from: 'Rendszer',
+              text: 'Az ajánlat elfogadva. Mostantól üzenhettek egymásnak.',
+              ts: DateTime.now(),
+            ),
+          ],
+        ),
+      );
+    }
     if (!mounted) return;
     await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         icon: const Icon(Icons.check_circle, color: Color(0xFF0FA3A9), size: 42),
         title: const Text('Ajánlat elfogadva'),
-        content: Text('${offer['provider_name']} ajánlatát elfogadtad. A rendelés megjelent a Rendeléseim között.'),
+        content: Text('$providerName ajánlatát elfogadtad. A rendelés megjelent a Rendeléseim között.'),
         actions: [
           FilledButton(onPressed: () => Navigator.pop(context), child: const Text('Rendben')),
         ],

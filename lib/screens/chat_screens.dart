@@ -7,6 +7,10 @@ class ChatListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final threads = MockData.threads;
+    final cutoff = DateTime.now().subtract(const Duration(days: 30));
+    for (final thread in threads) {
+      thread.messages.removeWhere((message) => message.ts.isBefore(cutoff));
+    }
     return Scaffold(
       appBar: AppBar(title: const Text("Üzenetek")),
       body: ListView.separated(
@@ -71,6 +75,12 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
       ));
     });
     _input.clear();
+  }
+
+  @override
+  void dispose() {
+    _input.dispose();
+    super.dispose();
   }
 
   @override
