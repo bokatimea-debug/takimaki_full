@@ -2,6 +2,7 @@
 import "package:shared_preferences/shared_preferences.dart";
 import "dart:convert";
 import "../services/local_marketplace_store.dart";
+import "../services/sanctions_store.dart";
 
 class ProviderOfferReplyScreen extends StatefulWidget {
   const ProviderOfferReplyScreen({super.key});
@@ -48,6 +49,18 @@ class _State extends State<ProviderOfferReplyScreen> {
   }
 
   Future<void> _send() async {
+    if (await SanctionsStore.isProviderSuspended()) {
+      final until = await SanctionsStore.providerSuspendedUntil();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "A szolgáltatói fiók ${until?.toLocal().toString().split(' ').first ?? ''}-ig fel van függesztve.",
+          ),
+        ),
+      );
+      return;
+    }
     final allowed = await LocalMarketplaceStore.canProviderSendOffer();
     if (!allowed) {
       if (!mounted) return;

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
+import 'sanctions_store.dart';
 
 class LocalMarketplaceStore {
   static const requestsKey = 'provider_requests';
@@ -172,6 +173,7 @@ class LocalMarketplaceStore {
   }
 
   static Future<bool> canProviderSendOffer() async {
+    if (await SanctionsStore.isProviderSuspended()) return false;
     final prefs = await SharedPreferences.getInstance();
     final usedFreeOrder = prefs.getBool(providerFirstAcceptedKey) ?? false;
     final paid = prefs.getBool(providerSubscriptionKey) ?? false;
@@ -179,6 +181,7 @@ class LocalMarketplaceStore {
   }
 
   static Future<bool> canCustomerCreateOrder() async {
+    if (await SanctionsStore.isCustomerSuspended()) return false;
     final prefs = await SharedPreferences.getInstance();
     if (prefs.getBool(customerSubscriptionKey) ?? false) return true;
     final rawStart = prefs.getString(customerTrialStartedKey);

@@ -2,6 +2,7 @@
 import "package:shared_preferences/shared_preferences.dart";
 import "../utils/profile_photo_loader.dart";
 import "../services/local_marketplace_store.dart";
+import "../services/sanctions_store.dart";
 
 class CustomerProfileScreen extends StatefulWidget {
   const CustomerProfileScreen({super.key});
@@ -38,6 +39,26 @@ class _S extends State<CustomerProfileScreen> {
   }
 
   Future<void> _newOrder() async {
+    if (await SanctionsStore.isCustomerSuspended()) {
+      final until = await SanctionsStore.customerSuspendedUntil();
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text("Fiók felfüggesztve"),
+          content: Text(
+            "Késői lemondások miatt ${until?.toLocal().toString().split(' ').first ?? ''}-ig nem adhatsz le új rendelést.",
+          ),
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Rendben"),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
     final allowed = await LocalMarketplaceStore.canCustomerCreateOrder();
     if (!mounted) return;
     if (allowed) {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../services/local_marketplace_store.dart';
+import '../services/sanctions_store.dart';
 
 class OrderDetailsScreen extends StatefulWidget {
   const OrderDetailsScreen({super.key});
@@ -92,6 +93,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         rating: rating,
         review: reviewController.text.trim(),
       );
+      if (rating <= 2) {
+        await SanctionsStore.addProviderNegativePoint();
+      }
       if (mounted) {
         setState(() {
           _order['rating'] = rating;
@@ -100,6 +104,102 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       }
     }
     reviewController.dispose();
+  }
+
+  Future<void> _reportNoShow() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('No-show jelentése'),
+        content: const Text(
+          'Biztosan jelented, hogy a szolgáltató nem jelent meg?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Mégse'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Jelentés'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    final suspendedUntil = await SanctionsStore.recordProviderNoShow();
+    if (_requestId.isNotEmpty) {
+      await LocalMarketplaceStore.updateOrderStatus(_requestId, 'No-show');
+    }
+    if (!mounted) return;
+    setState(() => _order['status'] = 'No-show');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          suspendedUntil == null
+              ? 'A no-show jelentést rögzítettük.'
+              : 'A szolgáltatói fiókot 14 napra felfüggesztettük.',
+        ),
+      ),
+    );
+  }
+
+  Future<void> _complain() async {
+    final controller = TextEditingController();
+    final submit = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Panasz küldése'),
+        content: TextField(
+          controller: controller,
+          maxLines: 4,
+          decoration: const InputDecoration(labelText: 'Panasz leírása'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Mégse'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Küldés'),
+          ),
+        ],
+      ),
+    );
+    final text = controller.text.trim();
+    controller.dispose();
+    if (submit != true || text.isEmpty) return;
+    final suspendedUntil = await SanctionsStore.addProviderNegativePoint();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          suspendedUntil == null
+              ? 'A panaszt rögzítettük.'
+              : 'A szolgáltatói fiókot 14 napra felfüggesztettük.',
+        ),
+      ),
+    );
+  }
+
+  Future<void> _customerCancel() async {
+    final date = _order['date']?.toString() ?? '';
+    final time = _order['time']?.toString() ?? '';
+    final workAt = DateTime.tryParse('${date}T$time:00');
+    final late = workAt != null &&
+        workAt.difference(DateTime.now()) <= const Duration(hours: 24);
+    DateTime? suspendedUntil;
+    if (late) {
+      suspendedUntil = await SanctionsStore.recordCustomerLateCancellation();
+    }
+    await _setStatus('Lemondva');
+    if (!mounted || suspendedUntil == null) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Három késői lemondás miatt a fiók 5 napra felfüggesztésre került.'),
+      ),
+    );
   }
 
   @override
@@ -112,6 +212,11 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     final status = _value('status', 'Függőben');
     final canChat = const ['Elfogadva', 'Folyamatban', 'Teljesítve']
         .contains(status);
+    final scheduledAt = DateTime.tryParse(
+      '${_order['date'] ?? ''}T${_order['time'] ?? ''}:00',
+    );
+    final workTimePassed =
+        scheduledAt != null && DateTime.now().isAfter(scheduledAt);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Rendelés részletei')),
@@ -201,6 +306,24 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               icon: const Icon(Icons.star_outline),
               label: const Text('Szolgáltató értékelése'),
             ),
+          if (!isProvider && const ['Elfogadva', 'Folyamatban'].contains(status)) ...[
+            const SizedBox(height: 8),
+            if (workTimePassed)
+              OutlinedButton.icon(
+                onPressed: _reportNoShow,
+                icon: const Icon(Icons.person_off_outlined),
+                label: const Text('No-show jelentése'),
+              ),
+            TextButton(
+              onPressed: _complain,
+              child: const Text('Panasz küldése'),
+            ),
+            TextButton(
+              onPressed: _customerCancel,
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Rendelés lemondása'),
+            ),
+          ],
         ],
       ),
     );

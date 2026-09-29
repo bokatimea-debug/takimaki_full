@@ -2,6 +2,7 @@
 import "package:flutter/material.dart";
 import "package:shared_preferences/shared_preferences.dart";
 import "../services/local_marketplace_store.dart";
+import "../services/sanctions_store.dart";
 
 class ProviderRequestsScreen extends StatefulWidget {
   const ProviderRequestsScreen({super.key});
@@ -57,6 +58,18 @@ class _ProviderRequestsScreenState extends State<ProviderRequestsScreen> {
   }
 
   Future<void> _quickAccept(int i) async {
+    if (await SanctionsStore.isProviderSuspended()) {
+      final until = await SanctionsStore.providerSuspendedUntil();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "A szolgáltatói fiók ${until?.toLocal().toString().split(' ').first ?? ''}-ig fel van függesztve.",
+          ),
+        ),
+      );
+      return;
+    }
     final allowed = await LocalMarketplaceStore.canProviderSendOffer();
     if (!allowed) {
       if (!mounted) return;
