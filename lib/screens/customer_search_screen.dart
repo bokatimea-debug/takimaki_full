@@ -112,6 +112,16 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
       _time!.hour,
       _time!.minute,
     );
+    if (!dateTime.isAfter(DateTime.now().add(const Duration(hours: 1)))) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Olyan időpontot válassz, amely legalább 1 órával később van.",
+          ),
+        ),
+      );
+      return;
+    }
     final requestId = await LocalMarketplaceStore.createRequest(
       service: _service!,
       district: romanFromDistrict(_district!),

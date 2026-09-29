@@ -64,6 +64,13 @@ class LocalMarketplaceStore {
     required String note,
     required bool laundryAndIroning,
   }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final lastName = prefs.getString('customer_last_name') ?? '';
+    final firstName = prefs.getString('customer_first_name') ?? '';
+    final customerName = [
+      lastName,
+      firstName,
+    ].where((part) => part.trim().isNotEmpty).join(' ');
     final id = 'R${DateTime.now().millisecondsSinceEpoch}';
     final date =
         '${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')}';
@@ -73,7 +80,13 @@ class LocalMarketplaceStore {
       'id': id,
       'request_id': id,
       'service': service,
-      'customer': 'Megrendelő',
+      'customer': customerName.isEmpty ? 'Megrendelő' : customerName,
+      'customer_photo_path':
+          prefs.getString('customer_photo_path') ??
+          prefs.getString('registration_photo_path'),
+      'customer_bio': prefs.getString('customer_bio') ?? '',
+      'customer_success_count': prefs.getInt('customer_success_count') ?? 0,
+      'customer_rating': prefs.getDouble('customer_rating'),
       'district': district,
       'address': address,
       'date': date,

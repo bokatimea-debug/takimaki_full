@@ -1,6 +1,8 @@
-﻿import "package:flutter/material.dart";
+import "package:flutter/material.dart";
 import "package:shared_preferences/shared_preferences.dart";
+
 import "dart:convert";
+
 import "../services/local_marketplace_store.dart";
 import "../services/sanctions_store.dart";
 
@@ -18,7 +20,7 @@ class _State extends State<ProviderOfferReplyScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_){
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final args = ModalRoute.of(context)?.settings.arguments;
       setState(() {
@@ -90,15 +92,15 @@ class _State extends State<ProviderOfferReplyScreen> {
     }
     final priceRaw = int.tryParse(_priceCtrl.text.replaceAll(" ", ""));
     if (priceRaw == null || priceRaw <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Adj meg érvényes árat."))
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Adj meg érvényes árat.")));
       return;
     }
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getString("provider_requests") ?? "[]";
     final list = (json.decode(raw) as List).cast<Map<String, dynamic>>();
-    final idx = list.indexWhere((e)=> e["id"] == data["id"]);
+    final idx = list.indexWhere((e) => e["id"] == data["id"]);
     if (idx >= 0) {
       list[idx]["status"] = "offered";
       list[idx]["offered_price"] = priceRaw;
@@ -118,40 +120,58 @@ class _State extends State<ProviderOfferReplyScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Ajánlat küldése")),
-      body: Padding(
+      body: ListView(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(data["service"] ?? "", style: const TextStyle(fontWeight: FontWeight.w600)),
-            const SizedBox(height: 8),
-            Text(data["address"] ?? ""),
-            Text("${data["date"] ?? ""}  ${data["time"] ?? ""}"),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _priceCtrl,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: "Ajánlott ár (Ft)"),
-              onChanged: (v){
-                final num = int.tryParse(v.replaceAll(" ", ""));
-                if (num != null) {
-                  final t = _fmtTh(num);
-                  _priceCtrl.value = TextEditingValue(
-                    text: t,
-                    selection: TextSelection.collapsed(offset: t.length),
-                  );
-                }
-              },
+        children: [
+          Text(
+            data["service"] ?? "",
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 8),
+          Text("Megrendelő: ${data["customer"] ?? "Megrendelő"}"),
+          Text(data["address"] ?? ""),
+          if ((data["district"]?.toString() ?? "").isNotEmpty)
+            Text("Budapest ${data["district"]}. kerület"),
+          Text("${data["date"] ?? ""}  ${data["time"] ?? ""}"),
+          if (data["laundry_and_ironing"] == true)
+            const Padding(
+              padding: EdgeInsets.only(top: 8),
+              child: Text("Mosással és vasalással"),
             ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _noteCtrl,
-              decoration: const InputDecoration(labelText: "Megjegyzés (opcionális)"),
+          if ((data["note"]?.toString() ?? "").isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text("Megjegyzés: ${data["note"]}"),
             ),
-            const Spacer(),
-            FilledButton(onPressed: _send, child: const Text("Ajánlat elküldése")),
-          ],
-        ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _priceCtrl,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(labelText: "Ajánlott ár (Ft)"),
+            onChanged: (v) {
+              final num = int.tryParse(v.replaceAll(" ", ""));
+              if (num != null) {
+                final t = _fmtTh(num);
+                _priceCtrl.value = TextEditingValue(
+                  text: t,
+                  selection: TextSelection.collapsed(offset: t.length),
+                );
+              }
+            },
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _noteCtrl,
+            decoration: const InputDecoration(
+              labelText: "Megjegyzés (opcionális)",
+            ),
+          ),
+          const SizedBox(height: 24),
+          FilledButton(
+            onPressed: _send,
+            child: const Text("Ajánlat elküldése"),
+          ),
+        ],
       ),
     );
   }
