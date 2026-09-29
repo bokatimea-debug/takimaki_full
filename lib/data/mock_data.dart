@@ -32,6 +32,22 @@ class MockMessage {
     required this.text,
     required this.ts,
   });
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'thread_id': threadId,
+    'from': from,
+    'text': text,
+    'ts': ts.toIso8601String(),
+  };
+
+  factory MockMessage.fromJson(Map<String, dynamic> json) => MockMessage(
+    id: json['id']?.toString() ?? '',
+    threadId: json['thread_id']?.toString() ?? '',
+    from: json['from']?.toString() ?? '',
+    text: json['text']?.toString() ?? '',
+    ts: DateTime.tryParse(json['ts']?.toString() ?? '') ?? DateTime.now(),
+  );
 }
 
 class MockThread {
@@ -44,6 +60,23 @@ class MockThread {
     required this.peerName,
     required this.messages,
   });
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'peer_name': peerName,
+    'messages': messages.map((message) => message.toJson()).toList(),
+  };
+
+  factory MockThread.fromJson(Map<String, dynamic> json) => MockThread(
+    id: json['id']?.toString() ?? '',
+    peerName: json['peer_name']?.toString() ?? 'Partner',
+    messages: (json['messages'] as List? ?? const [])
+        .map(
+          (message) =>
+              MockMessage.fromJson(Map<String, dynamic>.from(message as Map)),
+        )
+        .toList(),
+  );
 }
 
 class MockData {
@@ -98,54 +131,7 @@ class MockData {
     ),
   ];
 
-  static List<MockThread> threads = [
-    MockThread(
-      id: "th1",
-      peerName: "Tisztacsillag Kft.",
-      messages: [
-        MockMessage(
-          id: "m1",
-          threadId: "th1",
-          from: "Ők",
-          text: "Szia! A holnapi időpont jó?",
-          ts: DateTime.now().subtract(const Duration(minutes: 30)),
-        ),
-        MockMessage(
-          id: "m2",
-          threadId: "th1",
-          from: "Én",
-          text: "Igen, 9:00-ra várlak.",
-          ts: DateTime.now().subtract(const Duration(minutes: 12)),
-        ),
-      ],
-    ),
-    MockThread(
-      id: "th2",
-      peerName: "VillámClean",
-      messages: [
-        MockMessage(
-          id: "m1",
-          threadId: "th2",
-          from: "Ők",
-          text: "Küldtem ajánlatot, ránézel?",
-          ts: DateTime.now().subtract(const Duration(hours: 2)),
-        ),
-      ],
-    ),
-    MockThread(
-      id: "th3",
-      peerName: "Fény Mester Bt.",
-      messages: [
-        MockMessage(
-          id: "m1",
-          threadId: "th3",
-          from: "Én",
-          text: "Köszönöm, elfogadtam.",
-          ts: DateTime.now().subtract(const Duration(days: 1, hours: 3)),
-        ),
-      ],
-    ),
-  ];
+  static List<MockThread> threads = [];
 }
 
 String ft(int n) {

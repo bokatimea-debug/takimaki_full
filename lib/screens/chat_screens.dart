@@ -1,21 +1,38 @@
 import "package:flutter/material.dart";
 
 import "../data/mock_data.dart";
+import "../services/local_chat_store.dart";
 
-class ChatListScreen extends StatelessWidget {
+class ChatListScreen extends StatefulWidget {
   const ChatListScreen({super.key});
+
+  @override
+  State<ChatListScreen> createState() => _ChatListScreenState();
+}
+
+class _ChatListScreenState extends State<ChatListScreen> {
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    await LocalChatStore.load();
+    if (!mounted) return;
+    setState(() => _loading = false);
+  }
 
   @override
   Widget build(BuildContext context) {
     final threads = MockData.threads;
-    final cutoff = DateTime.now().subtract(const Duration(days: 30));
-    for (final thread in threads) {
-      thread.messages.removeWhere((message) => message.ts.isBefore(cutoff));
-    }
-    threads.removeWhere((thread) => thread.messages.isEmpty);
     return Scaffold(
       appBar: AppBar(title: const Text("Üzenetek")),
-      body: threads.isEmpty
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : threads.isEmpty
           ? const Center(child: Text("Még nincs beszélgetésed."))
           : ListView.separated(
               padding: const EdgeInsets.all(12),
@@ -30,13 +47,14 @@ class ChatListScreen extends StatelessWidget {
                     title: Text(t.peerName),
                     subtitle: Text(last?.text ?? "—"),
                     trailing: Text(last != null ? _ago(last.ts) : ""),
-                    onTap: () {
-                      Navigator.push(
+                    onTap: () async {
+                      await Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (_) => ChatThreadScreen(threadId: t.id),
                         ),
                       );
+                      if (mounted) setState(() {});
                     },
                   ),
                 );
@@ -71,7 +89,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
     _thread = MockData.threads.firstWhere((t) => t.id == widget.threadId);
   }
 
-  void _send() {
+  Future<void> _send() async {
     final text = _input.text.trim();
     if (text.isEmpty) return;
     setState(() {
@@ -86,6 +104,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
       );
     });
     _input.clear();
+    await LocalChatStore.save();
   }
 
   @override

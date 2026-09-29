@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../data/mock_data.dart';
+import '../services/local_chat_store.dart';
 import '../services/local_marketplace_store.dart';
 import '../services/sanctions_store.dart';
 import 'chat_screens.dart';
@@ -206,8 +207,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     );
   }
 
-  void _openChat(bool isProvider) {
+  Future<void> _openChat(bool isProvider) async {
     if (_requestId.isEmpty) return;
+    await LocalChatStore.load();
     final peerName = isProvider
         ? _value('customer', 'Megrendelő')
         : _value('provider', _value('provider_name', 'Szolgáltató'));
@@ -215,6 +217,8 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       requestId: _requestId,
       peerName: peerName,
     );
+    await LocalChatStore.save();
+    if (!mounted) return;
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => ChatThreadScreen(threadId: thread.id)),

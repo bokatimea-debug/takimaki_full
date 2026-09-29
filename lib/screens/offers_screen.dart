@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../data/mock_data.dart';
+import '../services/local_chat_store.dart';
 import '../services/local_marketplace_store.dart';
 
 class OffersScreen extends StatefulWidget {
@@ -58,10 +59,12 @@ class _OffersScreenState extends State<OffersScreen> {
   Future<void> _accept(Map<String, dynamic> offer) async {
     if (_requestId != null) await LocalMarketplaceStore.acceptOffer(offer);
     final providerName = offer['provider_name']?.toString() ?? 'Szolgáltató';
+    await LocalChatStore.load();
     MockData.ensureThread(
       requestId: (offer['request_id'] ?? offer['id']).toString(),
       peerName: providerName,
     );
+    await LocalChatStore.save();
     if (!mounted) return;
     await showDialog<void>(
       context: context,
