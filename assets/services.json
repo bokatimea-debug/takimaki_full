@@ -5,6 +5,10 @@
       "label": "Apartmantakarítás"
     },
     {
+      "id": "apartment_cleaning_laundry",
+      "label": "Apartmantakarítás mosodai szolgáltatással"
+    },
+    {
       "id": "general_cleaning",
       "label": "Általános takarítás"
     },
