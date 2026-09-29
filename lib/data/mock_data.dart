@@ -1,4 +1,4 @@
-﻿import "package:flutter/material.dart";
+import "package:flutter/material.dart";
 
 class MockOffer {
   final String id;
@@ -39,10 +39,38 @@ class MockThread {
   final String peerName;
   final List<MockMessage> messages;
 
-  MockThread({required this.id, required this.peerName, required this.messages});
+  MockThread({
+    required this.id,
+    required this.peerName,
+    required this.messages,
+  });
 }
 
 class MockData {
+  static MockThread ensureThread({
+    required String requestId,
+    required String peerName,
+  }) {
+    final threadId = 'th_$requestId';
+    final existing = threads.where((thread) => thread.id == threadId);
+    if (existing.isNotEmpty) return existing.first;
+    final thread = MockThread(
+      id: threadId,
+      peerName: peerName,
+      messages: [
+        MockMessage(
+          id: 'm_${DateTime.now().millisecondsSinceEpoch}',
+          threadId: threadId,
+          from: 'Rendszer',
+          text: 'A rendelés elfogadva. Mostantól üzenhettek egymásnak.',
+          ts: DateTime.now(),
+        ),
+      ],
+    );
+    threads.insert(0, thread);
+    return thread;
+  }
+
   static List<MockOffer> offers = [
     MockOffer(
       id: "of1",
@@ -75,22 +103,46 @@ class MockData {
       id: "th1",
       peerName: "Tisztacsillag Kft.",
       messages: [
-        MockMessage(id: "m1", threadId: "th1", from: "Ők", text: "Szia! A holnapi időpont jó?", ts: DateTime.now().subtract(const Duration(minutes: 30))),
-        MockMessage(id: "m2", threadId: "th1", from: "Én", text: "Igen, 9:00-ra várlak.", ts: DateTime.now().subtract(const Duration(minutes: 12))),
+        MockMessage(
+          id: "m1",
+          threadId: "th1",
+          from: "Ők",
+          text: "Szia! A holnapi időpont jó?",
+          ts: DateTime.now().subtract(const Duration(minutes: 30)),
+        ),
+        MockMessage(
+          id: "m2",
+          threadId: "th1",
+          from: "Én",
+          text: "Igen, 9:00-ra várlak.",
+          ts: DateTime.now().subtract(const Duration(minutes: 12)),
+        ),
       ],
     ),
     MockThread(
       id: "th2",
       peerName: "VillámClean",
       messages: [
-        MockMessage(id: "m1", threadId: "th2", from: "Ők", text: "Küldtem ajánlatot, ránézel?", ts: DateTime.now().subtract(const Duration(hours: 2))),
+        MockMessage(
+          id: "m1",
+          threadId: "th2",
+          from: "Ők",
+          text: "Küldtem ajánlatot, ránézel?",
+          ts: DateTime.now().subtract(const Duration(hours: 2)),
+        ),
       ],
     ),
     MockThread(
       id: "th3",
       peerName: "Fény Mester Bt.",
       messages: [
-        MockMessage(id: "m1", threadId: "th3", from: "Én", text: "Köszönöm, elfogadtam.", ts: DateTime.now().subtract(const Duration(days: 1, hours: 3))),
+        MockMessage(
+          id: "m1",
+          threadId: "th3",
+          from: "Én",
+          text: "Köszönöm, elfogadtam.",
+          ts: DateTime.now().subtract(const Duration(days: 1, hours: 3)),
+        ),
       ],
     ),
   ];
@@ -99,14 +151,14 @@ class MockData {
 String ft(int n) {
   final s = n.toString();
   final b = StringBuffer();
-  for (int i=0;i<s.length;i++){
+  for (int i = 0; i < s.length; i++) {
     final left = s.length - i;
     b.write(s[i]);
-    if (left>1 && left%3==1) b.write(" ");
+    if (left > 1 && left % 3 == 1) b.write(" ");
   }
   return "$b Ft";
 }
 
 String dt(BuildContext c, DateTime d) =>
-  "${d.year}.${d.month.toString().padLeft(2,'0')}.${d.day.toString().padLeft(2,'0')} "
-  "${d.hour.toString().padLeft(2,'0')}:${d.minute.toString().padLeft(2,'0')}";
+    "${d.year}.${d.month.toString().padLeft(2, '0')}.${d.day.toString().padLeft(2, '0')} "
+    "${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}";

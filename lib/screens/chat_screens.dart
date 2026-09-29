@@ -1,4 +1,5 @@
-﻿import "package:flutter/material.dart";
+import "package:flutter/material.dart";
+
 import "../data/mock_data.dart";
 
 class ChatListScreen extends StatelessWidget {
@@ -11,28 +12,36 @@ class ChatListScreen extends StatelessWidget {
     for (final thread in threads) {
       thread.messages.removeWhere((message) => message.ts.isBefore(cutoff));
     }
+    threads.removeWhere((thread) => thread.messages.isEmpty);
     return Scaffold(
       appBar: AppBar(title: const Text("Üzenetek")),
-      body: ListView.separated(
-        padding: const EdgeInsets.all(12),
-        itemCount: threads.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 8),
-        itemBuilder: (_, i) {
-          final t = threads[i];
-          final last = t.messages.isNotEmpty ? t.messages.last : null;
-          return Card(
-            child: ListTile(
-              leading: const CircleAvatar(child: Icon(Icons.person)),
-              title: Text(t.peerName),
-              subtitle: Text(last?.text ?? "—"),
-              trailing: Text(last != null ? _ago(last.ts) : ""),
-              onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => ChatThreadScreen(threadId: t.id)));
+      body: threads.isEmpty
+          ? const Center(child: Text("Még nincs beszélgetésed."))
+          : ListView.separated(
+              padding: const EdgeInsets.all(12),
+              itemCount: threads.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 8),
+              itemBuilder: (_, i) {
+                final t = threads[i];
+                final last = t.messages.isNotEmpty ? t.messages.last : null;
+                return Card(
+                  child: ListTile(
+                    leading: const CircleAvatar(child: Icon(Icons.person)),
+                    title: Text(t.peerName),
+                    subtitle: Text(last?.text ?? "—"),
+                    trailing: Text(last != null ? _ago(last.ts) : ""),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ChatThreadScreen(threadId: t.id),
+                        ),
+                      );
+                    },
+                  ),
+                );
               },
             ),
-          );
-        },
-      ),
     );
   }
 
@@ -66,13 +75,15 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
     final text = _input.text.trim();
     if (text.isEmpty) return;
     setState(() {
-      _thread.messages.add(MockMessage(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        threadId: _thread.id,
-        from: "Én",
-        text: text,
-        ts: DateTime.now(),
-      ));
+      _thread.messages.add(
+        MockMessage(
+          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          threadId: _thread.id,
+          from: "Én",
+          text: text,
+          ts: DateTime.now(),
+        ),
+      );
     });
     _input.clear();
   }
@@ -100,17 +111,30 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                   alignment: me ? Alignment.centerRight : Alignment.centerLeft,
                   child: Container(
                     margin: const EdgeInsets.symmetric(vertical: 4),
-                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 8,
+                      horizontal: 12,
+                    ),
                     decoration: BoxDecoration(
-                      color: me ? Colors.teal.withOpacity(.15) : Colors.grey.shade200,
+                      color: me
+                          ? Colors.teal.withOpacity(.15)
+                          : Colors.grey.shade200,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Column(
-                      crossAxisAlignment: me ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                      crossAxisAlignment: me
+                          ? CrossAxisAlignment.end
+                          : CrossAxisAlignment.start,
                       children: [
                         Text(m.text),
                         const SizedBox(height: 2),
-                        Text(dt(context, m.ts), style: const TextStyle(fontSize: 11, color: Colors.black54)),
+                        Text(
+                          dt(context, m.ts),
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: Colors.black54,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -126,11 +150,14 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                     controller: _input,
                     decoration: const InputDecoration(
                       hintText: "Írj üzenetet…",
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
                     ),
                   ),
                 ),
-                IconButton(onPressed: _send, icon: const Icon(Icons.send))
+                IconButton(onPressed: _send, icon: const Icon(Icons.send)),
               ],
             ),
           ),

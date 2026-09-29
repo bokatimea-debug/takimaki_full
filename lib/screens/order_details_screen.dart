@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../data/mock_data.dart';
 import '../services/local_marketplace_store.dart';
 import '../services/sanctions_store.dart';
+import 'chat_screens.dart';
 
 class OrderDetailsScreen extends StatefulWidget {
   const OrderDetailsScreen({super.key});
@@ -36,9 +38,8 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     await LocalMarketplaceStore.updateOrderStatus(_requestId, status);
     if (!mounted) return;
     setState(() => _order['status'] = status);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Új státusz: $status')),
-    );
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text('Új státusz: $status')));
   }
 
   Future<void> _rate() async {
@@ -187,7 +188,8 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     final date = _order['date']?.toString() ?? '';
     final time = _order['time']?.toString() ?? '';
     final workAt = DateTime.tryParse('${date}T$time:00');
-    final late = workAt != null &&
+    final late =
+        workAt != null &&
         workAt.difference(DateTime.now()) <= const Duration(hours: 24);
     DateTime? suspendedUntil;
     if (late) {
@@ -197,21 +199,43 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     if (!mounted || suspendedUntil == null) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Három késői lemondás miatt a fiók 5 napra felfüggesztésre került.'),
+        content: Text(
+          'Három késői lemondás miatt a fiók 5 napra felfüggesztésre került.',
+        ),
       ),
+    );
+  }
+
+  void _openChat(bool isProvider) {
+    if (_requestId.isEmpty) return;
+    final peerName = isProvider
+        ? _value('customer', 'Megrendelő')
+        : _value('provider', _value('provider_name', 'Szolgáltató'));
+    final thread = MockData.ensureThread(
+      requestId: _requestId,
+      peerName: peerName,
+    );
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => ChatThreadScreen(threadId: thread.id)),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final when = _order['when']?.toString() ??
+    final when =
+        _order['when']?.toString() ??
         [_order['date'], _order['time']]
             .where((item) => item != null && item.toString().isNotEmpty)
             .join(' • ');
     final isProvider = _order['view_role'] == 'provider';
     final status = _value('status', 'Függőben');
-    final canChat = const ['Elfogadva', 'Folyamatban', 'Teljesítve']
-        .contains(status);
+    final price = _value('price', _value('offered_price', ''));
+    final canChat = const [
+      'Elfogadva',
+      'Folyamatban',
+      'Teljesítve',
+    ].contains(status);
     final scheduledAt = DateTime.tryParse(
       '${_order['date'] ?? ''}T${_order['time'] ?? ''}:00',
     );
@@ -225,15 +249,16 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         children: [
           Text(
             _value('service', _value('title')),
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
+            style: Theme.of(context).textTheme.headlineSmall
+                ?.copyWith(fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 16),
           _Detail(
             icon: Icons.person_outline,
             label: 'Partner',
-            value: _value('customer', _value('provider')),
+            value: isProvider
+                ? _value('customer', 'Megrendelő')
+                : _value('provider', _value('provider_name', 'Szolgáltató')),
           ),
           _Detail(
             icon: Icons.location_on_outlined,
@@ -248,18 +273,15 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           _Detail(
             icon: Icons.payments_outlined,
             label: 'Ár',
-            value: _value('price', _value('offered_price')),
+            value: price.isEmpty ? 'Nincs megadva' : '$price Ft',
           ),
-          _Detail(
-            icon: Icons.info_outline,
-            label: 'Státusz',
-            value: status,
-          ),
+          _Detail(icon: Icons.info_outline, label: 'Státusz', value: status),
           if ((_order['rating'] as num?) != null)
             _Detail(
               icon: Icons.star_outline,
               label: 'Értékelés',
-              value: '${_order['rating']} / 5${_value('review', '').isEmpty ? '' : '\n${_order['review']}'}',
+              value:
+                  '${_order['rating']} / 5${_value('review', '').isEmpty ? '' : '\n${_order['review']}'}',
             ),
           if (_value('note', '').isNotEmpty)
             _Detail(
@@ -276,7 +298,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           const SizedBox(height: 8),
           if (canChat)
             OutlinedButton.icon(
-              onPressed: () => Navigator.pushNamed(context, '/chat'),
+              onPressed: () => _openChat(isProvider),
               icon: const Icon(Icons.chat_bubble_outline),
               label: const Text('Kapcsolódó chat'),
             ),
@@ -306,7 +328,8 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               icon: const Icon(Icons.star_outline),
               label: const Text('Szolgáltató értékelése'),
             ),
-          if (!isProvider && const ['Elfogadva', 'Folyamatban'].contains(status)) ...[
+          if (!isProvider &&
+              const ['Elfogadva', 'Folyamatban'].contains(status)) ...[
             const SizedBox(height: 8),
             if (workTimePassed)
               OutlinedButton.icon(

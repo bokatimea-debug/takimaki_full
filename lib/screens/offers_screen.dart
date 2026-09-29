@@ -58,25 +58,10 @@ class _OffersScreenState extends State<OffersScreen> {
   Future<void> _accept(Map<String, dynamic> offer) async {
     if (_requestId != null) await LocalMarketplaceStore.acceptOffer(offer);
     final providerName = offer['provider_name']?.toString() ?? 'Szolgáltató';
-    if (!MockData.threads.any((thread) => thread.peerName == providerName)) {
-      final threadId = 'th_${offer['request_id'] ?? offer['id']}';
-      MockData.threads.insert(
-        0,
-        MockThread(
-          id: threadId,
-          peerName: providerName,
-          messages: [
-            MockMessage(
-              id: 'm_${DateTime.now().millisecondsSinceEpoch}',
-              threadId: threadId,
-              from: 'Rendszer',
-              text: 'Az ajánlat elfogadva. Mostantól üzenhettek egymásnak.',
-              ts: DateTime.now(),
-            ),
-          ],
-        ),
-      );
-    }
+    MockData.ensureThread(
+      requestId: (offer['request_id'] ?? offer['id']).toString(),
+      peerName: providerName,
+    );
     if (!mounted) return;
     await showDialog<void>(
       context: context,
