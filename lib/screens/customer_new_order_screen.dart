@@ -12,6 +12,7 @@ class _CustomerNewOrderScreenState extends State<CustomerNewOrderScreen> {
 
   final _services = const [
     "Apartmantakarítás",
+    "Apartmantakarítás mosodai szolgáltatással",
     "Általános takarítás",
     "Nagytakarítás",
     "Vízszerelés",

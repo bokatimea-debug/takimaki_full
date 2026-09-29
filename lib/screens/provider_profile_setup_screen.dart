@@ -18,7 +18,8 @@ class _ProviderProfileSetupScreenState extends State<ProviderProfileSetupScreen>
   TimeOfDay _weTo = const TimeOfDay(hour: 16, minute: 0);
 
   final List<String> _services = const [
-    'Apartmantakarítás','Általános takarítás','Nagytakarítás',
+    'Apartmantakarítás','Apartmantakarítás mosodai szolgáltatással',
+    'Általános takarítás','Nagytakarítás',
     'Vízszerelés','Gázszerelés','Karbantartás','Klíma','Bútorszerelés',
   ];
 

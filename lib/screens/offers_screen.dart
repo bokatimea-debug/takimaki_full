@@ -16,6 +16,7 @@ class OffersScreen extends StatefulWidget {
 class _OffersScreenState extends State<OffersScreen> {
   List<Map<String, dynamic>> _items = [];
   String? _requestId;
+  Map<dynamic, dynamic> _searchArgs = const {};
   bool _loaded = false;
 
   @override
@@ -24,7 +25,10 @@ class _OffersScreenState extends State<OffersScreen> {
     if (_loaded) return;
     _loaded = true;
     final args = ModalRoute.of(context)?.settings.arguments;
-    if (args is Map) _requestId = args['request_id']?.toString();
+    if (args is Map) {
+      _searchArgs = args;
+      _requestId = args['request_id']?.toString();
+    }
     _load();
   }
 
@@ -54,8 +58,48 @@ class _OffersScreenState extends State<OffersScreen> {
                 !LocalMarketplaceStore.isResponseExpired(offer),
           )
           .toList();
+      if (_items.isEmpty) {
+        _items = _demoOffersForRequest();
+      }
     }
     if (mounted) setState(() {});
+  }
+
+  List<Map<String, dynamic>> _demoOffersForRequest() {
+    final service = _searchArgs['service']?.toString() ?? 'Szolgáltatás';
+    final district = _searchArgs['district']?.toString() ?? 'XIII';
+    final selectedDate = _searchArgs['date'];
+    final selectedTime = _searchArgs['time'];
+    final date = selectedDate is DateTime
+        ? '${selectedDate.year}.${selectedDate.month.toString().padLeft(2, '0')}.${selectedDate.day.toString().padLeft(2, '0')}.'
+        : '';
+    final time = selectedTime is TimeOfDay
+        ? '${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}'
+        : '';
+    final providers = [
+      ('Kiss Anna', 4.9, 38, 14500, 'Megbízható, pontos szolgáltató.'),
+      ('Tiszta Otthon', 4.8, 61, 15900, 'Többéves tapasztalattal vállalom.'),
+      ('Nagy Petra', 4.7, 24, 13500, 'A megadott időpont megfelelő.'),
+    ];
+    return providers.indexed.map((entry) {
+      final i = entry.$1;
+      final provider = entry.$2;
+      return <String, dynamic>{
+        'id': 'demo_${_requestId}_$i',
+        'request_id': _requestId,
+        'service': service,
+        'provider_name': provider.$1,
+        'provider_rating': provider.$2,
+        'provider_rating_count': provider.$3,
+        'provider_success_count': provider.$3,
+        'district': district,
+        'date': date,
+        'time': time,
+        'price': provider.$4,
+        'note': provider.$5,
+        'status': 'pending',
+      };
+    }).toList();
   }
 
   Future<void> _accept(Map<String, dynamic> offer) async {

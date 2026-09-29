@@ -16,11 +16,14 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
   DateTime? _date;
   TimeOfDay? _time;
   int? _district;
-  bool _laundryAndIroning = false;
   final _noteController = TextEditingController();
 
   final _services = const [
     {"name": "Apartmantakarítás", "icon": Icons.apartment},
+    {
+      "name": "Apartmantakarítás mosodai szolgáltatással",
+      "icon": Icons.local_laundry_service,
+    },
     {"name": "Általános takarítás", "icon": Icons.cleaning_services},
     {"name": "Nagytakarítás", "icon": Icons.soap},
     {"name": "Vízszerelés", "icon": Icons.water_damage},
@@ -128,7 +131,8 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
       address: _address!,
       dateTime: dateTime,
       note: _noteController.text.trim(),
-      laundryAndIroning: _service == "Apartmantakarítás" && _laundryAndIroning,
+      laundryAndIroning:
+          _service == "Apartmantakarítás mosodai szolgáltatással",
     );
     if (!mounted) return;
     Navigator.pushNamed(
@@ -142,7 +146,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
         "date": _date,
         "time": _time,
         "laundry_and_ironing":
-            _service == "Apartmantakarítás" && _laundryAndIroning,
+            _service == "Apartmantakarítás mosodai szolgáltatással",
       },
     );
   }
@@ -186,31 +190,11 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
                     ],
                   ),
                   selected: sel,
-                  onSelected: (_) => setState(() {
-                    _service = o["name"] as String;
-                    if (_service != "Apartmantakarítás") {
-                      _laundryAndIroning = false;
-                    }
-                  }),
+                  onSelected: (_) =>
+                      setState(() => _service = o["name"] as String),
                 );
               }).toList(),
             ),
-            if (_service == "Apartmantakarítás") ...[
-              const SizedBox(height: 10),
-              CheckboxListTile(
-                contentPadding: EdgeInsets.zero,
-                value: _laundryAndIroning,
-                title: const Text("Mosással és vasalással"),
-                subtitle: Text(
-                  _laundryAndIroning
-                      ? "A rendelés mosást és vasalást is tartalmaz."
-                      : "A rendelés mosás és vasalás nélkül készül.",
-                ),
-                controlAffinity: ListTileControlAffinity.leading,
-                onChanged: (value) =>
-                    setState(() => _laundryAndIroning = value ?? false),
-              ),
-            ],
             const SizedBox(height: 16),
 
             DropdownButtonFormField<int>(
@@ -273,15 +257,18 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
                 labelText: "Megjegyzés (opcionális)",
               ),
             ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: _search,
-                child: const Text("Keresés"),
-              ),
-            ),
+            const SizedBox(height: 12),
           ],
+        ),
+      ),
+      bottomNavigationBar: SafeArea(
+        minimum: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+        child: SizedBox(
+          height: 52,
+          child: FilledButton(
+            onPressed: _search,
+            child: const Text("Keresés"),
+          ),
         ),
       ),
     );
