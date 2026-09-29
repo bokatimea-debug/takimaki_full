@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
+
 import 'sanctions_store.dart';
 
 class LocalMarketplaceStore {
@@ -47,7 +48,10 @@ class LocalMarketplaceStore {
     }
   }
 
-  static Future<void> _write(String key, List<Map<String, dynamic>> items) async {
+  static Future<void> _write(
+    String key,
+    List<Map<String, dynamic>> items,
+  ) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(key, json.encode(items));
   }
@@ -61,8 +65,10 @@ class LocalMarketplaceStore {
     required bool laundryAndIroning,
   }) async {
     final id = 'R${DateTime.now().millisecondsSinceEpoch}';
-    final date = '${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')}';
-    final time = '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+    final date =
+        '${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')}';
+    final time =
+        '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
     final request = <String, dynamic>{
       'id': id,
       'request_id': id,
@@ -96,19 +102,49 @@ class LocalMarketplaceStore {
     required Map<String, dynamic> request,
     required int price,
     required String note,
-    String providerName = 'Szolgáltató',
+    String? providerName,
   }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final lastName =
+        prefs.getString('provider_last_name') ??
+        prefs.getString('customer_last_name') ??
+        '';
+    final firstName =
+        prefs.getString('provider_first_name') ??
+        prefs.getString('customer_first_name') ??
+        '';
+    final savedName = [
+      lastName,
+      firstName,
+    ].where((part) => part.trim().isNotEmpty).join(' ');
+    final resolvedProviderName = providerName?.trim().isNotEmpty == true
+        ? providerName!.trim()
+        : (savedName.isEmpty ? 'Szolgáltató' : savedName);
+    final successCount = prefs.getInt('provider_success_count') ?? 0;
     final requestId = (request['request_id'] ?? request['id']).toString();
     final offers = await _read(offersKey);
-    offers.removeWhere((item) =>
-        item['request_id'] == requestId &&
-        item['provider_name'] == providerName &&
-        item['status'] == 'pending');
+    offers.removeWhere(
+      (item) =>
+          item['request_id'] == requestId &&
+          item['provider_name'] == resolvedProviderName &&
+          item['status'] == 'pending',
+    );
     offers.insert(0, {
       'id': 'O${DateTime.now().millisecondsSinceEpoch}',
       'request_id': requestId,
       'service': request['service'],
-      'provider_name': providerName,
+      'provider_name': resolvedProviderName,
+      'provider_photo_path':
+          prefs.getString('provider_photo_path') ??
+          prefs.getString('registration_photo_path'),
+      'provider_bio': prefs.getString('provider_bio') ?? '',
+      'provider_success_count': successCount,
+      'provider_rating': successCount >= 5
+          ? prefs.getDouble('provider_rating')
+          : null,
+      'provider_rating_count': successCount >= 5
+          ? prefs.getInt('provider_rating_count') ?? 0
+          : 0,
       'district': request['district'],
       'address': request['address'],
       'date': request['date'],
@@ -122,7 +158,18 @@ class LocalMarketplaceStore {
     await updateRequestStatus(requestId, 'offered');
   }
 
-  static Future<void> updateRequestStatus(String requestId, String status) async {
+  static Future<void> rejectOffer(String offerId) async {
+    final offers = await _read(offersKey);
+    final index = offers.indexWhere((item) => item['id'].toString() == offerId);
+    if (index < 0) return;
+    offers[index]['status'] = 'rejected';
+    await _write(offersKey, offers);
+  }
+
+  static Future<void> updateRequestStatus(
+    String requestId,
+    String status,
+  ) async {
     final requests = await _read(requestsKey);
     final index = requests.indexWhere(
       (item) => (item['request_id'] ?? item['id']).toString() == requestId,
@@ -139,7 +186,9 @@ class LocalMarketplaceStore {
     final offers = await _read(offersKey);
     for (final item in offers) {
       if (item['request_id'] == requestId) {
-        item['status'] = item['id'].toString() == offerId ? 'accepted' : 'inactive';
+        item['status'] = item['id'].toString() == offerId
+            ? 'accepted'
+            : 'inactive';
       }
     }
     await _write(offersKey, offers);
@@ -164,7 +213,9 @@ class LocalMarketplaceStore {
     await _write(customerOrdersKey, customerOrders);
 
     final providerOrders = await _read(providerOrdersKey);
-    providerOrders.removeWhere((item) => item['request_id'].toString() == requestId);
+    providerOrders.removeWhere(
+      (item) => item['request_id'].toString() == requestId,
+    );
     providerOrders.insert(0, acceptedOrder);
     await _write(providerOrdersKey, providerOrders);
     await updateRequestStatus(requestId, 'accepted');
@@ -191,15 +242,13 @@ class LocalMarketplaceStore {
     return DateTime.now().isBefore(start.add(const Duration(days: 90)));
   }
 
-  static Future<List<Map<String, dynamic>>> customerOrders() => _read(customerOrdersKey);
+  static Future<List<Map<String, dynamic>>> customerOrders() =>
+      _read(customerOrdersKey);
 
   static Future<List<Map<String, dynamic>>> providerOrders() =>
       _read(providerOrdersKey);
 
-  static Future<void> updateOrderStatus(
-    String requestId,
-    String status,
-  ) async {
+  static Future<void> updateOrderStatus(String requestId, String status) async {
     for (final key in [customerOrdersKey, providerOrdersKey]) {
       final orders = await _read(key);
       final index = orders.indexWhere(

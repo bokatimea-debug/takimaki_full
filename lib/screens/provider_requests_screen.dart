@@ -1,6 +1,8 @@
-﻿import "dart:convert";
+import "dart:convert";
+
 import "package:flutter/material.dart";
 import "package:shared_preferences/shared_preferences.dart";
+
 import "../services/local_marketplace_store.dart";
 import "../services/sanctions_store.dart";
 
@@ -24,8 +26,26 @@ class _ProviderRequestsScreenState extends State<ProviderRequestsScreen> {
       String date(DateTime value) =>
           "${value.year}-${value.month.toString().padLeft(2, '0')}-${value.day.toString().padLeft(2, '0')}";
       final samples = [
-        {"id":"R1","service":"Általános takarítás","customer":"Kiss Anna","address":"Budapest, XI.","date":date(tomorrow),"time":"10:00","status":"pending","created_at":DateTime.now().toIso8601String()},
-        {"id":"R2","service":"Vízszerelés","customer":"Nagy Péter","address":"Budapest, XIII.","date":date(nextDay),"time":"14:30","status":"pending","created_at":DateTime.now().toIso8601String()},
+        {
+          "id": "R1",
+          "service": "Általános takarítás",
+          "customer": "Kiss Anna",
+          "address": "Budapest, XI.",
+          "date": date(tomorrow),
+          "time": "10:00",
+          "status": "pending",
+          "created_at": DateTime.now().toIso8601String(),
+        },
+        {
+          "id": "R2",
+          "service": "Vízszerelés",
+          "customer": "Nagy Péter",
+          "address": "Budapest, XIII.",
+          "date": date(nextDay),
+          "time": "14:30",
+          "status": "pending",
+          "created_at": DateTime.now().toIso8601String(),
+        },
       ];
       raw = json.encode(samples);
       await p.setString(kKey, raw);
@@ -43,18 +63,13 @@ class _ProviderRequestsScreenState extends State<ProviderRequestsScreen> {
     }
     _items = allItems.where((item) => item["status"] == "pending").toList();
     if (changed) await p.setString(kKey, json.encode(allItems));
-    if (mounted) setState((){});
-  }
-
-  Future<void> _save() async {
-    final p = await SharedPreferences.getInstance();
-    await p.setString(kKey, json.encode(_items));
+    if (mounted) setState(() {});
   }
 
   Future<void> _reject(int i) async {
-    _items.removeAt(i);
-    await _save();
-    if (mounted) setState((){});
+    final requestId = (_items[i]['request_id'] ?? _items[i]['id']).toString();
+    await LocalMarketplaceStore.updateRequestStatus(requestId, 'rejected');
+    await _load();
   }
 
   Future<void> _quickAccept(int i) async {
@@ -123,18 +138,17 @@ class _ProviderRequestsScreenState extends State<ProviderRequestsScreen> {
       price: price,
       note: "Gyors elfogadás",
     );
-    item["status"] = "offered";
-    item["offered_price"] = price;
-    await _save();
+    await _load();
     if (!mounted) return;
-    setState(() {});
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Az ajánlatot elküldted.")),
-    );
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text("Az ajánlatot elküldted.")));
   }
 
   @override
-  void initState() { super.initState(); _load(); }
+  void initState() {
+    super.initState();
+    _load();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -143,11 +157,12 @@ class _ProviderRequestsScreenState extends State<ProviderRequestsScreen> {
       body: ListView.separated(
         padding: const EdgeInsets.all(12),
         itemCount: _items.length,
-        separatorBuilder: (_, __)=> const SizedBox(height: 8),
+        separatorBuilder: (_, __) => const SizedBox(height: 8),
         itemBuilder: (context, i) {
           final it = _items[i];
           final title = it["service"] ?? "";
-          final sub = "${it["customer"] ?? ""} • ${it["address"] ?? ""} • ${it["date"] ?? ""} ${it["time"] ?? ""}";
+          final sub =
+              "${it["customer"] ?? ""} • ${it["address"] ?? ""} • ${it["date"] ?? ""} ${it["time"] ?? ""}";
           return Card(
             child: InkWell(
               borderRadius: BorderRadius.circular(18),
@@ -164,7 +179,10 @@ class _ProviderRequestsScreenState extends State<ProviderRequestsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
+                    Text(
+                      title,
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
                     const SizedBox(height: 6),
                     Text(sub),
                     const SizedBox(height: 12),

@@ -27,17 +27,21 @@ class _OffersScreenState extends State<OffersScreen> {
 
   Future<void> _load() async {
     if (_requestId == null) {
-      _items = MockData.offers.map((offer) => <String, dynamic>{
-        'id': offer.id,
-        'request_id': 'demo',
-        'service': offer.service,
-        'provider_name': offer.providerName,
-        'district': offer.district,
-        'date': dt(context, offer.dateTime),
-        'time': '',
-        'price': offer.priceFt,
-        'status': 'pending',
-      }).toList();
+      _items = MockData.offers
+          .map(
+            (offer) => <String, dynamic>{
+              'id': offer.id,
+              'request_id': 'demo',
+              'service': offer.service,
+              'provider_name': offer.providerName,
+              'district': offer.district,
+              'date': dt(context, offer.dateTime),
+              'time': '',
+              'price': offer.priceFt,
+              'status': 'pending',
+            },
+          )
+          .toList();
     } else {
       _items = await LocalMarketplaceStore.offersFor(_requestId!);
       _items = _items
@@ -53,8 +57,7 @@ class _OffersScreenState extends State<OffersScreen> {
 
   Future<void> _accept(Map<String, dynamic> offer) async {
     if (_requestId != null) await LocalMarketplaceStore.acceptOffer(offer);
-    final providerName =
-        offer['provider_name']?.toString() ?? 'Szolgáltató';
+    final providerName = offer['provider_name']?.toString() ?? 'Szolgáltató';
     if (!MockData.threads.any((thread) => thread.peerName == providerName)) {
       final threadId = 'th_${offer['request_id'] ?? offer['id']}';
       MockData.threads.insert(
@@ -78,11 +81,20 @@ class _OffersScreenState extends State<OffersScreen> {
     await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        icon: const Icon(Icons.check_circle, color: Color(0xFF0FA3A9), size: 42),
+        icon: const Icon(
+          Icons.check_circle,
+          color: Color(0xFF0FA3A9),
+          size: 42,
+        ),
         title: const Text('Ajánlat elfogadva'),
-        content: Text('$providerName ajánlatát elfogadtad. A rendelés megjelent a Rendeléseim között.'),
+        content: Text(
+          '$providerName ajánlatát elfogadtad. A rendelés megjelent a Rendeléseim között.',
+        ),
         actions: [
-          FilledButton(onPressed: () => Navigator.pop(context), child: const Text('Rendben')),
+          FilledButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Rendben'),
+          ),
         ],
       ),
     );
@@ -90,7 +102,9 @@ class _OffersScreenState extends State<OffersScreen> {
     Navigator.pushReplacementNamed(context, '/customer/orders');
   }
 
-  void _reject(Map<String, dynamic> offer) {
+  Future<void> _reject(Map<String, dynamic> offer) async {
+    await LocalMarketplaceStore.rejectOffer(offer['id'].toString());
+    if (!mounted) return;
     setState(() => _items.removeWhere((item) => item['id'] == offer['id']));
   }
 
@@ -105,11 +119,24 @@ class _OffersScreenState extends State<OffersScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.schedule_outlined, size: 56, color: Theme.of(context).colorScheme.primary),
+                    Icon(
+                      Icons.schedule_outlined,
+                      size: 56,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                     const SizedBox(height: 12),
-                    const Text('A kérés elküldve', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+                    const Text(
+                      'A kérés elküldve',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                     const SizedBox(height: 6),
-                    const Text('Itt jelennek meg a szolgáltatók ajánlatai.', textAlign: TextAlign.center),
+                    const Text(
+                      'Itt jelennek meg a szolgáltatók ajánlatai.',
+                      textAlign: TextAlign.center,
+                    ),
                   ],
                 ),
               ),
@@ -131,22 +158,48 @@ class _OffersScreenState extends State<OffersScreen> {
                         children: [
                           Row(
                             children: [
-                              const CircleAvatar(child: Icon(Icons.person_outline)),
+                              const CircleAvatar(
+                                child: Icon(Icons.person_outline),
+                              ),
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(offer['provider_name']?.toString() ?? 'Szolgáltató', style: const TextStyle(fontWeight: FontWeight.w700)),
+                                    Text(
+                                      offer['provider_name']?.toString() ??
+                                          'Szolgáltató',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
                                     Text(offer['service']?.toString() ?? ''),
+                                    if (offer['provider_rating'] is num)
+                                      Text(
+                                        '★ ${(offer['provider_rating'] as num).toStringAsFixed(1)} • ${offer['provider_success_count'] ?? 0} sikeres munka',
+                                        style: const TextStyle(fontSize: 12),
+                                      )
+                                    else
+                                      Text(
+                                        '${offer['provider_success_count'] ?? 0} sikeres munka',
+                                        style: const TextStyle(fontSize: 12),
+                                      ),
                                   ],
                                 ),
                               ),
-                              Text(ft(price), style: const TextStyle(color: Color(0xFFFF8C42), fontWeight: FontWeight.w800)),
+                              Text(
+                                ft(price),
+                                style: const TextStyle(
+                                  color: Color(0xFFFF8C42),
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
                             ],
                           ),
                           const SizedBox(height: 10),
-                          Text('${offer['date'] ?? ''} ${offer['time'] ?? ''} • Budapest ${offer['district'] ?? ''}. kerület'),
+                          Text(
+                            '${offer['date'] ?? ''} ${offer['time'] ?? ''} • Budapest ${offer['district'] ?? ''}. kerület',
+                          ),
                           if ((offer['note']?.toString() ?? '').isNotEmpty) ...[
                             const SizedBox(height: 6),
                             Text(offer['note'].toString()),
@@ -154,9 +207,19 @@ class _OffersScreenState extends State<OffersScreen> {
                           const SizedBox(height: 12),
                           Row(
                             children: [
-                              Expanded(child: OutlinedButton(onPressed: () => _reject(offer), child: const Text('Elutasítás'))),
+                              Expanded(
+                                child: OutlinedButton(
+                                  onPressed: () => _reject(offer),
+                                  child: const Text('Elutasítás'),
+                                ),
+                              ),
                               const SizedBox(width: 8),
-                              Expanded(child: FilledButton(onPressed: () => _accept(offer), child: const Text('Elfogadás'))),
+                              Expanded(
+                                child: FilledButton(
+                                  onPressed: () => _accept(offer),
+                                  child: const Text('Elfogadás'),
+                                ),
+                              ),
                             ],
                           ),
                         ],
