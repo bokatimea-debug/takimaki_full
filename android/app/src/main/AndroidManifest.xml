@@ -8,7 +8,7 @@
         <!-- GOOGLE MAPS API KEY -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="REPLACE_WITH_YOUR_API_KEY" />
+            android:value="@string/google_maps_api_key" />
 
         <!-- Flutter V2 kötelező beállítás -->
         <meta-data

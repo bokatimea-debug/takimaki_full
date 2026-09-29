@@ -1,4 +1,4 @@
-﻿// lib/screens/map_picker_screen.dart
+// lib/screens/map_picker_screen.dart
 import "package:flutter/material.dart";
 import "package:google_maps_flutter/google_maps_flutter.dart";
 import "package:geocoding/geocoding.dart" as geo;
@@ -10,6 +10,10 @@ class MapPickerScreen extends StatefulWidget {
 }
 
 class _MapPickerScreenState extends State<MapPickerScreen> {
+  static const _mapsEnabled = bool.fromEnvironment(
+    'MAPS_ENABLED',
+    defaultValue: false,
+  );
   GoogleMapController? _ctrl;
   LatLng _center = const LatLng(47.4979, 19.0402); // Budapest
   final _addrCtrl = TextEditingController();
@@ -25,7 +29,7 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
     final q = _addrCtrl.text.trim();
     if (q.isEmpty) return;
     try {
-      final results = await geo.locationFromAddress(q, );
+      final results = await geo.locationFromAddress(q);
       if (results.isNotEmpty) {
         final loc = results.first;
         final p = LatLng(loc.latitude, loc.longitude);
@@ -39,7 +43,9 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("A térképes keresés nem elérhető. A címet kézzel is megadhatod."),
+          content: Text(
+            "A térképes keresés nem elérhető. A címet kézzel is megadhatod.",
+          ),
         ),
       );
     }
@@ -48,9 +54,8 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
   void _use() {
     final address = _addrCtrl.text.trim();
     if (address.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Add meg a címet.")),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text("Add meg a címet.")));
       return;
     }
     Navigator.pop(context, address);
@@ -59,7 +64,7 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Cím kiválasztása (Google Maps)")),
+      appBar: AppBar(title: const Text("Cím megadása")),
       body: Column(
         children: [
           Padding(
@@ -76,28 +81,57 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
                     onSubmitted: (_) => _search(),
                   ),
                 ),
-                const SizedBox(width: 8),
-                FilledButton(onPressed: _search, child: const Text("Keresés")),
+                if (_mapsEnabled) ...[
+                  const SizedBox(width: 8),
+                  FilledButton(
+                    onPressed: _search,
+                    child: const Text("Keresés"),
+                  ),
+                ],
               ],
             ),
           ),
           Expanded(
-            child: GoogleMap(
-              initialCameraPosition: CameraPosition(target: _center, zoom: 12),
-              onMapCreated: (c) => _ctrl = c,
-              markers: _pin == null ? {} : {_pin!},
-              onTap: (p) => setState(() {
-                _pin = Marker(markerId: const MarkerId("pick"), position: p);
-              }),
-              myLocationButtonEnabled: false,
-              zoomControlsEnabled: false,
-            ),
+            child: _mapsEnabled
+                ? GoogleMap(
+                    initialCameraPosition: CameraPosition(
+                      target: _center,
+                      zoom: 12,
+                    ),
+                    onMapCreated: (c) => _ctrl = c,
+                    markers: _pin == null ? {} : {_pin!},
+                    onTap: (p) => setState(() {
+                      _pin = Marker(
+                        markerId: const MarkerId("pick"),
+                        position: p,
+                      );
+                    }),
+                    myLocationButtonEnabled: false,
+                    zoomControlsEnabled: false,
+                  )
+                : const Padding(
+                    padding: EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.location_on_outlined, size: 64),
+                        SizedBox(height: 12),
+                        Text(
+                          "Írd be a teljes budapesti címet. A térképes címválasztás a Google Maps beállítása után lesz elérhető.",
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
           ),
           Padding(
             padding: const EdgeInsets.all(12),
             child: SizedBox(
               width: double.infinity,
-              child: FilledButton(onPressed: _use, child: const Text("Cím beillesztése")),
+              child: FilledButton(
+                onPressed: _use,
+                child: const Text("Cím beillesztése"),
+              ),
             ),
           ),
         ],
@@ -105,5 +139,3 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
     );
   }
 }
-
-
