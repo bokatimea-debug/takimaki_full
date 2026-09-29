@@ -1,5 +1,6 @@
-﻿import "package:flutter/material.dart";
+import "package:flutter/material.dart";
 import "package:shared_preferences/shared_preferences.dart";
+
 import "../utils/profile_photo_loader.dart";
 import "../services/local_marketplace_store.dart";
 import "../services/sanctions_store.dart";
@@ -31,7 +32,7 @@ class _S extends State<CustomerProfileScreen> {
     if (!mounted) return;
     setState(() {
       _photo = p;
-      _name = [first, last].where((e)=> e.trim().isNotEmpty).join(" ");
+      _name = [last, first].where((e) => e.trim().isNotEmpty).join(" ");
       _bio = prefs.getString("customer_bio") ?? "";
       _success = prefs.getInt("customer_success_count") ?? 0;
       _rating = prefs.getDouble("customer_rating") ?? 0;
@@ -102,7 +103,8 @@ class _S extends State<CustomerProfileScreen> {
           ),
           IconButton(
             tooltip: "Szerepváltás",
-            onPressed: () => Navigator.pushReplacementNamed(context, '/role_select'),
+            onPressed: () =>
+                Navigator.pushReplacementNamed(context, '/role_select'),
             icon: const Icon(Icons.swap_horiz),
           ),
         ],
@@ -123,9 +125,8 @@ class _S extends State<CustomerProfileScreen> {
             Center(
               child: Text(
                 _name.isEmpty ? "Megrendelő" : _name,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
+                style: Theme.of(context).textTheme.titleLarge
+                    ?.copyWith(fontWeight: FontWeight.w700),
               ),
             ),
             if (_bio.isNotEmpty) ...[
@@ -137,7 +138,11 @@ class _S extends State<CustomerProfileScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Icon(Icons.star, size: 20, color: Color(0xFFFF8C42)),
-                Text(_rating == 0 ? " Még nincs értékelés" : " ${_rating.toStringAsFixed(1)}"),
+                Text(
+                  _rating == 0
+                      ? " Még nincs értékelés"
+                      : " ${_rating.toStringAsFixed(1)}",
+                ),
                 const SizedBox(width: 18),
                 Text("$_success sikeres rendelés"),
               ],
@@ -152,12 +157,13 @@ class _S extends State<CustomerProfileScreen> {
             ),
             const SizedBox(height: 8),
             OutlinedButton(
-              onPressed: ()=> Navigator.pushNamed(context, "/customer/orders"),
+              onPressed: () => Navigator.pushNamed(context, "/customer/orders"),
               child: const Text("Rendeléseim"),
             ),
             const SizedBox(height: 8),
             OutlinedButton(
-              onPressed: ()=> Navigator.pushNamed(context, "/customer/messages"),
+              onPressed: () =>
+                  Navigator.pushNamed(context, "/customer/messages"),
               child: const Text("Üzenetek"),
             ),
             const SizedBox(height: 8),

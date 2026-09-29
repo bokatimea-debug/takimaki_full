@@ -1,6 +1,8 @@
-﻿import "dart:convert";
+import "dart:convert";
+
 import "package:flutter/material.dart";
 import "package:shared_preferences/shared_preferences.dart";
+
 import "../utils/profile_photo_loader.dart";
 
 class ProviderProfileScreen extends StatefulWidget {
@@ -33,13 +35,15 @@ class _S extends State<ProviderProfileScreen> {
     setState(() {
       _photo = p;
       _success = prefs.getInt("provider_success_count") ?? 0;
-      final first = prefs.getString("provider_first_name") ??
+      final first =
+          prefs.getString("provider_first_name") ??
           prefs.getString("customer_first_name") ??
           "";
-      final last = prefs.getString("provider_last_name") ??
+      final last =
+          prefs.getString("provider_last_name") ??
           prefs.getString("customer_last_name") ??
           "";
-      _name = [first, last].where((e) => e.trim().isNotEmpty).join(" ");
+      _name = [last, first].where((e) => e.trim().isNotEmpty).join(" ");
       _bio = prefs.getString("provider_bio") ?? "";
       _rating = prefs.getDouble("provider_rating") ?? 0;
       _ratingCount = prefs.getInt("provider_rating_count") ?? 0;
@@ -80,7 +84,8 @@ class _S extends State<ProviderProfileScreen> {
           ),
           IconButton(
             tooltip: "Szerepváltás",
-            onPressed: () => Navigator.pushReplacementNamed(context, '/role_select'),
+            onPressed: () =>
+                Navigator.pushReplacementNamed(context, '/role_select'),
             icon: const Icon(Icons.swap_horiz),
           ),
         ],
@@ -101,9 +106,8 @@ class _S extends State<ProviderProfileScreen> {
             Center(
               child: Text(
                 _name.isEmpty ? "Szolgáltató" : _name,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
+                style: Theme.of(context).textTheme.titleLarge
+                    ?.copyWith(fontWeight: FontWeight.w700),
               ),
             ),
             if (_bio.isNotEmpty) ...[
@@ -127,10 +131,7 @@ class _S extends State<ProviderProfileScreen> {
             if (_services.isNotEmpty) ...[
               const SizedBox(height: 12),
               Center(
-                child: Text(
-                  _services.join(" • "),
-                  textAlign: TextAlign.center,
-                ),
+                child: Text(_services.join(" • "), textAlign: TextAlign.center),
               ),
             ],
             const SizedBox(height: 6),
@@ -152,22 +153,26 @@ class _S extends State<ProviderProfileScreen> {
             ),
             const SizedBox(height: 8),
             OutlinedButton(
-              onPressed: ()=> Navigator.pushNamed(context, "/provider/services"),
+              onPressed: () =>
+                  Navigator.pushNamed(context, "/provider/services"),
               child: const Text("Szolgáltatásaim"),
             ),
             const SizedBox(height: 8),
             OutlinedButton(
-              onPressed: ()=> Navigator.pushNamed(context, "/provider/requests"),
+              onPressed: () =>
+                  Navigator.pushNamed(context, "/provider/requests"),
               child: const Text("Beérkezett ajánlatkérések"),
             ),
             const SizedBox(height: 8),
             OutlinedButton(
-              onPressed: ()=> Navigator.pushNamed(context, "/provider/messages"),
+              onPressed: () =>
+                  Navigator.pushNamed(context, "/provider/messages"),
               child: const Text("Üzenetek"),
             ),
             const SizedBox(height: 8),
             OutlinedButton(
-              onPressed: ()=> Navigator.pushNamed(context, "/provider/all_orders"),
+              onPressed: () =>
+                  Navigator.pushNamed(context, "/provider/all_orders"),
               child: const Text("Összes rendelés"),
             ),
           ],
