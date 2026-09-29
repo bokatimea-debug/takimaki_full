@@ -274,6 +274,36 @@ class LocalMarketplaceStore {
     }
   }
 
+  static Future<bool> recordOrderAction({
+    required String requestId,
+    required String key,
+    required dynamic value,
+  }) async {
+    var found = false;
+    for (final storeKey in [customerOrdersKey, providerOrdersKey]) {
+      final orders = await _read(storeKey);
+      final index = orders.indexWhere(
+        (item) => (item['request_id'] ?? item['id']).toString() == requestId,
+      );
+      if (index >= 0) {
+        found = true;
+        if (orders[index][key] != null) return false;
+      }
+    }
+    if (!found) return false;
+    for (final storeKey in [customerOrdersKey, providerOrdersKey]) {
+      final orders = await _read(storeKey);
+      final index = orders.indexWhere(
+        (item) => (item['request_id'] ?? item['id']).toString() == requestId,
+      );
+      if (index >= 0) {
+        orders[index][key] = value;
+        await _write(storeKey, orders);
+      }
+    }
+    return true;
+  }
+
   static Future<void> rateOrder({
     required String requestId,
     required int rating,

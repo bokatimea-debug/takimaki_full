@@ -129,6 +129,18 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       ),
     );
     if (confirmed != true) return;
+    final recorded = await LocalMarketplaceStore.recordOrderAction(
+      requestId: _requestId,
+      key: 'no_show_reported',
+      value: DateTime.now().toIso8601String(),
+    );
+    if (!recorded) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Ezt a no-show esetet már jelentetted.')),
+      );
+      return;
+    }
     final suspendedUntil = await SanctionsStore.recordProviderNoShow();
     if (_requestId.isNotEmpty) {
       await LocalMarketplaceStore.updateOrderStatus(_requestId, 'No-show');
@@ -172,8 +184,23 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     final text = controller.text.trim();
     controller.dispose();
     if (submit != true || text.isEmpty) return;
+    final recorded = await LocalMarketplaceStore.recordOrderAction(
+      requestId: _requestId,
+      key: 'complaint',
+      value: text,
+    );
+    if (!recorded) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Ehhez a rendeléshez már küldtél panaszt.'),
+        ),
+      );
+      return;
+    }
     final suspendedUntil = await SanctionsStore.addProviderNegativePoint();
     if (!mounted) return;
+    setState(() => _order['complaint'] = text);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
@@ -189,6 +216,17 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     final date = _order['date']?.toString() ?? '';
     final time = _order['time']?.toString() ?? '';
     final workAt = DateTime.tryParse('${date}T$time:00');
+    if (workAt != null && !DateTime.now().isBefore(workAt)) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'A munka időpontja után a rendelés már nem mondható le.',
+          ),
+        ),
+      );
+      return;
+    }
     final late =
         workAt != null &&
         workAt.difference(DateTime.now()) <= const Duration(hours: 24);
@@ -293,6 +331,12 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               label: 'Megjegyzés',
               value: _value('note'),
             ),
+          if (_value('complaint', '').isNotEmpty)
+            _Detail(
+              icon: Icons.report_outlined,
+              label: 'Beküldött panasz',
+              value: _value('complaint'),
+            ),
           if (_order['laundry_and_ironing'] == true)
             const _Detail(
               icon: Icons.local_laundry_service_outlined,
@@ -341,10 +385,11 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 icon: const Icon(Icons.person_off_outlined),
                 label: const Text('No-show jelentése'),
               ),
-            TextButton(
-              onPressed: _complain,
-              child: const Text('Panasz küldése'),
-            ),
+            if (_value('complaint', '').isEmpty)
+              TextButton(
+                onPressed: _complain,
+                child: const Text('Panasz küldése'),
+              ),
             TextButton(
               onPressed: _customerCancel,
               style: TextButton.styleFrom(foregroundColor: Colors.red),
