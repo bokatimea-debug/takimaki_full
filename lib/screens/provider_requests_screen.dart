@@ -18,38 +18,7 @@ class _ProviderRequestsScreenState extends State<ProviderRequestsScreen> {
 
   Future<void> _load() async {
     final p = await SharedPreferences.getInstance();
-    String? raw = p.getString(kKey);
-    if (raw == null || raw.isEmpty) {
-      // minimál minta
-      final tomorrow = DateTime.now().add(const Duration(days: 1));
-      final nextDay = DateTime.now().add(const Duration(days: 2));
-      String date(DateTime value) =>
-          "${value.year}-${value.month.toString().padLeft(2, '0')}-${value.day.toString().padLeft(2, '0')}";
-      final samples = [
-        {
-          "id": "R1",
-          "service": "Általános takarítás",
-          "customer": "Kiss Anna",
-          "address": "Budapest, XI.",
-          "date": date(tomorrow),
-          "time": "10:00",
-          "status": "pending",
-          "created_at": DateTime.now().toIso8601String(),
-        },
-        {
-          "id": "R2",
-          "service": "Vízszerelés",
-          "customer": "Nagy Péter",
-          "address": "Budapest, XIII.",
-          "date": date(nextDay),
-          "time": "14:30",
-          "status": "pending",
-          "created_at": DateTime.now().toIso8601String(),
-        },
-      ];
-      raw = json.encode(samples);
-      await p.setString(kKey, raw);
-    }
+    final raw = p.getString(kKey) ?? '[]';
     final allItems = (json.decode(raw) as List)
         .map((item) => Map<String, dynamic>.from(item as Map))
         .toList();
@@ -156,9 +125,21 @@ class _ProviderRequestsScreenState extends State<ProviderRequestsScreen> {
       appBar: AppBar(title: const Text("Beérkezett ajánlatkérések")),
       body: ListView.separated(
         padding: const EdgeInsets.all(12),
-        itemCount: _items.length,
+        itemCount: _items.isEmpty ? 1 : _items.length,
         separatorBuilder: (_, __) => const SizedBox(height: 8),
         itemBuilder: (context, i) {
+          if (_items.isEmpty) {
+            return const Padding(
+              padding: EdgeInsets.only(top: 120),
+              child: Column(
+                children: [
+                  Icon(Icons.inbox_outlined, size: 56),
+                  SizedBox(height: 12),
+                  Text("Jelenleg nincs új ajánlatkérés."),
+                ],
+              ),
+            );
+          }
           final it = _items[i];
           final title = it["service"] ?? "";
           final sub =

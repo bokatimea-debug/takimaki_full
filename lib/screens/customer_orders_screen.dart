@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../services/demo_data.dart';
 import '../services/local_marketplace_store.dart';
 
 class CustomerOrdersScreen extends StatefulWidget {
@@ -20,12 +19,7 @@ class _CustomerOrdersScreenState extends State<CustomerOrdersScreen> {
   }
 
   Future<void> _load() async {
-    final saved = await LocalMarketplaceStore.customerOrders();
-    _items = saved.isNotEmpty
-        ? saved
-        : DemoOrders.customerOrders
-            .map((item) => Map<String, dynamic>.from(item))
-            .toList();
+    _items = await LocalMarketplaceStore.customerOrders();
     if (mounted) setState(() {});
   }
 
@@ -33,13 +27,32 @@ class _CustomerOrdersScreenState extends State<CustomerOrdersScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Rendeléseim')),
+      floatingActionButton: _items.isEmpty
+          ? FloatingActionButton.extended(
+              onPressed: () => Navigator.pushNamed(context, '/customer/search'),
+              icon: const Icon(Icons.add),
+              label: const Text('Új rendelés'),
+            )
+          : null,
       body: RefreshIndicator(
         onRefresh: _load,
         child: ListView.separated(
           padding: const EdgeInsets.all(12),
-          itemCount: _items.length,
+          itemCount: _items.isEmpty ? 1 : _items.length,
           separatorBuilder: (_, __) => const SizedBox(height: 8),
           itemBuilder: (context, index) {
+            if (_items.isEmpty) {
+              return const Padding(
+                padding: EdgeInsets.only(top: 120),
+                child: Column(
+                  children: [
+                    Icon(Icons.receipt_long_outlined, size: 56),
+                    SizedBox(height: 12),
+                    Text('Még nincs rendelésed.'),
+                  ],
+                ),
+              );
+            }
             final item = _items[index];
             final title = item['service'] ?? item['title'] ?? '';
             final date = item['date'] ?? '';

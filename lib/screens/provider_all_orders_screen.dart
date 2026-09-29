@@ -1,51 +1,38 @@
-﻿import "dart:convert";
 import "package:flutter/material.dart";
-import "package:shared_preferences/shared_preferences.dart";
+
 import "../services/local_marketplace_store.dart";
 
 class ProviderAllOrdersScreen extends StatefulWidget {
   const ProviderAllOrdersScreen({super.key});
   @override
-  State<ProviderAllOrdersScreen> createState() => _ProviderAllOrdersScreenState();
+  State<ProviderAllOrdersScreen> createState() =>
+      _ProviderAllOrdersScreenState();
 }
 
 class _ProviderAllOrdersScreenState extends State<ProviderAllOrdersScreen> {
-  static const String kKey = "provider_orders";
   List<Map<String, dynamic>> _items = [];
 
   Future<void> _load() async {
-    final stored = await LocalMarketplaceStore.providerOrders();
-    if (stored.isNotEmpty) {
-      _items = stored;
-      if (mounted) setState(() {});
-      return;
-    }
-    final p = await SharedPreferences.getInstance();
-    String? raw = p.getString(kKey);
-    if (raw == null || raw.isEmpty) {
-      // minta adatok értékeléssel
-      final samples = [
-        {"id":"O1","service":"Általános takarítás","when":"2025-08-20 09:00","rating":5},
-        {"id":"O2","service":"Vízszerelés","when":"2025-08-22 14:30","rating":4},
-        {"id":"O3","service":"Nagytakarítás","when":"2025-08-25 10:00","rating":3},
-      ];
-      raw = json.encode(samples);
-      await p.setString(kKey, raw);
-    }
-    _items = (json.decode(raw) as List).cast<Map<String, dynamic>>();
-    if (mounted) setState((){});
+    _items = await LocalMarketplaceStore.providerOrders();
+    if (mounted) setState(() {});
   }
 
   @override
-  void initState() { super.initState(); _load(); }
+  void initState() {
+    super.initState();
+    _load();
+  }
 
-  Widget _stars(int n){
-    n = n.clamp(0,5);
+  Widget _stars(int n) {
+    n = n.clamp(0, 5);
     return Row(
       mainAxisSize: MainAxisSize.min,
-      children: List.generate(5, (i){
+      children: List.generate(5, (i) {
         final filled = i < n;
-        return Icon(filled ? Icons.star : Icons.star_border, color: Colors.amber);
+        return Icon(
+          filled ? Icons.star : Icons.star_border,
+          color: Colors.amber,
+        );
       }),
     );
   }
@@ -56,13 +43,25 @@ class _ProviderAllOrdersScreenState extends State<ProviderAllOrdersScreen> {
       appBar: AppBar(title: const Text("Összes rendelés")),
       body: ListView.separated(
         padding: const EdgeInsets.all(12),
-        itemCount: _items.length,
-        separatorBuilder: (_, __)=> const SizedBox(height: 8),
+        itemCount: _items.isEmpty ? 1 : _items.length,
+        separatorBuilder: (_, __) => const SizedBox(height: 8),
         itemBuilder: (context, i) {
+          if (_items.isEmpty) {
+            return const Padding(
+              padding: EdgeInsets.only(top: 120),
+              child: Column(
+                children: [
+                  Icon(Icons.work_outline, size: 56),
+                  SizedBox(height: 12),
+                  Text("Még nincs elfogadott munkád."),
+                ],
+              ),
+            );
+          }
           final it = _items[i];
           final title = it["service"] ?? "";
-          final when  = it["when"] ?? "";
-          final rating = (it["rating"] ?? 0) as int;
+          final when = it["when"] ?? "${it['date'] ?? ''} ${it['time'] ?? ''}";
+          final rating = (it["rating"] as num?)?.toInt() ?? 0;
           return Card(
             child: ListTile(
               title: Text(title),
