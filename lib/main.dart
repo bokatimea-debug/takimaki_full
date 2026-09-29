@@ -1,4 +1,5 @@
-﻿import 'screens/provider_offer_reply_screen.dart';
+import 'screens/provider_offer_reply_screen.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
@@ -82,32 +83,30 @@ class TakimakiApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: const [
-        Locale('hu'),
-        Locale('en'),
-      ],
+      supportedLocales: const [Locale('hu'), Locale('en')],
       locale: const Locale('hu'),
       home: const SplashLoginScreen(),
       routes: <String, WidgetBuilder>{
+        '/welcome': (_) => const SplashLoginScreen(),
         '/role_select': (_) => const RoleSelectScreen(),
 
-        '/customer/profile':      (_) => const CustomerProfileScreen(),
+        '/customer/profile': (_) => const CustomerProfileScreen(),
         '/customer/edit_profile': (_) => const CustomerEditProfileScreen(),
-        '/customer/search':       (_) => const CustomerSearchScreen(),
-        '/customer/orders':       (_) => const CustomerOrdersScreen(),
-        '/customer/messages':     (_) => const ChatListScreen(),
+        '/customer/search': (_) => const CustomerSearchScreen(),
+        '/customer/orders': (_) => const CustomerOrdersScreen(),
+        '/customer/messages': (_) => const ChatListScreen(),
 
         '/offers': (_) => const OffersScreen(),
-        '/chat':   (_) => const ChatListScreen(),
+        '/chat': (_) => const ChatListScreen(),
 
-        '/provider/profile':      (_) => const ProviderProfileScreen(),
+        '/provider/profile': (_) => const ProviderProfileScreen(),
         '/provider/edit_profile': (_) => const ProviderEditProfileScreen(),
-        '/provider/services':     (_) => const ProviderServicesScreen(),
-        '/provider/add_service':  (_) => const ProviderAddServiceScreen(),
-        '/provider/requests':     (_) => const ProviderRequestsScreen(),
-        '/provider/offer_reply':  (_) => const ProviderOfferReplyScreen(),
-        '/provider/messages':     (_) => const ChatListScreen(),
-        '/provider/all_orders':   (_) => const ProviderAllOrdersScreen(),
+        '/provider/services': (_) => const ProviderServicesScreen(),
+        '/provider/add_service': (_) => const ProviderAddServiceScreen(),
+        '/provider/requests': (_) => const ProviderRequestsScreen(),
+        '/provider/offer_reply': (_) => const ProviderOfferReplyScreen(),
+        '/provider/messages': (_) => const ChatListScreen(),
+        '/provider/all_orders': (_) => const ProviderAllOrdersScreen(),
 
         '/map_picker': (_) => const MapPickerScreen(),
         '/order/details': (_) => const OrderDetailsScreen(),

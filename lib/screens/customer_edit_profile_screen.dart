@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../services/account_store.dart';
+
 class CustomerEditProfileScreen extends StatefulWidget {
   const CustomerEditProfileScreen({super.key});
 
@@ -12,8 +14,7 @@ class CustomerEditProfileScreen extends StatefulWidget {
       _CustomerEditProfileScreenState();
 }
 
-class _CustomerEditProfileScreenState
-    extends State<CustomerEditProfileScreen> {
+class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
   final _lastNameCtrl = TextEditingController();
   final _firstNameCtrl = TextEditingController();
   final _bioCtrl = TextEditingController();
@@ -30,7 +31,8 @@ class _CustomerEditProfileScreenState
     _lastNameCtrl.text = prefs.getString('customer_last_name') ?? '';
     _firstNameCtrl.text = prefs.getString('customer_first_name') ?? '';
     _bioCtrl.text = prefs.getString('customer_bio') ?? '';
-    _photoPath = prefs.getString('customer_photo_path') ??
+    _photoPath =
+        prefs.getString('customer_photo_path') ??
         prefs.getString('registration_photo_path');
     if (mounted) setState(() {});
   }
@@ -80,13 +82,9 @@ class _CustomerEditProfileScreenState
       ),
     );
     if (confirmed != true) return;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('customer_last_name');
-    await prefs.remove('customer_first_name');
-    await prefs.remove('customer_bio');
-    await prefs.remove('customer_photo_path');
+    await AccountStore.deleteAccount();
     if (!mounted) return;
-    Navigator.pushNamedAndRemoveUntil(context, '/role_select', (_) => false);
+    Navigator.pushNamedAndRemoveUntil(context, '/welcome', (_) => false);
   }
 
   @override
@@ -109,8 +107,9 @@ class _CustomerEditProfileScreenState
               onTap: _pickPhoto,
               child: CircleAvatar(
                 radius: 50,
-                backgroundImage:
-                    _photoPath == null ? null : FileImage(File(_photoPath!)),
+                backgroundImage: _photoPath == null
+                    ? null
+                    : FileImage(File(_photoPath!)),
                 child: _photoPath == null
                     ? const Icon(Icons.add_a_photo, size: 36)
                     : null,
