@@ -5,6 +5,7 @@ import "package:shared_preferences/shared_preferences.dart";
 
 import "../services/local_marketplace_store.dart";
 import "../services/sanctions_store.dart";
+import "../utils/district_utils.dart";
 
 class ProviderRequestsScreen extends StatefulWidget {
   const ProviderRequestsScreen({super.key});
@@ -30,9 +31,66 @@ class _ProviderRequestsScreenState extends State<ProviderRequestsScreen> {
         changed = true;
       }
     }
-    _items = allItems.where((item) => item["status"] == "pending").toList();
+    final rawServices = p.getString("provider_services") ?? "[]";
+    List<Map<String, dynamic>> services;
+    try {
+      services = (json.decode(rawServices) as List)
+          .map((item) => Map<String, dynamic>.from(item as Map))
+          .toList();
+    } catch (_) {
+      services = [];
+    }
+    _items = allItems
+        .where((item) => item["status"] == "pending")
+        .where((item) => _matchesProvider(item, services, p))
+        .toList();
     if (changed) await p.setString(kKey, json.encode(allItems));
     if (mounted) setState(() {});
+  }
+
+  bool _matchesProvider(
+    Map<String, dynamic> request,
+    List<Map<String, dynamic>> services,
+    SharedPreferences prefs,
+  ) {
+    final matching = services.where(
+      (service) => service['name'] == request['service'],
+    );
+    if (matching.isEmpty) return false;
+
+    final requestDistrict = request['district']?.toString().replaceAll('.', '');
+    final districts = (matching.first['districts'] as List? ?? const [])
+        .whereType<num>()
+        .map((value) => romanFromDistrict(value.toInt()))
+        .toSet();
+    if (!districts.contains(requestDistrict)) return false;
+
+    final scheduledAt = DateTime.tryParse(
+      '${request['date'] ?? ''}T${request['time'] ?? ''}:00',
+    );
+    if (scheduledAt == null) return true;
+    final weekend = scheduledAt.weekday >= DateTime.saturday;
+    final from =
+        prefs.getString(weekend ? 'provider_we_from' : 'provider_wd_from') ??
+        '09:00';
+    final to =
+        prefs.getString(weekend ? 'provider_we_to' : 'provider_wd_to') ??
+        '18:00';
+    final fromMinutes = _minutes(from);
+    final toMinutes = _minutes(to);
+    final requestedMinutes = scheduledAt.hour * 60 + scheduledAt.minute;
+    return fromMinutes == null ||
+        toMinutes == null ||
+        (requestedMinutes >= fromMinutes && requestedMinutes <= toMinutes);
+  }
+
+  int? _minutes(String value) {
+    final parts = value.split(':');
+    if (parts.length != 2) return null;
+    final hour = int.tryParse(parts[0]);
+    final minute = int.tryParse(parts[1]);
+    if (hour == null || minute == null) return null;
+    return hour * 60 + minute;
   }
 
   Future<void> _reject(int i) async {

@@ -1,6 +1,8 @@
-﻿import "package:flutter/material.dart";
+import "package:flutter/material.dart";
 import "package:shared_preferences/shared_preferences.dart";
+
 import "dart:convert";
+
 import "../widgets/district_picker.dart";
 
 const _serviceOptions = [
@@ -17,7 +19,8 @@ const _serviceOptions = [
 class ProviderAddServiceScreen extends StatefulWidget {
   const ProviderAddServiceScreen({super.key});
   @override
-  State<ProviderAddServiceScreen> createState() => _ProviderAddServiceScreenState();
+  State<ProviderAddServiceScreen> createState() =>
+      _ProviderAddServiceScreenState();
 }
 
 class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
@@ -70,26 +73,97 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
   }
 
   String _fmtDate(DateTime d) =>
-      "${d.year}.${d.month.toString().padLeft(2,'0')}.${d.day.toString().padLeft(2,'0')}.";
+      "${d.year}.${d.month.toString().padLeft(2, '0')}.${d.day.toString().padLeft(2, '0')}.";
 
   Future<void> _pickDate() async {
-    if (_dates.length >= 10) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Legfeljebb 10 egyedi nap választható.")),
-      );
-      return;
-    }
     final now = DateTime.now();
-    final d = await showDatePicker(
+    final initial = Set<DateTime>.from(_dates);
+    final result = await showModalBottomSheet<Set<DateTime>>(
       context: context,
-      initialDate: now,
-      firstDate: now,
-      lastDate: DateTime(now.year + 1),
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (context) {
+        final selected = Set<DateTime>.from(initial);
+        return StatefulBuilder(
+          builder: (context, setModalState) => SafeArea(
+            child: SizedBox(
+              height: MediaQuery.sizeOf(context).height * 0.72,
+              child: Column(
+                children: [
+                  const Text(
+                    "Egyedi napok",
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 6),
+                  Text("Kiválasztva: ${selected.length}/10"),
+                  const SizedBox(height: 12),
+                  Expanded(
+                    child: GridView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 4,
+                            mainAxisSpacing: 8,
+                            crossAxisSpacing: 8,
+                            childAspectRatio: 1.45,
+                          ),
+                      itemCount: 90,
+                      itemBuilder: (context, index) {
+                        final date = DateTime(
+                          now.year,
+                          now.month,
+                          now.day + index,
+                        );
+                        final isSelected = selected.contains(date);
+                        return FilterChip(
+                          selected: isSelected,
+                          label: Text(
+                            "${date.month}.${date.day}.",
+                            textAlign: TextAlign.center,
+                          ),
+                          onSelected: (value) {
+                            if (value && selected.length >= 10) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    "Legfeljebb 10 egyedi nap választható.",
+                                  ),
+                                ),
+                              );
+                              return;
+                            }
+                            setModalState(() {
+                              value
+                                  ? selected.add(date)
+                                  : selected.remove(date);
+                            });
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: FilledButton(
+                        onPressed: () => Navigator.pop(context, selected),
+                        child: const Text("Kész"),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
-    if (d != null) {
+    if (result != null) {
       setState(() {
-        final day = DateTime(d.year, d.month, d.day);
-        if (_dates.contains(day)) _dates.remove(day); else _dates.add(day);
+        _dates
+          ..clear()
+          ..addAll(result);
       });
     }
   }
@@ -108,27 +182,47 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
   Future<void> _save() async {
     if (_service == null || _districts.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Válassz szolgáltatást és kerületeket."))
+        const SnackBar(content: Text("Válassz szolgáltatást és kerületeket.")),
       );
       return;
     }
     final priceRaw = int.tryParse(_priceCtrl.text.replaceAll(" ", ""));
     if (priceRaw == null || priceRaw <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Adj meg érvényes árat."))
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Adj meg érvényes árat.")));
       return;
     }
 
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getString("provider_services") ?? "[]";
-    final list = (json.decode(raw) as List).cast<Map<String, dynamic>>();
+    final list = (json.decode(raw) as List)
+        .map((item) => Map<String, dynamic>.from(item as Map))
+        .toList();
 
     final args = ModalRoute.of(context)?.settings.arguments;
+    final editingId = args is Map<String, dynamic> ? args["id"] : null;
+    final duplicate = list.any(
+      (item) => item["name"] == _service && item["id"] != editingId,
+    );
+    if (duplicate) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Ez a szolgáltatás már szerepel a listában."),
+        ),
+      );
+      return;
+    }
     if (args is Map<String, dynamic>) {
       final idx = list.indexWhere((e) => e["id"] == args["id"]);
-      final item = _buildItem(args["id"] ?? DateTime.now().millisecondsSinceEpoch.toString());
-      if (idx >= 0) list[idx] = item; else list.add(item);
+      final item = _buildItem(
+        args["id"] ?? DateTime.now().millisecondsSinceEpoch.toString(),
+      );
+      if (idx >= 0)
+        list[idx] = item;
+      else
+        list.add(item);
     } else {
       list.add(_buildItem(DateTime.now().millisecondsSinceEpoch.toString()));
     }
@@ -136,9 +230,8 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
     await prefs.setString("provider_services", json.encode(list));
 
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Szolgáltatás mentve"))
-    );
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text("Szolgáltatás mentve")));
     Navigator.pop(context, true);
   }
 
@@ -149,14 +242,18 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
     "price_fmt": _fmtTh(int.parse(_priceCtrl.text.replaceAll(" ", ""))),
     "unit": _unit,
     "districts": _districts.toList()..sort(),
-    "dates": _dates.map((d)=> DateTime(d.year, d.month, d.day).toIso8601String()).toList(),
+    "dates": _dates
+        .map((d) => DateTime(d.year, d.month, d.day).toIso8601String())
+        .toList(),
   };
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEditing ? "Szolgáltatás szerkesztése" : "Új szolgáltatás"),
+        title: Text(
+          _isEditing ? "Szolgáltatás szerkesztése" : "Új szolgáltatás",
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(12),
@@ -166,19 +263,29 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
             const Text("Szolgáltatás"),
             const SizedBox(height: 6),
             Wrap(
-              spacing: 8, runSpacing: 8,
-              children: _serviceOptions.map((s){
+              spacing: 8,
+              runSpacing: 8,
+              children: _serviceOptions.map((s) {
                 final sel = _service == s;
                 return ChoiceChip(
-                  label: Row(mainAxisSize: MainAxisSize.min, children: [
-                    if (sel) const Padding(
-                      padding: EdgeInsets.only(right: 6),
-                      child: Icon(Icons.check, size: 16),
-                    ),
-                    Text(s, style: TextStyle(fontWeight: sel ? FontWeight.w600 : FontWeight.w400)),
-                  ]),
+                  label: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (sel)
+                        const Padding(
+                          padding: EdgeInsets.only(right: 6),
+                          child: Icon(Icons.check, size: 16),
+                        ),
+                      Text(
+                        s,
+                        style: TextStyle(
+                          fontWeight: sel ? FontWeight.w600 : FontWeight.w400,
+                        ),
+                      ),
+                    ],
+                  ),
                   selected: sel,
-                  onSelected: (_)=> setState(()=> _service = s),
+                  onSelected: (_) => setState(() => _service = s),
                 );
               }).toList(),
             ),
@@ -219,13 +326,15 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
                     controller: _priceCtrl,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(labelText: "Ár (Ft)"),
-                    onChanged: (v){
+                    onChanged: (v) {
                       final num = int.tryParse(v.replaceAll(" ", ""));
                       if (num != null) {
                         final txt = _fmtTh(num);
                         _priceCtrl.value = TextEditingValue(
                           text: txt,
-                          selection: TextSelection.collapsed(offset: txt.length),
+                          selection: TextSelection.collapsed(
+                            offset: txt.length,
+                          ),
                         );
                       }
                     },
@@ -238,7 +347,7 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
                     DropdownMenuItem(value: "Ft/óra", child: Text("Ft/óra")),
                     DropdownMenuItem(value: "Ft/nm", child: Text("Ft/nm")),
                   ],
-                  onChanged: (v)=> setState(()=> _unit = v!),
+                  onChanged: (v) => setState(() => _unit = v!),
                 ),
               ],
             ),
@@ -247,16 +356,21 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
             OutlinedButton.icon(
               onPressed: _pickDate,
               icon: const Icon(Icons.event),
-              label: Text(_dates.isEmpty ? "Egyedi napok kiválasztása" : "Kiválasztott napok: ${_dates.length}/10"),
+              label: Text(
+                _dates.isEmpty
+                    ? "Egyedi napok kiválasztása"
+                    : "Kiválasztott napok: ${_dates.length}/10",
+              ),
             ),
 
             if (_dates.isNotEmpty) ...[
               const SizedBox(height: 8),
               Wrap(
-                spacing: 6, runSpacing: 6,
-                children: ((_dates.toList()..sort((a,b)=> a.compareTo(b)))
-                  .map<Widget>((d)=> Chip(label: Text(_fmtDate(d))))
-                  .toList()),
+                spacing: 6,
+                runSpacing: 6,
+                children: ((_dates.toList()..sort((a, b) => a.compareTo(b)))
+                    .map<Widget>((d) => Chip(label: Text(_fmtDate(d))))
+                    .toList()),
               ),
             ],
 
