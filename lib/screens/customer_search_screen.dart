@@ -167,7 +167,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
       body: Padding(
         padding: const EdgeInsets.all(12),
         child: ListView(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        
           children: [
             const Text("Szolgáltatás"),
             const SizedBox(height: 6),
