@@ -88,7 +88,7 @@ class _S extends State<CustomerProfileScreen> {
         ],
       ),
     );
-  }
+    }
 
   @override
   Widget build(BuildContext context) {
@@ -112,7 +112,7 @@ class _S extends State<CustomerProfileScreen> {
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: ListView(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        
           children: [
             Center(
               child: ProfileAvatar(
