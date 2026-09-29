@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import '../data/mock_data.dart';
@@ -96,6 +98,107 @@ class _OffersScreenState extends State<OffersScreen> {
     setState(() => _items.removeWhere((item) => item['id'] == offer['id']));
   }
 
+  ImageProvider? _photo(Map<String, dynamic> offer) {
+    final path = offer['provider_photo_path']?.toString() ?? '';
+    if (path.isEmpty) return null;
+    final file = File(path);
+    return file.existsSync() ? FileImage(file) : null;
+  }
+
+  Future<void> _showDetails(Map<String, dynamic> offer) async {
+    final price = int.tryParse(offer['price'].toString()) ?? 0;
+    final action = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                child: CircleAvatar(
+                  radius: 42,
+                  backgroundImage: _photo(offer),
+                  child: _photo(offer) == null
+                      ? const Icon(Icons.person_outline, size: 42)
+                      : null,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                offer['provider_name']?.toString() ?? 'Szolgáltató',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 21,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              if ((offer['provider_bio']?.toString() ?? '').isNotEmpty) ...[
+                const SizedBox(height: 6),
+                Text(
+                  offer['provider_bio'].toString(),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+              const SizedBox(height: 14),
+              Text(
+                offer['provider_rating'] is num
+                    ? '★ ${(offer['provider_rating'] as num).toStringAsFixed(1)} (${offer['provider_rating_count'] ?? 0} értékelés) • ${offer['provider_success_count'] ?? 0} sikeres munka'
+                    : '${offer['provider_success_count'] ?? 0} sikeres munka • Az értékelés 5 munka után látható',
+                textAlign: TextAlign.center,
+              ),
+              const Divider(height: 28),
+              Text(
+                offer['service']?.toString() ?? '',
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 6),
+              Text('${offer['date'] ?? ''} ${offer['time'] ?? ''}'),
+              Text('Budapest ${offer['district'] ?? ''}. kerület'),
+              const SizedBox(height: 10),
+              Text(
+                ft(price),
+                style: const TextStyle(
+                  color: Color(0xFFFF8C42),
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              if ((offer['note']?.toString() ?? '').isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Text(offer['note'].toString()),
+              ],
+              const SizedBox(height: 18),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context, 'reject'),
+                      child: const Text('Elutasítás'),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: FilledButton(
+                      onPressed: () => Navigator.pop(context, 'accept'),
+                      child: const Text('Elfogadás'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (!mounted) return;
+    if (action == 'accept') await _accept(offer);
+    if (action == 'reject') await _reject(offer);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -139,78 +242,84 @@ class _OffersScreenState extends State<OffersScreen> {
                   final offer = _items[index];
                   final price = int.tryParse(offer['price'].toString()) ?? 0;
                   return Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(14),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Row(
-                            children: [
-                              const CircleAvatar(
-                                child: Icon(Icons.person_outline),
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      offer['provider_name']?.toString() ??
-                                          'Szolgáltató',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                    Text(offer['service']?.toString() ?? ''),
-                                    if (offer['provider_rating'] is num)
-                                      Text(
-                                        '★ ${(offer['provider_rating'] as num).toStringAsFixed(1)} • ${offer['provider_success_count'] ?? 0} sikeres munka',
-                                        style: const TextStyle(fontSize: 12),
-                                      )
-                                    else
-                                      Text(
-                                        '${offer['provider_success_count'] ?? 0} sikeres munka',
-                                        style: const TextStyle(fontSize: 12),
-                                      ),
-                                  ],
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(18),
+                      onTap: () => _showDetails(offer),
+                      child: Padding(
+                        padding: const EdgeInsets.all(14),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Row(
+                              children: [
+                                const CircleAvatar(
+                                  child: Icon(Icons.person_outline),
                                 ),
-                              ),
-                              Text(
-                                ft(price),
-                                style: const TextStyle(
-                                  color: Color(0xFFFF8C42),
-                                  fontWeight: FontWeight.w800,
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        offer['provider_name']?.toString() ??
+                                            'Szolgáltató',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                      Text(offer['service']?.toString() ?? ''),
+                                      if (offer['provider_rating'] is num)
+                                        Text(
+                                          '★ ${(offer['provider_rating'] as num).toStringAsFixed(1)} • ${offer['provider_success_count'] ?? 0} sikeres munka',
+                                          style: const TextStyle(fontSize: 12),
+                                        )
+                                      else
+                                        Text(
+                                          '${offer['provider_success_count'] ?? 0} sikeres munka',
+                                          style: const TextStyle(fontSize: 12),
+                                        ),
+                                    ],
+                                  ),
                                 ),
-                              ),
+                                Text(
+                                  ft(price),
+                                  style: const TextStyle(
+                                    color: Color(0xFFFF8C42),
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              '${offer['date'] ?? ''} ${offer['time'] ?? ''} • Budapest ${offer['district'] ?? ''}. kerület',
+                            ),
+                            if ((offer['note']?.toString() ?? '')
+                                .isNotEmpty) ...[
+                              const SizedBox(height: 6),
+                              Text(offer['note'].toString()),
                             ],
-                          ),
-                          const SizedBox(height: 10),
-                          Text(
-                            '${offer['date'] ?? ''} ${offer['time'] ?? ''} • Budapest ${offer['district'] ?? ''}. kerület',
-                          ),
-                          if ((offer['note']?.toString() ?? '').isNotEmpty) ...[
-                            const SizedBox(height: 6),
-                            Text(offer['note'].toString()),
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: OutlinedButton(
+                                    onPressed: () => _reject(offer),
+                                    child: const Text('Elutasítás'),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: FilledButton(
+                                    onPressed: () => _accept(offer),
+                                    child: const Text('Elfogadás'),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ],
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: OutlinedButton(
-                                  onPressed: () => _reject(offer),
-                                  child: const Text('Elutasítás'),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: FilledButton(
-                                  onPressed: () => _accept(offer),
-                                  child: const Text('Elfogadás'),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+                        ),
                       ),
                     ),
                   );
