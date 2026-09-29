@@ -93,7 +93,7 @@ class _S extends State<ProviderProfileScreen> {
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: ListView(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        
           children: [
             Center(
               child: ProfileAvatar(
