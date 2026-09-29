@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import 'registration_success_screen.dart';
 
 class OtpVerifyScreen extends StatefulWidget {
@@ -21,10 +22,11 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
   }
 
   Future<void> _verify() async {
-    if (_otpCtrl.text.length != 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('A kód 6 számjegyből áll.')),
-      );
+    final code = _otpCtrl.text.trim();
+    if (!RegExp(r'^\d{6}$').hasMatch(code)) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('A kód 6 számjegyből áll.')));
       return;
     }
     final prefs = await SharedPreferences.getInstance();
@@ -45,10 +47,7 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("SMS-kód"),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text("SMS-kód"), centerTitle: true),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -69,10 +68,7 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _verify,
-              child: const Text("Tovább"),
-            ),
+            ElevatedButton(onPressed: _verify, child: const Text("Tovább")),
           ],
         ),
       ),

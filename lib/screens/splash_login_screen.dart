@@ -1,16 +1,52 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'profile_info_screen.dart';
 
-class SplashLoginScreen extends StatelessWidget {
+class SplashLoginScreen extends StatefulWidget {
   const SplashLoginScreen({super.key});
 
+  @override
+  State<SplashLoginScreen> createState() => _SplashLoginScreenState();
+}
+
+class _SplashLoginScreenState extends State<SplashLoginScreen> {
+  bool _checkingSession = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _restoreSession();
+  }
+
+  Future<void> _restoreSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    final phone = prefs.getString('registration_phone') ?? '';
+    final role = prefs.getString('active_role');
+
+    if (!mounted) return;
+    if (phone.isNotEmpty && (role == 'customer' || role == 'provider')) {
+      Navigator.pushReplacementNamed(
+        context,
+        role == 'provider' ? '/provider/profile' : '/customer/profile',
+      );
+      return;
+    }
+    setState(() => _checkingSession = false);
+  }
+
   void _continue(BuildContext context) {
-    Navigator.push(context,
-      MaterialPageRoute(builder: (_) => const ProfileInfoScreen()));
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const ProfileInfoScreen()),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_checkingSession) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(24),
@@ -27,7 +63,10 @@ class SplashLoginScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 18),
-            const Text('Takimaki', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
+            const Text(
+              'Takimaki',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
+            ),
             const SizedBox(height: 28),
             SizedBox(
               width: double.infinity,
@@ -47,7 +86,10 @@ class SplashLoginScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            const Text('Gyors és biztonságos belépés.', textAlign: TextAlign.center),
+            const Text(
+              'Gyors és biztonságos belépés.',
+              textAlign: TextAlign.center,
+            ),
           ],
         ),
       ),
