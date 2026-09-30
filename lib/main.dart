@@ -24,7 +24,6 @@ import 'screens/order_details_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/subscription_screen.dart';
 
-import 'screens/map_picker_screen.dart';
 
 void main() {
   runApp(const TakimakiApp());
@@ -108,7 +107,6 @@ class TakimakiApp extends StatelessWidget {
         '/provider/messages': (_) => const ChatListScreen(),
         '/provider/all_orders': (_) => const ProviderAllOrdersScreen(),
 
-        '/map_picker': (_) => const MapPickerScreen(),
         '/order/details': (_) => const OrderDetailsScreen(),
         '/settings': (_) => const SettingsScreen(),
         '/subscriptions': (_) => const SubscriptionScreen(),

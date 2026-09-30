@@ -5,7 +5,6 @@ import "package:shared_preferences/shared_preferences.dart";
 
 import "../services/local_marketplace_store.dart";
 import "../services/sanctions_store.dart";
-import "../utils/district_utils.dart";
 
 class ProviderRequestsScreen extends StatefulWidget {
   const ProviderRequestsScreen({super.key});
@@ -57,13 +56,6 @@ class _ProviderRequestsScreenState extends State<ProviderRequestsScreen> {
       (service) => service['name'] == request['service'],
     );
     if (matching.isEmpty) return false;
-
-    final requestDistrict = request['district']?.toString().replaceAll('.', '');
-    final districts = (matching.first['districts'] as List? ?? const [])
-        .whereType<num>()
-        .map((value) => romanFromDistrict(value.toInt()))
-        .toSet();
-    if (!districts.contains(requestDistrict)) return false;
 
     final scheduledAt = DateTime.tryParse(
       '${request['date'] ?? ''}T${request['time'] ?? ''}:00',

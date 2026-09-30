@@ -24,9 +24,10 @@ class RoleSelectScreen extends StatelessWidget {
     }
 
     if (!context.mounted) return;
-    Navigator.pushReplacementNamed(
+    Navigator.pushNamedAndRemoveUntil(
       context,
       role == 'provider' ? '/provider/profile' : '/customer/profile',
+      (route) => false,
     );
   }
 

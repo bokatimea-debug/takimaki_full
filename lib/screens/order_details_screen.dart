@@ -229,7 +229,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     }
     final late =
         workAt != null &&
-        workAt.difference(DateTime.now()) <= const Duration(hours: 24);
+        workAt.difference(DateTime.now()) <= const Duration(hours: 12);
     DateTime? suspendedUntil;
     if (late) {
       suspendedUntil = await SanctionsStore.recordCustomerLateCancellation();

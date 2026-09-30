@@ -46,6 +46,7 @@ class _OffersScreenState extends State<OffersScreen> {
               'time': '',
               'price': offer.priceFt,
               'status': 'pending',
+              'is_demo': true,
             },
           )
           .toList();
@@ -67,7 +68,6 @@ class _OffersScreenState extends State<OffersScreen> {
 
   List<Map<String, dynamic>> _demoOffersForRequest() {
     final service = _searchArgs['service']?.toString() ?? 'Szolgáltatás';
-    final district = _searchArgs['district']?.toString() ?? 'XIII';
     final selectedDate = _searchArgs['date'];
     final selectedTime = _searchArgs['time'];
     final date = selectedDate is DateTime
@@ -92,12 +92,12 @@ class _OffersScreenState extends State<OffersScreen> {
         'provider_rating': provider.$2,
         'provider_rating_count': provider.$3,
         'provider_success_count': provider.$3,
-        'district': district,
         'date': date,
         'time': time,
         'price': provider.$4,
         'note': provider.$5,
         'status': 'pending',
+        'is_demo': true,
       };
     }).toList();
   }
@@ -180,6 +180,10 @@ class _OffersScreenState extends State<OffersScreen> {
                   fontWeight: FontWeight.w700,
                 ),
               ),
+              if (offer['is_demo'] == true)
+                const Center(
+                  child: Chip(label: Text('TESZT AJÁNLAT')),
+                ),
               if ((offer['provider_bio']?.toString() ?? '').isNotEmpty) ...[
                 const SizedBox(height: 6),
                 Text(
@@ -201,7 +205,8 @@ class _OffersScreenState extends State<OffersScreen> {
               ),
               const SizedBox(height: 6),
               Text('${offer['date'] ?? ''} ${offer['time'] ?? ''}'),
-              Text('Budapest ${offer['district'] ?? ''}. kerület'),
+              if ((offer['address']?.toString() ?? '').isNotEmpty)
+                Text(offer['address'].toString()),
               const SizedBox(height: 10),
               Text(
                 ft(price),
@@ -312,6 +317,15 @@ class _OffersScreenState extends State<OffersScreen> {
                                           fontWeight: FontWeight.w700,
                                         ),
                                       ),
+                                      if (offer['is_demo'] == true)
+                                        const Text(
+                                          'TESZT AJÁNLAT',
+                                          style: TextStyle(
+                                            color: Color(0xFF0FA3A9),
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
                                       Text(offer['service']?.toString() ?? ''),
                                       if (offer['provider_rating'] is num)
                                         Text(
@@ -336,9 +350,7 @@ class _OffersScreenState extends State<OffersScreen> {
                               ],
                             ),
                             const SizedBox(height: 10),
-                            Text(
-                              '${offer['date'] ?? ''} ${offer['time'] ?? ''} • Budapest ${offer['district'] ?? ''}. kerület',
-                            ),
+                            Text('${offer['date'] ?? ''} ${offer['time'] ?? ''}'),
                             if ((offer['note']?.toString() ?? '')
                                 .isNotEmpty) ...[
                               const SizedBox(height: 6),

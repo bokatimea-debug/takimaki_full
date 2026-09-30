@@ -58,7 +58,7 @@ class LocalMarketplaceStore {
 
   static Future<String> createRequest({
     required String service,
-    required String district,
+    String district = '',
     required String address,
     required DateTime dateTime,
     required String note,

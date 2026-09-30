@@ -1,5 +1,4 @@
 ﻿import 'package:flutter/material.dart';
-import 'role_select_screen.dart';
 
 class RegistrationSuccessScreen extends StatelessWidget {
   const RegistrationSuccessScreen({super.key});
@@ -22,9 +21,10 @@ class RegistrationSuccessScreen extends StatelessWidget {
               width: double.infinity,
               child: FilledButton(
                 onPressed: () {
-                  Navigator.pushReplacement(
+                  Navigator.pushNamedAndRemoveUntil(
                     context,
-                    MaterialPageRoute(builder: (_) => const RoleSelectScreen()),
+                    '/role_select',
+                    (route) => false,
                   );
                 },
                 child: const Text('Folytatás'),

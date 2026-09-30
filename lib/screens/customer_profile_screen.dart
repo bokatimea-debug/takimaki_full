@@ -104,7 +104,11 @@ class _S extends State<CustomerProfileScreen> {
           IconButton(
             tooltip: "Szerepváltás",
             onPressed: () =>
-                Navigator.pushReplacementNamed(context, '/role_select'),
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  '/role_select',
+                  (route) => false,
+                ),
             icon: const Icon(Icons.swap_horiz),
           ),
         ],

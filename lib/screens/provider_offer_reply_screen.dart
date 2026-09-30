@@ -99,7 +99,9 @@ class _State extends State<ProviderOfferReplyScreen> {
     }
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getString("provider_requests") ?? "[]";
-    final list = (json.decode(raw) as List).cast<Map<String, dynamic>>();
+    final list = (json.decode(raw) as List)
+        .map((item) => Map<String, dynamic>.from(item as Map))
+        .toList();
     final idx = list.indexWhere((e) => e["id"] == data["id"]);
     if (idx >= 0) {
       list[idx]["status"] = "offered";
@@ -130,8 +132,6 @@ class _State extends State<ProviderOfferReplyScreen> {
           const SizedBox(height: 8),
           Text("Megrendelő: ${data["customer"] ?? "Megrendelő"}"),
           Text(data["address"] ?? ""),
-          if ((data["district"]?.toString() ?? "").isNotEmpty)
-            Text("Budapest ${data["district"]}. kerület"),
           Text("${data["date"] ?? ""}  ${data["time"] ?? ""}"),
           if (data["laundry_and_ironing"] == true)
             const Padding(

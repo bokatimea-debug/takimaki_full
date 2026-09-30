@@ -95,6 +95,17 @@ class _S extends State<ProviderEditProfileScreen> {
   }
 
   Future<void> _save() async {
+    int minutes(TimeOfDay? value) =>
+        value == null ? 0 : value.hour * 60 + value.minute;
+    if (minutes(wdTo) <= minutes(wdFrom) ||
+        minutes(weTo) <= minutes(weFrom)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('A befejezés időpontja legyen később a kezdésnél.'),
+        ),
+      );
+      return;
+    }
     final sp = await SharedPreferences.getInstance();
     await sp.setString('provider_bio', bio.text.trim());
     if (photoPath != null && photoPath!.isNotEmpty) {

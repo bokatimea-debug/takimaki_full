@@ -40,6 +40,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  Future<void> _logout() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Kijelentkezés'),
+        content: const Text('Biztosan ki szeretnél jelentkezni?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Mégse'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Kijelentkezés'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    final sp = await SharedPreferences.getInstance();
+    await sp.remove('active_role');
+    await sp.remove('registration_phone');
+    if (!mounted) return;
+    Navigator.pushNamedAndRemoveUntil(context, '/welcome', (route) => false);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -70,6 +96,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onPressed: _save,
               child: const Text('Mentés'),
             ),
+          ),
+          const Divider(height: 1),
+          ListTile(
+            leading: const Icon(Icons.logout),
+            title: const Text('Kijelentkezés'),
+            onTap: _logout,
           ),
         ],
       ),

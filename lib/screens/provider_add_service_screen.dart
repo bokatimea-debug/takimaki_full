@@ -3,7 +3,6 @@ import "package:shared_preferences/shared_preferences.dart";
 
 import "dart:convert";
 
-import "../widgets/district_picker.dart";
 
 const _serviceOptions = [
   "Apartmantakarítás",
@@ -28,7 +27,6 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
   String? _service;
   final _priceCtrl = TextEditingController();
   String _unit = "Ft/óra";
-  final Set<int> _districts = {};
   final Set<DateTime> _dates = {};
   final Map<DateTime, TimeOfDay> _dateFrom = {};
   final Map<DateTime, TimeOfDay> _dateTo = {};
@@ -52,8 +50,6 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
       _service = args["name"] as String?;
       _priceCtrl.text = (args["price_raw"]?.toString() ?? "");
       _unit = args["unit"] ?? _unit;
-      final ds = (args["districts"] as List?)?.whereType<int>() ?? <int>[];
-      _districts.addAll(ds);
       final dts = (args["dates"] as List?)?.whereType<String>() ?? <String>[];
       _dates.addAll(dts.map(DateTime.tryParse).whereType<DateTime>());
       final hours = args["date_hours"];
@@ -238,17 +234,6 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
     }
   }
 
-  Future<void> _pickDistricts() async {
-    final result = await pickDistricts(context, _districts.toList());
-    if (result != null) {
-      setState(() {
-        _districts
-          ..clear()
-          ..addAll(result);
-      });
-    }
-  }
-
   Future<void> _addPriceRule() async {
     final isApartment = _service == "Apartmantakarítás";
     final isLaundry = _service == "Mosodai szolgáltatás";
@@ -327,9 +312,9 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
   }
 
   Future<void> _save() async {
-    if (_service == null || _districts.isEmpty) {
+    if (_service == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Válassz szolgáltatást és kerületeket.")),
+        const SnackBar(content: Text("Válassz szolgáltatást.")),
       );
       return;
     }
@@ -388,7 +373,7 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
     "price_raw": int.parse(_priceCtrl.text.replaceAll(" ", "")),
     "price_fmt": _fmtTh(int.parse(_priceCtrl.text.replaceAll(" ", ""))),
     "unit": _unit,
-    "districts": _districts.toList()..sort(),
+    "districts": const <int>[],
     "dates": _dates
         .map((d) => DateTime(d.year, d.month, d.day).toIso8601String())
         .toList(),
@@ -436,30 +421,12 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
             ),
 
             const SizedBox(height: 12),
-            const Text("Működési terület"),
-            const SizedBox(height: 6),
-            CheckboxListTile(
-              contentPadding: EdgeInsets.zero,
-              value: _districts.length == 23,
-              title: const Text("Egész Budapest"),
-              controlAffinity: ListTileControlAffinity.leading,
-              onChanged: (selected) {
-                setState(() {
-                  _districts.clear();
-                  if (selected == true) {
-                    _districts.addAll(List.generate(23, (index) => index + 1));
-                  }
-                });
-              },
-            ),
-            Card(
+            const Card(
               margin: EdgeInsets.zero,
               child: ListTile(
-                onTap: _pickDistricts,
-                leading: const Icon(Icons.location_city_outlined),
-                title: const Text("Budapest"),
-                subtitle: Text(summarizeDistricts(_districts.toList())),
-                trailing: const Icon(Icons.chevron_right),
+                leading: Icon(Icons.location_on_outlined),
+                title: Text("Működési terület"),
+                subtitle: Text("A Google Maps-alapú területválasztás a következő verzióban lesz elérhető."),
               ),
             ),
 

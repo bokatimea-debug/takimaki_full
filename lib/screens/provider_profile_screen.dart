@@ -19,7 +19,6 @@ class _S extends State<ProviderProfileScreen> {
   double _rating = 0;
   int _ratingCount = 0;
   List<String> _services = [];
-  int _districtCount = 0;
   String _availability = "09:00–18:00";
 
   @override
@@ -57,13 +56,8 @@ class _S extends State<ProviderProfileScreen> {
             .where((name) => name.isNotEmpty)
             .toSet()
             .toList();
-        _districtCount = decoded
-            .expand((item) => (item["districts"] as List? ?? const []))
-            .toSet()
-            .length;
       } catch (_) {
         _services = [];
-        _districtCount = 0;
       }
       final from = prefs.getString("provider_wd_from") ?? "09:00";
       final to = prefs.getString("provider_wd_to") ?? "18:00";
@@ -85,7 +79,11 @@ class _S extends State<ProviderProfileScreen> {
           IconButton(
             tooltip: "Szerepváltás",
             onPressed: () =>
-                Navigator.pushReplacementNamed(context, '/role_select'),
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  '/role_select',
+                  (route) => false,
+                ),
             icon: const Icon(Icons.swap_horiz),
           ),
         ],
@@ -137,7 +135,7 @@ class _S extends State<ProviderProfileScreen> {
             const SizedBox(height: 6),
             Center(
               child: Text(
-                "${_districtCount == 23 ? 'Egész Budapest' : '$_districtCount kiválasztott kerület'} • $_availability",
+                "Budapest • $_availability",
                 textAlign: TextAlign.center,
                 style: const TextStyle(color: Colors.black54),
               ),

@@ -49,9 +49,10 @@ class _ProfileInfoScreenState extends State<ProfileInfoScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Alapadatok')),
-      body: Padding(
+      body: ListView(
         padding: const EdgeInsets.all(16),
-        child: Column(
+        children: [
+          Column(
           children: [
             Stack(
               alignment: Alignment.bottomRight,
@@ -97,15 +98,18 @@ class _ProfileInfoScreenState extends State<ProfileInfoScreen> {
                 ),
               ],
             ),
-            const Spacer(),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: _canContinue ? _next : null,
-                child: const Text('Tovább'),
-              ),
-            ),
           ],
+          ),
+        ],
+      ),
+      bottomNavigationBar: SafeArea(
+        minimum: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+        child: SizedBox(
+          height: 52,
+          child: FilledButton(
+            onPressed: _canContinue ? _next : null,
+            child: const Text('Tovább'),
+          ),
         ),
       ),
     );

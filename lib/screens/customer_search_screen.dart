@@ -2,7 +2,6 @@ import "package:flutter/material.dart";
 
 import "../services/local_marketplace_store.dart";
 import "../services/sanctions_store.dart";
-import "../utils/district_utils.dart";
 
 class CustomerSearchScreen extends StatefulWidget {
   const CustomerSearchScreen({super.key});
@@ -12,10 +11,9 @@ class CustomerSearchScreen extends StatefulWidget {
 
 class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
   String? _service;
-  String? _address;
   DateTime? _date;
   TimeOfDay? _time;
-  int? _district;
+  final _addressController = TextEditingController();
   final _noteController = TextEditingController();
 
   final _services = const [
@@ -32,33 +30,6 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
     {"name": "Klíma", "icon": Icons.ac_unit},
     {"name": "Bútorszerelés", "icon": Icons.chair_alt},
   ];
-
-  Future<void> _pickAddress() async {
-    final res = await Navigator.pushNamed(context, "/map_picker");
-    if (res is Map) {
-      final address = res["address"]?.toString();
-      final district = res["district"];
-      if (address != null && address.isNotEmpty) {
-        setState(() {
-          _address = address;
-          _district = district is int ? district : null;
-        });
-      }
-    } else if (res is String && res.isNotEmpty) {
-      setState(() => _address = res);
-    }
-  }
-
-  Future<int?> _askDistrictFallback() async => showDialog<int>(
-        context: context,
-        builder: (context) => SimpleDialog(
-          title: const Text("Melyik kerületben van a cím?"),
-          children: List.generate(23, (index) => SimpleDialogOption(
-            onPressed: () => Navigator.pop(context, index + 1),
-            child: Text("Budapest ${romanFromDistrict(index + 1)}. kerület"),
-          )),
-        ),
-      );
 
   Future<void> _pickDate() async {
     final now = DateTime.now();
@@ -119,7 +90,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
       return;
     }
     if (_service == null ||
-        _address == null ||
+        _addressController.text.trim().isEmpty ||
         _date == null ||
         _time == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -128,11 +99,6 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
         ),
       );
       return;
-    }
-    if (_district == null) {
-      final selectedDistrict = await _askDistrictFallback();
-      if (selectedDistrict == null || !mounted) return;
-      setState(() => _district = selectedDistrict);
     }
     final dateTime = DateTime(
       _date!.year,
@@ -153,8 +119,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
     }
     final requestId = await LocalMarketplaceStore.createRequest(
       service: _service!,
-      district: romanFromDistrict(_district!),
-      address: _address!,
+      address: _addressController.text.trim(),
       dateTime: dateTime,
       note: _noteController.text.trim(),
       laundryAndIroning:
@@ -167,8 +132,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
       arguments: {
         "request_id": requestId,
         "service": _service,
-        "district": romanFromDistrict(_district!),
-        "address": _address,
+        "address": _addressController.text.trim(),
         "date": _date,
         "time": _time,
         "laundry_and_ironing":
@@ -179,6 +143,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
 
   @override
   void dispose() {
+    _addressController.dispose();
     _noteController.dispose();
     super.dispose();
   }
@@ -214,15 +179,13 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
             ),
             const SizedBox(height: 12),
 
-            // CÍM (Google Maps külön képernyő)
-            ListTile(
-              onTap: _pickAddress,
-              leading: const Icon(Icons.map),
-              title: Text(_address ?? "Cím kiválasztása (Google Maps)"),
-              trailing: const Icon(Icons.chevron_right),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-                side: const BorderSide(color: Color(0x22000000)),
+            TextField(
+              controller: _addressController,
+              textCapitalization: TextCapitalization.words,
+              decoration: const InputDecoration(
+                labelText: "Teljes cím",
+                hintText: "Budapest, utca, házszám",
+                prefixIcon: Icon(Icons.location_on_outlined),
               ),
             ),
 
