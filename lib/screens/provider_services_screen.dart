@@ -100,13 +100,16 @@ class _ProviderServicesScreenState extends State<ProviderServicesScreen> {
                 final name = it["name"] ?? "";
                 final price = it["price_fmt"] ?? "";
                 final unit = it["unit"] ?? "";
+                final priceRules = (it["price_rules"] as List? ?? const []);
                 final dcount = (it["districts"] as List?)?.length ?? 0;
                 final dates = (it["dates"] as List?)?.length ?? 0;
                 return Card(
                   child: ListTile(
                     title: Text(name),
                     subtitle: Text(
-                      "$price $unit • Kerületek: $dcount • Napok: $dates",
+                      priceRules.isEmpty
+                          ? "$price $unit • Kerületek: $dcount • Napok: $dates"
+                          : "$price $unit-tól • ${priceRules.length} részletes ártétel • Kerületek: $dcount",
                     ),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,

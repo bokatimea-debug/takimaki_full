@@ -18,6 +18,16 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
   LatLng _center = const LatLng(47.4979, 19.0402); // Budapest
   final _addrCtrl = TextEditingController();
   Marker? _pin;
+  int? _district;
+
+  int? _districtFromPlacemark(geo.Placemark place) {
+    final postal = place.postalCode ?? "";
+    if (postal.length == 4 && postal.startsWith("1")) {
+      final value = int.tryParse(postal.substring(1, 3));
+      if (value != null && value >= 1 && value <= 23) return value;
+    }
+    return null;
+  }
 
   @override
   void dispose() {
@@ -37,6 +47,11 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
           _center = p;
           _pin = Marker(markerId: const MarkerId("pick"), position: p);
         });
+        final places = await geo.placemarkFromCoordinates(
+          loc.latitude,
+          loc.longitude,
+        );
+        if (places.isNotEmpty) _district = _districtFromPlacemark(places.first);
         await _ctrl?.animateCamera(CameraUpdate.newLatLngZoom(p, 15));
       }
     } catch (_) {
@@ -51,14 +66,27 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
     }
   }
 
-  void _use() {
+  Future<void> _use() async {
     final address = _addrCtrl.text.trim();
     if (address.isEmpty) {
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text("Add meg a címet.")));
       return;
     }
-    Navigator.pop(context, address);
+    if (_district == null) {
+      try {
+        final locations = await geo.locationFromAddress(address);
+        if (locations.isNotEmpty) {
+          final places = await geo.placemarkFromCoordinates(
+            locations.first.latitude,
+            locations.first.longitude,
+          );
+          if (places.isNotEmpty) _district = _districtFromPlacemark(places.first);
+        }
+      } catch (_) {}
+    }
+    if (!mounted) return;
+    Navigator.pop(context, {"address": address, "district": _district});
   }
 
   @override

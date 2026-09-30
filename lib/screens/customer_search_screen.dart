@@ -21,7 +21,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
   final _services = const [
     {"name": "Apartmantakarítás", "icon": Icons.apartment},
     {
-      "name": "Apartmantakarítás mosodai szolgáltatással",
+      "name": "Mosodai szolgáltatás",
       "icon": Icons.local_laundry_service,
     },
     {"name": "Általános takarítás", "icon": Icons.cleaning_services},
@@ -35,8 +35,30 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
 
   Future<void> _pickAddress() async {
     final res = await Navigator.pushNamed(context, "/map_picker");
-    if (res is String && res.isNotEmpty) setState(() => _address = res);
+    if (res is Map) {
+      final address = res["address"]?.toString();
+      final district = res["district"];
+      if (address != null && address.isNotEmpty) {
+        setState(() {
+          _address = address;
+          _district = district is int ? district : null;
+        });
+      }
+    } else if (res is String && res.isNotEmpty) {
+      setState(() => _address = res);
+    }
   }
+
+  Future<int?> _askDistrictFallback() async => showDialog<int>(
+        context: context,
+        builder: (context) => SimpleDialog(
+          title: const Text("Melyik kerületben van a cím?"),
+          children: List.generate(23, (index) => SimpleDialogOption(
+            onPressed: () => Navigator.pop(context, index + 1),
+            child: Text("Budapest ${romanFromDistrict(index + 1)}. kerület"),
+          )),
+        ),
+      );
 
   Future<void> _pickDate() async {
     final now = DateTime.now();
@@ -97,7 +119,6 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
       return;
     }
     if (_service == null ||
-        _district == null ||
         _address == null ||
         _date == null ||
         _time == null) {
@@ -107,6 +128,11 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
         ),
       );
       return;
+    }
+    if (_district == null) {
+      final selectedDistrict = await _askDistrictFallback();
+      if (selectedDistrict == null || !mounted) return;
+      setState(() => _district = selectedDistrict);
     }
     final dateTime = DateTime(
       _date!.year,
@@ -132,7 +158,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
       dateTime: dateTime,
       note: _noteController.text.trim(),
       laundryAndIroning:
-          _service == "Apartmantakarítás mosodai szolgáltatással",
+          _service == "Mosodai szolgáltatás",
     );
     if (!mounted) return;
     Navigator.pushNamed(
@@ -146,7 +172,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
         "date": _date,
         "time": _time,
         "laundry_and_ironing":
-            _service == "Apartmantakarítás mosodai szolgáltatással",
+            _service == "Mosodai szolgáltatás",
       },
     );
   }
@@ -169,47 +195,22 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text("Szolgáltató keresése")),
       body: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
         child: ListView(
         
           children: [
-            const Text("Szolgáltatás"),
-            const SizedBox(height: 6),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: _services.map((o) {
-                final sel = _service == o["name"];
-                return ChoiceChip(
-                  label: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(o["icon"] as IconData, size: 18),
-                      const SizedBox(width: 6),
-                      Text(o["name"] as String),
-                    ],
-                  ),
-                  selected: sel,
-                  onSelected: (_) =>
-                      setState(() => _service = o["name"] as String),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 16),
-
-            DropdownButtonFormField<int>(
-              value: _district,
-              decoration: const InputDecoration(labelText: "Budapest kerület"),
-              items: List.generate(
-                23,
-                (index) => DropdownMenuItem(
-                  value: index + 1,
-                  child: Text(
-                    "Budapest ${romanFromDistrict(index + 1)}. kerület",
-                  ),
-                ),
+            DropdownButtonFormField<String>(
+              value: _service,
+              isExpanded: true,
+              decoration: const InputDecoration(
+                labelText: "Szolgáltatás",
+                prefixIcon: Icon(Icons.cleaning_services_outlined),
               ),
-              onChanged: (value) => setState(() => _district = value),
+              items: _services.map((o) {
+                final name = o["name"] as String;
+                return DropdownMenuItem(value: name, child: Text(name));
+              }).toList(),
+              onChanged: (value) => setState(() => _service = value),
             ),
             const SizedBox(height: 12),
 

@@ -7,7 +7,7 @@ import "../widgets/district_picker.dart";
 
 const _serviceOptions = [
   "Apartmantakarítás",
-  "Apartmantakarítás mosodai szolgáltatással",
+  "Mosodai szolgáltatás",
   "Általános takarítás",
   "Nagytakarítás",
   "Vízszerelés",
@@ -32,6 +32,7 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
   final Set<DateTime> _dates = {};
   final Map<DateTime, TimeOfDay> _dateFrom = {};
   final Map<DateTime, TimeOfDay> _dateTo = {};
+  final List<Map<String, dynamic>> _priceRules = [];
   bool _argumentsLoaded = false;
   bool _isEditing = false;
 
@@ -56,6 +57,12 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
       final dts = (args["dates"] as List?)?.whereType<String>() ?? <String>[];
       _dates.addAll(dts.map(DateTime.tryParse).whereType<DateTime>());
       final hours = args["date_hours"];
+      final rules = args["price_rules"];
+      if (rules is List) {
+        _priceRules.addAll(
+          rules.whereType<Map>().map((rule) => Map<String, dynamic>.from(rule)),
+        );
+      }
       if (hours is Map) {
         for (final date in _dates) {
           final value = hours[_dateKey(date)];
@@ -242,6 +249,83 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
     }
   }
 
+  Future<void> _addPriceRule() async {
+    final isApartment = _service == "Apartmantakarítás";
+    final isLaundry = _service == "Mosodai szolgáltatás";
+    if (!isApartment && !isLaundry) return;
+    final fromCtrl = TextEditingController();
+    final toCtrl = TextEditingController();
+    final priceCtrl = TextEditingController();
+    String laundryType = "Mosás és hajtogatás";
+    String laundryUnit = "Ft/kg";
+    final result = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Text(isApartment ? "Új m² ársáv" : "Új mosodai ár"),
+          content: SingleChildScrollView(
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              if (isApartment)
+                Row(children: [
+                  Expanded(child: TextField(controller: fromCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: "Minimum m²"))),
+                  const SizedBox(width: 8),
+                  Expanded(child: TextField(controller: toCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: "Maximum m²"))),
+                ])
+              else ...[
+                DropdownButtonFormField<String>(
+                  value: laundryType,
+                  decoration: const InputDecoration(labelText: "Mosodai szolgáltatás"),
+                  items: const [
+                    DropdownMenuItem(value: "Mosás és hajtogatás", child: Text("Mosás és hajtogatás")),
+                    DropdownMenuItem(value: "Mosás és vasalás", child: Text("Mosás és vasalás")),
+                    DropdownMenuItem(value: "Csak vasalás", child: Text("Csak vasalás")),
+                  ],
+                  onChanged: (value) => setDialogState(() => laundryType = value!),
+                ),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<String>(
+                  value: laundryUnit,
+                  decoration: const InputDecoration(labelText: "Elszámolás"),
+                  items: const [
+                    DropdownMenuItem(value: "Ft/kg", child: Text("Ft/kg")),
+                    DropdownMenuItem(value: "Ft/garnitúra", child: Text("Ft/garnitúra")),
+                    DropdownMenuItem(value: "Ft/darab", child: Text("Ft/darab")),
+                  ],
+                  onChanged: (value) => setDialogState(() => laundryUnit = value!),
+                ),
+              ],
+              const SizedBox(height: 8),
+              TextField(controller: priceCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: "Tájékoztató ár (Ft)")),
+            ]),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text("Mégse")),
+            FilledButton(
+              onPressed: () {
+                final price = int.tryParse(priceCtrl.text.replaceAll(" ", ""));
+                final from = int.tryParse(fromCtrl.text);
+                final to = int.tryParse(toCtrl.text);
+                if (price == null || price <= 0 ||
+                    (isApartment && (from == null || to == null || from < 0 || to <= from))) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Ellenőrizd a megadott adatokat.")));
+                  return;
+                }
+                Navigator.pop(context, isApartment
+                    ? {"type": "area", "from": from, "to": to, "price": price, "unit": "Ft"}
+                    : {"type": "laundry", "label": laundryType, "price": price, "unit": laundryUnit});
+              },
+              child: const Text("Hozzáadás"),
+            ),
+          ],
+        ),
+      ),
+    );
+    fromCtrl.dispose();
+    toCtrl.dispose();
+    priceCtrl.dispose();
+    if (result != null && mounted) setState(() => _priceRules.add(result));
+  }
+
   Future<void> _save() async {
     if (_service == null || _districts.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -315,6 +399,7 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
           "to": _timeValue(_dateTo[d] ?? const TimeOfDay(hour: 18, minute: 0)),
         },
     },
+    "price_rules": _priceRules,
   };
 
   @override
@@ -405,12 +490,44 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
                   value: _unit,
                   items: const [
                     DropdownMenuItem(value: "Ft/óra", child: Text("Ft/óra")),
-                    DropdownMenuItem(value: "Ft/nm", child: Text("Ft/nm")),
+                    DropdownMenuItem(value: "Ft/m²", child: Text("Ft/m²")),
+                    DropdownMenuItem(value: "Ft/kg", child: Text("Ft/kg")),
+                    DropdownMenuItem(value: "Ft/garnitúra", child: Text("Ft/garnitúra")),
+                    DropdownMenuItem(value: "Ft/darab", child: Text("Ft/darab")),
                   ],
                   onChanged: (v) => setState(() => _unit = v!),
                 ),
               ],
             ),
+            const SizedBox(height: 8),
+            const Text(
+              "Tájékoztató ár. A végleges díjról a felek az ajánlat és a chat során állapodnak meg.",
+              style: TextStyle(fontSize: 12, color: Color(0xFF617577)),
+            ),
+            if (_service == "Apartmantakarítás" || _service == "Mosodai szolgáltatás") ...[
+              const SizedBox(height: 12),
+              Row(children: [
+                const Expanded(child: Text("Részletes tájékoztató árlista", style: TextStyle(fontWeight: FontWeight.w700))),
+                IconButton.filledTonal(onPressed: _addPriceRule, icon: const Icon(Icons.add)),
+              ]),
+              if (_priceRules.isEmpty)
+                const Text("A + gombbal több m²-sávot vagy mosodai egységárat adhatsz hozzá."),
+              ..._priceRules.asMap().entries.map((entry) {
+                final rule = entry.value;
+                final label = rule["type"] == "area"
+                    ? "${rule["from"]}–${rule["to"]} m²"
+                    : rule["label"].toString();
+                return Card(
+                  margin: const EdgeInsets.only(top: 6),
+                  child: ListTile(
+                    dense: true,
+                    title: Text(label),
+                    subtitle: Text("${_fmtTh(rule["price"] as int)} ${rule["unit"]}"),
+                    trailing: IconButton(onPressed: () => setState(() => _priceRules.removeAt(entry.key)), icon: const Icon(Icons.delete_outline)),
+                  ),
+                );
+              }),
+            ],
 
             const SizedBox(height: 12),
             OutlinedButton.icon(
