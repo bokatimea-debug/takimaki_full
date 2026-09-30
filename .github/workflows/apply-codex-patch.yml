@@ -1,0 +1,30 @@
+name: Apply Codex patch
+
+on:
+  push:
+    branches:
+      - codex/takimaki-repair
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Apply patch
+        shell: bash
+        run: |
+          if [ ! -f codex_changes.patch ]; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git am codex_changes.patch
+          rm codex_changes.patch
+          git add -A
+          git commit -m "Remove applied Codex patch"
+          git push
