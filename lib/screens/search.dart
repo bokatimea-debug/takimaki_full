@@ -5,7 +5,7 @@ import 'package:flutter/services.dart' show rootBundle;
 
 import '../utils.dart';
 import '../models.dart';
-import 'offers.dart';
+import 'offers_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   final UserRole role;
