@@ -1,0 +1,15 @@
+Takimaki Teszt 1.0.8 (9) – tesztverzió
+
+Új funkciók: belső naptár mindkét szerepnél; telefonos naptár választható kapcsolata regisztrációkor és a beállításokban; kötelező várható időtartam; időpontütközés tiltása és 30 perc puffer különböző címek között; elfogadott munka átütemezése mindkét félnek partneri jóváhagyás nélkül; lemondási figyelmeztetés; Android munkakezdési és teljesítés/értékelési emlékeztetők; appon belüli értesítéslista; kétoldalú rejtett értékelés 72 órás határidővel és nyilvános átlag; saját, belső hibajegyek egyediséggel és hozzáfűzéssel; azonosított csetpartner profilképének frissítése.
+
+Korlátok: a jelenlegi alkalmazás helyi tesztadatokat használ. Külön felhasználók külön telefonjai közötti valódi cset, adatfrissítés és push nem működik backend nélkül. AI-os hibajegykategorizálás és heti adminjelentés nincs bekötve; szerveroldali AI-hozzáférés és admin háttérrendszer szükséges. A hibajegy és értékelési adatvédelem élesítéshez szerveres ellenőrzést igényel. A 30 perces puffer nem útvonaltervezés. A régi, azonosíthatatlan csetpartnerek képe nem írható át biztonságosan. Androidon a háttérértesítés és naptár működését tényleges telefonon is tesztelni kell; az energiatakarékosság késleltetheti az emlékeztetőt. A naptárkapcsolat kikapcsolása megőrzi a korábbi külső naptáreseményeket. Éles SMS és fizetés továbbra sincs.
+
+Frissítés: hu.takimaki.test csomag, a korábbi Takimaki Teszt 1.0.7 aláírókulcsával. A hu.takimaki.app nevű régi alkalmazást nem frissíti.
+
+Forrás: codex/takimaki-108 ág, teljes forrás a Takimaki_1.0.8_FEJLESZTES_NEM_APK.zip állományban. A korábbi gyökérkönyvtárak történeti források.
+
+Ellenőrzés: 129 Flutter-teszt és Android-fordítás sikeres; aláírás és manifest ellenőrizve. Az elemzés 53 nem végzetes jelzést tartalmaz, fordítási hiba nincs. Telefonos teszt még nem történt.
+APK SHA256: be5cc9aea771a9850007bec73915e035a0a4ef37f1f088f867e8357a6d31034a
+Forrás ZIP SHA256: 6972ecb998e463e383c3abdb80258e84aaea5cb9008452ba0c9ec30d87bbd879
+Forráscommit: 74d1c7e86e2d3a9811856a7263eebbb436899873
+GitHub Actions futás: 37310496369
