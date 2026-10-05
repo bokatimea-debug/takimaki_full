@@ -1,0 +1,57 @@
+name: Takimaki development verification
+on:
+  push:
+    branches: [codex/takimaki-108]
+    paths:
+      - 'Takimaki_1.0.8_FEJLESZTES_NEM_APK.zip'
+      - '.github/workflows/takimaki-verify.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.7'
+          channel: stable
+          cache: true
+      - name: Extract current checkpoint
+        run: |
+          mkdir current
+          unzip -q Takimaki_1.0.8_FEJLESZTES_NEM_APK.zip -d current
+          chmod +x current/takimaki_full/android/gradlew
+      - name: Resolve packages
+        working-directory: current/takimaki_full
+        run: flutter pub get
+      - name: Analyze
+        working-directory: current/takimaki_full
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+      - name: Run regression tests
+        working-directory: current/takimaki_full
+        run: flutter test --reporter expanded
+      - name: Build test package
+        working-directory: current/takimaki_full
+        env:
+          ORG_GRADLE_PROJECT_takimakiTest: 'true'
+        run: flutter build apk --release --build-name=1.0.8 --build-number=9
+      - name: Collect signing tool
+        if: success()
+        run: |
+          mkdir -p signing-tools
+          find "$ANDROID_HOME/build-tools" -name apksigner.jar -print -quit | xargs -I{} cp {} signing-tools/apksigner.jar
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: takimaki-development-output
+          path: |
+            current/takimaki_full/build/app/outputs/flutter-apk/*.apk
+            signing-tools/apksigner.jar
+          if-no-files-found: ignore
