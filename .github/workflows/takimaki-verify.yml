@@ -41,7 +41,7 @@ jobs:
         working-directory: current/takimaki_full
         env:
           ORG_GRADLE_PROJECT_takimakiTest: 'true'
-        run: flutter build apk --release --build-name=1.0.8 --build-number=9
+        run: flutter build apk --release --build-name=1.0.9 --build-number=10
       - name: Collect signing tool
         if: success()
         run: |
