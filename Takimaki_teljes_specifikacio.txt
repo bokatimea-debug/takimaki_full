@@ -254,3 +254,18 @@ GitHubon a codex/takimaki-108 ágban teljes forráscheckpoint és specifikáció
 - Új elfogadott munkánál a szolgáltató értesítést kap. A felső csengő, a Munkáim csempe és új üzenetnél az Üzenetek csempe piros olvasatlan jelvényt és darabszámot mutat.
 - Új megválaszolható megrendelésnél a szolgáltatói Megrendelések csempe csengője piros és számlálót mutat. A jelzés a kapcsolódó tartalom megnyitása után tűnik el.
 - Az értesítések, ajánlatküldés, ajánlatkérések, munkák, rendelésrészletek, hibajegyek és üzenetek oldalai következetesen a Takimaki türkiz–halványsárga kártyás megjelenését használják; új oldal nem maradhat egyszerű, üres alapképernyő.
+
+23. 1.0.12 SZOLGÁLTATÁSI ÉS ÁRAZÁSI ÉPÍTŐ — 2026. OKTÓBER 7.
+
+- A szolgáltatói adatlap árazása nem egyetlen kötelező egységárból áll. Az „Ár hozzáadása” gomb előre meghatározott tételcsempéket nyit meg; a szolgáltató nem írhat tetszőleges tételnevet.
+- Egy tételnél összeg és az engedélyezett elszámolási egység választandó. „Egyedi árajánlat” esetén összeg nem kérhető. A szolgáltatás legalább egy érvényes ártétel vagy egyedi árajánlat nélkül nem menthető.
+- Több ártétel egymás után hozzáadható és külön törölhető. Az árlista alatt egyetlen, legfeljebb egysoros opcionális megjegyzés adható meg.
+- Apartmantakarításnál a szolgáltató képességként jelölheti a mosást, vasalást, ágyneműmosást, helyszíni mosást, valamint az elszállítást és visszaszállítást. A megrendelő először mosodai szolgáltatással vagy anélkül keres, majd a szükséges képességeket választja ki. A megkeresést csak minden kiválasztott képességet vállaló szolgáltató láthatja.
+- Mosodai szolgáltatásnál külön választható a mosás, vasalás, bértextília és háztól házig szolgáltatás. Az árlistában mosás, vasalás, bértextília és kiszállás adható meg.
+- Bútorösszeszerelésnél kiszállás, Ft/óra, Ft/alkalom, százalékos vagy egyedi árajánlat használható.
+- Klímaszolgáltatásnál kiszállás, klímatisztítás Ft/egység vagy Ft/alkalom, illetve klímajavítás egyedi árajánlattal adható meg.
+- Karbantartásnál, villanyszerelésnél, vízszerelésnél és lefolyótisztításnál kiszállás és munkatétel/egyedi árajánlat adható meg.
+- Gázszerelésnél kiszállás, kazántisztítás Ft/alkalom, konvektortisztítás Ft/alkalom és szerelés egyedi árajánlattal adható meg.
+- Villany- és gázszerelés kiválasztásakor figyelmeztetni kell, hogy a tevékenységet csak a szükséges képesítéssel és engedéllyel rendelkező szakember végezheti.
+- Két új fő szolgáltatás kerül a közös szolgáltatásválasztóba, ezért a megrendelő és a szolgáltató oldalán egyaránt elérhető: Kárpittisztítás és Lefolyótisztítás.
+- A kiválasztott megrendelési képességek a megkeresés, ajánlatküldés és elfogadott munka részletein is megjelennek; elfogadáskor az ajánlat rekordjába is továbbadódnak.
