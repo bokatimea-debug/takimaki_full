@@ -222,6 +222,23 @@ A jelen fejezet felülírja az ellentmondó korábbi működést. Követelmény,
 
 19. 1.0.8 FEJLESZTÉSI ÁLLAPOT (2026-10-05)
 Új forrás: kötelező időtartam; havi/heti belső naptár mindkét szerepnél; helyi ütközéstiltás 30 perces pufferrel; időpontmódosítás és előzmény; lemondási megerősítés és számláló; kétoldalú rejtett értékelés és 72 órás határidő; nyilvános értékelési átlag frissítése; privát hibajegy és saját fiók szerinti lista, egyediség és hozzáfűzés; appon belüli munkaértesítéslista; Android naptárengedély, írható naptár választása regisztrációkor és beállításokban, automatikus eseményfrissítés; Android emlékeztető és értesítésből munkaadatlap megnyitása; csetpartner-fotó frissítése és stabil peerId az új beszélgetésekben.
-Ellenőrzés: 14 önálló ütemezési/értékelési szabályellenőrzés és 129 Flutter-teszt sikeres. A GitHub Actions 37310496369 futásán az elemzés, a teljes tesztsorozat és az Android release-fordítás sikeres. Az elemzés 53 nem végzetes jelzést tartalmaz (1 régi figyelmeztetés és 52 stílusjelzés), fordítási hiba nincs. A Takimaki Teszt 1.0.8 (9) APK a megőrzött tesztkulccsal aláírva, aláírása és verzióadatai ellenőrizve. A csomag hu.takimaki.test, a tanúsítvány SHA256: 06d38b73714577338dbaac934fa864083c467d7bb063e5510cd948a1468a6b02. A forráscommit 74d1c7e86e2d3a9811856a7263eebbb436899873. A forrás ZIP-ben lévő korábbi fejlesztési állapotjegyzetek történeti adatok; a kiadáshoz tartozó ellenőrzési csomag és ez a leírás a végső státusz. Telefonos teszt nem történt.
+Ellenőrzés: 14 önálló ütemezési/értékelési szabályellenőrzés sikeres. GitHub Actions teljes Flutter-elemzés és 127 teszt sikeres az előző checkpointon; a legutóbbi értesítéslista/értékelési átlag/peerId változat további ellenőrzésre vár. Natív build folyamatban, kész új APK még nincs.
 Fennmaradó korlátok: a meglévő app SharedPreferences helyi tesztadatokkal működik. Külön felhasználók külön telefonjai közötti megrendelés, cset, push és adatfrissítés nem működik valódi backend nélkül. A hibajegyek AI-os feldolgozása és heti adminjelentése nincs bekötve: szükséges a Takimaki háttérrendszer, adminfelület és szerveroldali AI API-hozzáférés. Az app nem használ helyi szövegszabályokat valódi AI-ként. A rejtett értékelés és hibajegy-védelem jelenleg helyi szabály, éles szerveres védelem nem létezik. A 30 perces utazási puffer nem útvonalbecslés. Régi csetpartnerek képe csak egyértelmű azonosításkor frissíthető. Telefonon tényleges háttérértesítés/naptár ellenőrzés még szükséges. Android energiatakarékosság az emlékeztetőt késleltetheti. Kikapcsolt naptárkapcsolat korábbi eseményei megmaradnak. SMS és éles fizetés a korábbi hiánylistában marad.
 GitHubon a codex/takimaki-108 ágban teljes forráscheckpoint és specifikáció található. A build a checkpointot bontja ki; a korábbi gyökérkönyvtárak történeti forrását nem használja.
+
+20. 1.0.9 felhasználói javítások
+
+- A profil törlése után a korábbi helyi munkamenet nem állhat vissza. A törölt fiók jelölése megmarad, az alkalmazás induláskor törli az esetlegesen visszamaradt munkamenetet, és az Android biztonsági mentése nem állíthatja vissza a tesztfiókot.
+- A sikeres regisztráció után a telefonos naptár kiválasztása automatikusan megnyílik. A felhasználó Google-, Samsung- vagy más írható naptárat választhat, illetve kihagyhatja a csatlakoztatást.
+- A belső naptár havi és heti nézete egységes, grafikus megjelenést használ. A munkával rendelkező napokat jelölni kell, a kiválasztott nap munkái időponttal, címmel, időtartammal és állapottal jelennek meg.
+- Az értesítési lista a megrendelői és szolgáltatói profil fejlécében lévő csengőikonról érhető el.
+- A saját hibajegyek a profil kezelőfelületén érhetők el. A Beállítások képernyőn az alkalmazás-, naptár-, előfizetés- és fiókkezelési beállítások maradnak.
+- A Beállítások sorrendje: előfizetés és értesítési kapcsolók, naptárkapcsolat, kijelentkezés, legalul elkülönítve a profil törlése.
+
+21. 1.0.11 MEGRENDELÉSI IDŐPONT ÉS ELRENDEZÉS
+
+- A „Várható időtartam” perces legördülő mező megszűnik. A megrendelő a dátum mellett külön kezdési és befejezési időt választ; a rendszer ezek különbségéből számolja az időtartamot.
+- A befejezési időnek ugyanazon a napon későbbinek kell lennie a kezdési időnél. Hibás sorrendben rendelés nem menthető.
+- Az időpontmezők egységes méretűek: a dátum teljes szélességű sorban, alatta a kezdés és a befejezés egymás mellett jelenik meg.
+- A megjegyzés nem lehet keskeny félmező. Teljes szélességű, legalább kétsoros, szükség szerint bővülő mezőként jelenik meg az időpontok alatt.
+- Az űrlap kisebb kijelzőn és nagyított szövegnél továbbra is görgethető; az alsó műveletgomb nem fedheti el a megjegyzést.

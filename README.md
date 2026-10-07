@@ -1,6 +1,6 @@
 # Takimaki – aktuális fejlesztési forrás
 
-A jelenlegi 1.0.8 (9) Android tesztverzió teljes forrása a `Takimaki_1.0.8_FEJLESZTES_NEM_APK.zip` fájlban található, a `codex/takimaki-108` ágon. A ZIP forráskódot tartalmaz, nem APK-t. A gyökérben található korábbi `lib/`, `android/` stb. könyvtárak történeti állapotot őriznek; a jelenlegi build a ZIP-et bontja ki és abból dolgozik.
+A jelenlegi 1.0.11 (12) Android tesztverzió teljes forrása a `Takimaki_1.0.8_FEJLESZTES_NEM_APK.zip` fájlban található, a `codex/takimaki-108` ágon. A ZIP forráskódot tartalmaz, nem APK-t. A gyökérben található korábbi `lib/`, `android/` stb. könyvtárak történeti állapotot őriznek; a jelenlegi build a ZIP-et bontja ki és abból dolgozik.
 
 Az APK és az ellenőrzés eredménye a `v1.0.8-test` tesztkiadáshoz kerül. A `Takimaki_teljes_specifikacio.txt` tartalmazza a jóváhagyott működést és a hiányzó szerveres részeket.
 
@@ -14,7 +14,7 @@ cd current/takimaki_full
 flutter pub get
 flutter analyze --no-fatal-infos --no-fatal-warnings
 flutter test --reporter expanded
-ORG_GRADLE_PROJECT_takimakiTest=true flutter build apk --release --build-name=1.0.8 --build-number=9
+ORG_GRADLE_PROJECT_takimakiTest=true flutter build apk --release --build-name=1.0.11 --build-number=12
 ```
 
 A release APK-t alá kell írni a megőrzött `takimaki-test` kulccsal. A csomag azonosítója `hu.takimaki.test`; az 1.0.7 tesztverziót frissíti, a régi `hu.takimaki.app` alkalmazást nem.
