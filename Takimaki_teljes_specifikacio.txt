@@ -242,3 +242,15 @@ GitHubon a codex/takimaki-108 ágban teljes forráscheckpoint és specifikáció
 - Az időpontmezők egységes méretűek: a dátum teljes szélességű sorban, alatta a kezdés és a befejezés egymás mellett jelenik meg.
 - A megjegyzés nem lehet keskeny félmező. Teljes szélességű, legalább kétsoros, szükség szerint bővülő mezőként jelenik meg az időpontok alatt.
 - Az űrlap kisebb kijelzőn és nagyított szövegnél továbbra is görgethető; az alsó műveletgomb nem fedheti el a megjegyzést.
+
+22. 1.0.11 TESZTELÉSI VISSZAJELZÉSEK — 2026. OKTÓBER 7.
+
+- A megrendelői és szolgáltatói szolgáltatásválasztó ugyanazt a csempeméretet, képméretet, térközt, betűméretet és tördelést használja. A megrendelői választó nem lehet összenyomott változat.
+- A takarítási megrendeléseknél alapterületet kell megadni. Az m²-adat a megkeresésen, ajánlatküldésnél, ajánlatnál, munkalistán és rendelésrészleteknél is megjelenik.
+- Minden munka időpontja kezdés–befejezés formában látszik, nem csak a kezdési időponttal.
+- Ajánlat módosításakor a szolgáltató korábbi ajánlati ára és üzenete előre kitöltve jelenik meg.
+- Elfogadott munka időpontmódosításakor először látszik a jelenlegi dátum, kezdés és befejezés. Az új dátum-, kezdés- és befejezésválasztó ezekből az értékekből indul.
+- Új ajánlat érkezésekor a megrendelő azonnali belső és engedélyezés esetén rendszerértesítést kap. Az értesítés az adott ajánlatlistára vezet.
+- Új elfogadott munkánál a szolgáltató értesítést kap. A felső csengő, a Munkáim csempe és új üzenetnél az Üzenetek csempe piros olvasatlan jelvényt és darabszámot mutat.
+- Új megválaszolható megrendelésnél a szolgáltatói Megrendelések csempe csengője piros és számlálót mutat. A jelzés a kapcsolódó tartalom megnyitása után tűnik el.
+- Az értesítések, ajánlatküldés, ajánlatkérések, munkák, rendelésrészletek, hibajegyek és üzenetek oldalai következetesen a Takimaki türkiz–halványsárga kártyás megjelenését használják; új oldal nem maradhat egyszerű, üres alapképernyő.
