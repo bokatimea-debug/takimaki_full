@@ -104,20 +104,18 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
     });
   }
 
-  Widget _generalHoursRow(String period, String label) => Container(
+  Widget _generalHoursRow(String period, String label) {
+    final enabled = _generalHours['${period}_from'] != null;
+    return Container(
     margin: const EdgeInsets.only(bottom: 4),
     decoration: BoxDecoration(
       color: period == 'sat' ? takiYellowSoft : takiMint,
       borderRadius: BorderRadius.circular(14),
     ),
-    child: InkWell(
-      key: ValueKey('general-hours-$period'),
-      onTap: () => _editGeneralHours(period),
-      borderRadius: BorderRadius.circular(14),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: 40),
+        constraints: const BoxConstraints(minHeight: 44),
         child: Padding(
-          padding: const EdgeInsets.only(left: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Row(
             children: [
               Expanded(
@@ -130,40 +128,52 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
                   ),
                 ),
               ),
-              Flexible(
-                child: Text(
-                  _generalHours['${period}_from'] == null
-                      ? 'Időpont megadása'
-                      : '${_generalHours['${period}_from']} – ${_generalHours['${period}_to']}',
-                  textAlign: TextAlign.end,
-                  style: const TextStyle(
-                    color: takiTealDark,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
+              if (enabled)
+                InkWell(
+                  key: ValueKey('general-hours-$period'),
+                  onTap: () => _editGeneralHours(period),
+                  borderRadius: BorderRadius.circular(10),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Row(
+                      children: [
+                        Text(
+                          '${_generalHours['${period}_from']}–${_generalHours['${period}_to']}',
+                          style: const TextStyle(
+                            color: takiTealDark,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(Icons.edit_outlined, color: takiTealDark, size: 17),
+                      ],
+                    ),
                   ),
-                ),
-              ),
-              const SizedBox(width: 4),
-              const Icon(Icons.edit_outlined, color: takiTealDark, size: 18),
-              if (_generalHours['${period}_from'] != null)
-                IconButton(
-                  visualDensity: VisualDensity.compact,
-                  tooltip: 'Nem dolgozom ezen a napon',
-                  icon: const Icon(Icons.close, size: 18),
-                  onPressed: () => setState(() {
-                    _generalHours.remove('${period}_from');
-                    _generalHours.remove('${period}_to');
-                    _changedHours.add(period);
-                  }),
                 )
               else
-                const SizedBox(width: 12),
+                const Text('Nem', style: TextStyle(color: takiMutedText, fontSize: 12)),
+              const SizedBox(width: 6),
+              Switch.adaptive(
+                value: enabled,
+                onChanged: (value) async {
+                  if (value) {
+                    await _editGeneralHours(period);
+                  } else {
+                    setState(() {
+                      _generalHours.remove('${period}_from');
+                      _generalHours.remove('${period}_to');
+                      _changedHours.add(period);
+                    });
+                  }
+                },
+              ),
             ],
           ),
         ),
       ),
-    ),
-  );
+    );
+  }
 
   @override
   void didChangeDependencies() {
@@ -376,9 +386,7 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
       context: context,
       builder: (_) => _PriceRuleDialog(
         service: _service!,
-        unavailableItems: _priceRules
-            .map((rule) => rule['label']?.toString() ?? '')
-            .toSet(),
+        unavailableItems: const {},
       ),
     );
     if (result != null && mounted) {
@@ -664,11 +672,11 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
                 rule['label']?.toString() ?? '',
                 style: const TextStyle(fontWeight: FontWeight.w800),
               ),
-              subtitle: Text(
-                custom
-                    ? 'Egyedi árajánlat'
-                    : '${_fmtTh(price ?? 0)} ${rule['unit'] ?? ''}',
-              ),
+              subtitle: Text(custom
+                  ? 'Egyedi árajánlat'
+                  : rule['unit'] == 'Ft/m²-sáv'
+                      ? '${rule['area_from']}–${rule['area_to']} m²: ${_fmtTh(price ?? 0)} Ft'
+                      : '${_fmtTh(price ?? 0)} ${rule['unit'] ?? ''}'),
               trailing: IconButton(
                 tooltip: 'Ártétel törlése',
                 onPressed: () =>
@@ -972,6 +980,8 @@ class _PriceRuleDialog extends StatefulWidget {
 
 class _PriceRuleDialogState extends State<_PriceRuleDialog> {
   final _priceCtrl = TextEditingController();
+  final _areaFromCtrl = TextEditingController();
+  final _areaToCtrl = TextEditingController();
   String? _item;
   String? _unit;
   String? _error;
@@ -979,20 +989,29 @@ class _PriceRuleDialogState extends State<_PriceRuleDialog> {
   @override
   void dispose() {
     _priceCtrl.dispose();
+    _areaFromCtrl.dispose();
+    _areaToCtrl.dispose();
     super.dispose();
   }
 
   void _submit() {
     FocusScope.of(context).unfocus();
     final custom = _unit == 'Egyedi árajánlat';
+    final areaBand = _unit == 'Ft/m²-sáv';
     final price = int.tryParse(_priceCtrl.text.replaceAll(" ", ""));
+    final areaFrom = int.tryParse(_areaFromCtrl.text);
+    final areaTo = int.tryParse(_areaToCtrl.text);
     if (_item == null ||
         _unit == null ||
-        (!custom && (price == null || price <= 0))) {
+        (!custom && (price == null || price <= 0)) ||
+        (areaBand &&
+            (areaFrom == null || areaTo == null || areaFrom < 0 || areaTo <= areaFrom))) {
       setState(
-        () => _error = custom
-            ? 'Válassz tételt és elszámolást.'
-            : 'Válassz tételt, elszámolást és adj meg érvényes árat.',
+        () => _error = areaBand
+            ? 'Adj meg érvényes kezdő és befejező m²-értéket, valamint árat.'
+            : custom
+                ? 'Válassz tételt és elszámolást.'
+                : 'Válassz tételt, elszámolást és adj meg érvényes árat.',
       );
       return;
     }
@@ -1001,6 +1020,8 @@ class _PriceRuleDialogState extends State<_PriceRuleDialog> {
       'label': _item,
       if (!custom) 'price': price,
       'unit': _unit,
+      if (areaBand) 'area_from': areaFrom,
+      if (areaBand) 'area_to': areaTo,
     });
   }
 
@@ -1051,6 +1072,8 @@ class _PriceRuleDialogState extends State<_PriceRuleDialog> {
                               _item = item;
                               _unit = null;
                               _priceCtrl.clear();
+                              _areaFromCtrl.clear();
+                              _areaToCtrl.clear();
                             }),
                           ),
                         )
@@ -1094,11 +1117,35 @@ class _PriceRuleDialogState extends State<_PriceRuleDialog> {
               ],
               if (_unit != null && _unit != 'Egyedi árajánlat') ...[
                 const SizedBox(height: 14),
+                if (_unit == 'Ft/m²-sáv') ...[
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          key: const ValueKey('price-area-from'),
+                          controller: _areaFromCtrl,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(labelText: 'Ettől (m²)'),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: TextField(
+                          key: const ValueKey('price-area-to'),
+                          controller: _areaToCtrl,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(labelText: 'Eddig (m²)'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                ],
                 TextField(
                   key: const ValueKey('price-rule-amount'),
                   controller: _priceCtrl,
                   keyboardType: TextInputType.number,
-                  autofocus: true,
+                  autofocus: _unit != 'Ft/m²-sáv',
                   decoration: InputDecoration(
                     labelText: _unit == '%' ? 'Mérték (%)' : 'Összeg (Ft)',
                   ),

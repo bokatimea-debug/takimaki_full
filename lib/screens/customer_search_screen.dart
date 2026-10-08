@@ -44,6 +44,46 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
   final _noteController = TextEditingController();
   final Set<String> _requestedOptions = {};
 
+  Future<void> _chooseService() async {
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        top: false,
+        child: SizedBox(
+          height: MediaQuery.sizeOf(context).height * .88,
+          child: Column(
+            children: [
+              const Text(
+                'Válassz szolgáltatást',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(height: 10),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: ServiceChoiceGrid(
+                    selected: _service,
+                    compact: true,
+                    onSelected: (name) => Navigator.pop(context, name),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (selected != null && mounted && selected != _service) {
+      setState(() {
+        _service = selected;
+        _requestedOptions.clear();
+        _errors.remove('service');
+      });
+    }
+  }
+
   bool get _needsArea => const {
     'Apartmantakarítás',
     'Általános takarítás',
@@ -252,7 +292,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
           children: [
             const Text(
-              'Válassz szolgáltatást',
+              'Szolgáltatás *',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w800,
@@ -260,14 +300,30 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            KeyedSubtree(
+            Material(
               key: _serviceKey,
-              child: ServiceChoiceGrid(
-                selected: _service,
-                onSelected: (name) => setState(() {
-                  _service = name;
-                  _requestedOptions.clear();
-                }),
+              color: takiMint,
+              borderRadius: BorderRadius.circular(18),
+              child: ListTile(
+                minTileHeight: 56,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 14),
+                leading: _service == null
+                    ? const Icon(Icons.design_services_outlined, color: takiNavy)
+                    : Image.asset(
+                        serviceImage(_service!),
+                        width: 44,
+                        height: 44,
+                        fit: BoxFit.contain,
+                      ),
+                title: Text(
+                  _service ?? 'Válassz szolgáltatást',
+                  style: const TextStyle(
+                    color: takiNavy,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                trailing: const Icon(Icons.expand_more, color: takiNavy),
+                onTap: _chooseService,
               ),
             ),
             if (_errors['service'] != null)
@@ -284,6 +340,8 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
                     .map(
                       (option) => FilterChip(
                         key: ValueKey('customer-option-$option'),
+                        visualDensity: VisualDensity.compact,
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         selected: _requestedOptions.contains(option),
                         label: Text(option),
                         onSelected: (value) => setState(() {
