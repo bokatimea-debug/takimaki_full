@@ -12,9 +12,9 @@ class UserSession {
   bool hasPhoto = false;
 
   // előfizetés / szerep
-  UserRole? role;                 // customer | provider
-  DateTime? subscriptionStartAt;  // első szerep-választáskor állítjuk be
-  bool paidActive = false;        // demó: gombbal aktiválható
+  UserRole? role; // customer | provider
+  DateTime? subscriptionStartAt; // első szerep-választáskor állítjuk be
+  bool paidActive = false; // demó: gombbal aktiválható
 
   bool get isRegistered =>
       (firstName != null && firstName!.trim().isNotEmpty && hasPhoto);
