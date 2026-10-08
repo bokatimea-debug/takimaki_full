@@ -1,4 +1,4 @@
-﻿import "package:flutter/material.dart";
+import "package:flutter/material.dart";
 
 /// Egyszerű helyettesítő map picker:
 /// - most: egy TextField + Mentés (visszaadja a címet)
@@ -32,16 +32,18 @@ class _S extends State<MapPickScreen> {
             ),
             const Spacer(),
             FilledButton(
-              onPressed: (){
+              onPressed: () {
                 final v = _c.text.trim();
                 if (v.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Adj meg címet")));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Adj meg címet")),
+                  );
                   return;
                 }
                 Navigator.pop(context, v);
               },
               child: const Text("Mentés"),
-            )
+            ),
           ],
         ),
       ),

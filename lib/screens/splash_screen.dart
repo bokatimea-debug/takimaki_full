@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../session.dart';
 import 'role_select_screen.dart';
 import 'customer_profile_screen.dart';
@@ -37,7 +38,12 @@ class _SplashScreenState extends State<SplashScreen> {
         child: ListView(
           shrinkWrap: true,
           children: [
-            const ListTile(title: Text('Teszt menü', style: TextStyle(fontWeight: FontWeight.w600))),
+            const ListTile(
+              title: Text(
+                'Teszt menü',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ),
             const Divider(height: 0),
             ListTile(
               leading: const Icon(Icons.local_offer_outlined),
@@ -57,7 +63,8 @@ class _SplashScreenState extends State<SplashScreen> {
             ListTile(
               leading: const Icon(Icons.notifications_active_outlined),
               title: const Text('Értesítések beállításai'),
-              onTap: () => Navigator.pushNamed(context, '/settings/notifications'),
+              onTap: () =>
+                  Navigator.pushNamed(context, '/settings/notifications'),
             ),
             const Divider(height: 0),
             ListTile(
@@ -109,12 +116,19 @@ class _SplashScreenState extends State<SplashScreen> {
                   onPressed: () {
                     Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(builder: (_) => const RoleSelectScreen()),
+                      MaterialPageRoute(
+                        builder: (_) => const RoleSelectScreen(),
+                      ),
                     );
                   },
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 32,
+                      vertical: 16,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   child: const Text('Kezdés'),
                 ),
@@ -128,7 +142,9 @@ class _SplashScreenState extends State<SplashScreen> {
             child: TextButton.icon(
               style: TextButton.styleFrom(
                 backgroundColor: Colors.white.withOpacity(0.9),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               onPressed: _openTestMenu,
               icon: const Icon(Icons.menu),

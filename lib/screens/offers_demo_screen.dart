@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../models/offer.dart';
 import '../models/stats.dart';
 import '../models/calendar.dart';
@@ -69,13 +70,17 @@ class _OffersDemoScreenState extends State<OffersDemoScreen> {
       for (var o in _offers) {
         if (o.id == accepted.id) {
           o.status = OfferStatus.accepted;
-        } else if (o.status == OfferStatus.sent || o.status == OfferStatus.responded) {
+        } else if (o.status == OfferStatus.sent ||
+            o.status == OfferStatus.responded) {
           o.status = OfferStatus.inactive;
         }
       }
       // Foglaljuk az idősávot a kiválasztott szolgáltatóhoz (demóban globálisan)
-      cal.book(_parseDT(accepted), _slotMinutes,
-          '${accepted.providerName} • ${accepted.service}');
+      cal.book(
+        _parseDT(accepted),
+        _slotMinutes,
+        '${accepted.providerName} • ${accepted.service}',
+      );
 
       // demó: stat növelés
       Stats.instance.incCustomer();
@@ -122,9 +127,10 @@ class _OffersDemoScreenState extends State<OffersDemoScreen> {
         itemBuilder: (context, i) {
           final offer = _offers[i];
           final conflict = _hasConflict(offer);
-          final actionable = (offer.status == OfferStatus.sent ||
-                              offer.status == OfferStatus.responded) &&
-                              !conflict;
+          final actionable =
+              (offer.status == OfferStatus.sent ||
+                  offer.status == OfferStatus.responded) &&
+              !conflict;
 
           return Card(
             margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
@@ -150,4 +156,3 @@ class _OffersDemoScreenState extends State<OffersDemoScreen> {
     );
   }
 }
-

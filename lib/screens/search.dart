@@ -1,11 +1,12 @@
 // lib/screens/search.dart
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 import '../utils.dart';
 import '../models.dart';
-import 'offers.dart';
+import 'offers_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   final UserRole role;
@@ -62,7 +63,13 @@ class _SearchScreenState extends State<SearchScreen> {
     if (time == null) return;
 
     setState(() {
-      startAt = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+      startAt = DateTime(
+        date.year,
+        date.month,
+        date.day,
+        time.hour,
+        time.minute,
+      );
     });
   }
 
@@ -123,13 +130,18 @@ class _SearchScreenState extends State<SearchScreen> {
           ),
 
           const SizedBox(height: 16),
-          Text("Kezdés időpontja", style: TextStyle(color: Colors.grey.shade700)),
+          Text(
+            "Kezdés időpontja",
+            style: TextStyle(color: Colors.grey.shade700),
+          ),
           const SizedBox(height: 6),
           Row(
             children: [
               Expanded(
                 child: Text(
-                  startAt == null ? "nincs kiválasztva" : startAt.toString().substring(0, 16),
+                  startAt == null
+                      ? "nincs kiválasztva"
+                      : startAt.toString().substring(0, 16),
                 ),
               ),
               FilledButton(
@@ -160,7 +172,7 @@ class _SearchScreenState extends State<SearchScreen> {
               );
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => OffersScreen(request: req)),
+                MaterialPageRoute(builder: (_) => const OffersScreen()),
               );
             },
           ),

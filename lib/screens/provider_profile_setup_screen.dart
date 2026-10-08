@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
+
 import '../widgets/district_picker.dart';
 
 class ProviderProfileSetupScreen extends StatefulWidget {
   const ProviderProfileSetupScreen({super.key});
 
   @override
-  State<ProviderProfileSetupScreen> createState() => _ProviderProfileSetupScreenState();
+  State<ProviderProfileSetupScreen> createState() =>
+      _ProviderProfileSetupScreenState();
 }
 
-class _ProviderProfileSetupScreenState extends State<ProviderProfileSetupScreen> {
+class _ProviderProfileSetupScreenState
+    extends State<ProviderProfileSetupScreen> {
   List<int> _districts = [];
   String? _service;
   final _rateCtrl = TextEditingController(text: '12000');
@@ -18,22 +21,40 @@ class _ProviderProfileSetupScreenState extends State<ProviderProfileSetupScreen>
   TimeOfDay _weTo = const TimeOfDay(hour: 16, minute: 0);
 
   final List<String> _services = const [
-    'Apartman takarítás','Általános takarítás','Nagytakarítás','Felújítás utáni takarítás',
-    'Karbantartás','Vízszerelés','Gázszerelés','Légkondicionáló szerelés','Bútorösszeszerelés','Villanyszerelés',
+    'Apartman takarítás',
+    'Általános takarítás',
+    'Nagytakarítás',
+    'Felújítás utáni takarítás',
+    'Karbantartás',
+    'Vízszerelés',
+    'Gázszerelés',
+    'Légkondicionáló szerelés',
+    'Bútorösszeszerelés',
+    'Villanyszerelés',
   ];
 
   bool get _canSave =>
-      _service != null && _districts.isNotEmpty && _rateCtrl.text.trim().isNotEmpty;
+      _service != null &&
+      _districts.isNotEmpty &&
+      _rateCtrl.text.trim().isNotEmpty;
 
   Future<void> _pickTime(bool weekday, bool from) async {
-    final initial = from ? (weekday ? _wdFrom : _weFrom) : (weekday ? _wdTo : _weTo);
+    final initial = from
+        ? (weekday ? _wdFrom : _weFrom)
+        : (weekday ? _wdTo : _weTo);
     final res = await showTimePicker(context: context, initialTime: initial);
     if (res == null) return;
     setState(() {
       if (weekday) {
-        if (from) _wdFrom = res; else _wdTo = res;
+        if (from)
+          _wdFrom = res;
+        else
+          _wdTo = res;
       } else {
-        if (from) _weFrom = res; else _weTo = res;
+        if (from)
+          _weFrom = res;
+        else
+          _weTo = res;
       }
     });
   }
@@ -41,7 +62,9 @@ class _ProviderProfileSetupScreenState extends State<ProviderProfileSetupScreen>
   void _save() {
     if (!_canSave) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Kerület, szolgáltatás és óradíj kötelező')),
+        const SnackBar(
+          content: Text('Kerület, szolgáltatás és óradíj kötelező'),
+        ),
       );
       return;
     }
@@ -56,7 +79,8 @@ class _ProviderProfileSetupScreenState extends State<ProviderProfileSetupScreen>
       appBar: AppBar(title: const Text('Szolgáltatás felvétele')),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column( // nincs görgetés
+        child: Column(
+          // nincs görgetés
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Budapest + kerületválasztó
@@ -73,8 +97,12 @@ class _ProviderProfileSetupScreenState extends State<ProviderProfileSetupScreen>
             const Divider(),
 
             DropdownButtonFormField<String>(
-              decoration: const InputDecoration(labelText: 'Szolgáltatás (egy választás)'),
-              items: _services.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
+              decoration: const InputDecoration(
+                labelText: 'Szolgáltatás (egy választás)',
+              ),
+              items: _services
+                  .map((s) => DropdownMenuItem(value: s, child: Text(s)))
+                  .toList(),
               onChanged: (v) => setState(() => _service = v),
             ),
             const SizedBox(height: 10),
@@ -88,16 +116,36 @@ class _ProviderProfileSetupScreenState extends State<ProviderProfileSetupScreen>
             const SizedBox(height: 10),
             Row(
               children: [
-                Expanded(child: Text('Hétköznap: ${_wdFrom.format(context)}–${_wdTo.format(context)}')),
-                IconButton(onPressed: () => _pickTime(true, true), icon: const Icon(Icons.schedule)),
-                IconButton(onPressed: () => _pickTime(true, false), icon: const Icon(Icons.schedule)),
+                Expanded(
+                  child: Text(
+                    'Hétköznap: ${_wdFrom.format(context)}–${_wdTo.format(context)}',
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => _pickTime(true, true),
+                  icon: const Icon(Icons.schedule),
+                ),
+                IconButton(
+                  onPressed: () => _pickTime(true, false),
+                  icon: const Icon(Icons.schedule),
+                ),
               ],
             ),
             Row(
               children: [
-                Expanded(child: Text('Hétvége: ${_weFrom.format(context)}–${_weTo.format(context)}')),
-                IconButton(onPressed: () => _pickTime(false, true), icon: const Icon(Icons.schedule)),
-                IconButton(onPressed: () => _pickTime(false, false), icon: const Icon(Icons.schedule)),
+                Expanded(
+                  child: Text(
+                    'Hétvége: ${_weFrom.format(context)}–${_weTo.format(context)}',
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => _pickTime(false, true),
+                  icon: const Icon(Icons.schedule),
+                ),
+                IconButton(
+                  onPressed: () => _pickTime(false, false),
+                  icon: const Icon(Icons.schedule),
+                ),
               ],
             ),
 

@@ -1,5 +1,6 @@
-﻿// lib/screens/registration_form_screen.dart
+// lib/screens/registration_form_screen.dart
 import 'package:flutter/material.dart';
+
 import '../services/notifications.dart';
 
 class RegistrationFormScreen extends StatefulWidget {
@@ -60,7 +61,7 @@ class _RegistrationFormScreenState extends State<RegistrationFormScreen> {
                       onPressed: _pickPhoto,
                       icon: const Icon(Icons.add_a_photo),
                     ),
-                  )
+                  ),
                 ],
               ),
             ),

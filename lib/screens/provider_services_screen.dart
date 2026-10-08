@@ -1,6 +1,13 @@
-﻿import "dart:convert";
-import "package:flutter/material.dart";
-import "package:shared_preferences/shared_preferences.dart";
+import '../widgets/service_choice_grid.dart';
+import '../widgets/taki_app_bar.dart';
+
+import 'dart:convert';
+
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../theme.dart';
+import '../widgets/branded_background.dart';
 
 class ProviderServicesScreen extends StatefulWidget {
   const ProviderServicesScreen({super.key});
@@ -9,93 +16,218 @@ class ProviderServicesScreen extends StatefulWidget {
 }
 
 class _ProviderServicesScreenState extends State<ProviderServicesScreen> {
-  static const String kNewKey = "provider_services";
-  static const List<String> kLegacyKeys = ["services","provider_services_list","my_services","providerServices"];
-
   List<Map<String, dynamic>> _items = [];
-
   Future<void> _load() async {
-    final prefs = await SharedPreferences.getInstance();
-    String? raw = prefs.getString(kNewKey);
-
+    final p = await SharedPreferences.getInstance();
+    final raw = p.getString('provider_services');
     if (raw == null || raw.isEmpty) {
-      for (final lk in kLegacyKeys) {
-        final r = prefs.getString(lk);
-        if (r != null && r.isNotEmpty) {
-          raw = r; await prefs.setString(kNewKey, r); break;
-        }
+      _items = [];
+    } else {
+      try {
+        _items = (json.decode(raw) as List)
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
+      } catch (_) {
+        _items = [];
       }
     }
-    if (raw == null || raw.isEmpty) {
-      final samples = [
-        {"id":"S1","name":"Általános takarítás","price_raw":8000,"price_fmt":"8 000","unit":"Ft/óra","districts":[1,2,5,13],"dates":[]},
-        {"id":"S2","name":"Nagytakarítás","price_raw":12000,"price_fmt":"12 000","unit":"Ft/óra","districts":[3,11,12],"dates":[]},
-        {"id":"S3","name":"Felújítás utáni takarítás","price_raw":1500,"price_fmt":"1 500","unit":"Ft/nm","districts":[4,6,7,8,9],"dates":[]},
-      ];
-      raw = json.encode(samples);
-      await prefs.setString(kNewKey, raw);
-    }
-
-    try { _items = (json.decode(raw) as List).cast<Map<String, dynamic>>(); } catch (_){ _items = []; }
-    if (mounted) setState((){});
+    if (mounted) setState(() {});
   }
 
   Future<void> _save() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(kNewKey, json.encode(_items));
+    final p = await SharedPreferences.getInstance();
+    await p.setString('provider_services', json.encode(_items));
   }
 
-  Future<void> _delete(int index) async {
-    final removed = _items.removeAt(index);
-    await _save();
-    if (!mounted) return;
-    setState((){});
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Törölve: ${removed["name"] ?? "szolgáltatás"}")));
-  }
-
-  @override
-  void initState() { super.initState(); _load(); }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Szolgáltatásaim")),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () async { final res = await Navigator.pushNamed(context, "/provider/add_service"); if (res == true) await _load(); },
-        icon: const Icon(Icons.add),
-        label: const Text("Új szolgáltatás"),
-      ),
-      body: _items.isEmpty
-        ? const Center(child: Text("Nincs mentett szolgáltatás"))
-        : ListView.separated(
-            padding: const EdgeInsets.all(12),
-            itemCount: _items.length,
-            separatorBuilder: (_, __)=> const SizedBox(height: 8),
-            itemBuilder: (context, i) {
-              final it = _items[i];
-              final name = it["name"] ?? "";
-              final price = it["price_fmt"] ?? "";
-              final unit = it["unit"] ?? "";
-              final dcount = (it["districts"] as List?)?.length ?? 0;
-              final dates = (it["dates"] as List?)?.length ?? 0;
-              return Card(
-                child: ListTile(
-                  title: Text(name),
-                  subtitle: Text("$price $unit • Kerületek: $dcount • Napok: $dates"),
-                  trailing: Row(mainAxisSize: MainAxisSize.min, children: [
-                    IconButton(
-                      onPressed: () async {
-                        final res = await Navigator.pushNamed(context, "/provider/add_service", arguments: it);
-                        if (res == true) await _load();
-                      },
-                      icon: const Icon(Icons.edit),
-                    ),
-                    IconButton(onPressed: ()=> _delete(i), icon: const Icon(Icons.close)),
-                  ]),
-                ),
-              );
-            },
+  Future<void> _delete(int i) async {
+    final yes = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Szolgáltatás törlése'),
+        content: const Text('Biztosan eltávolítod ezt a szolgáltatást?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Mégse'),
           ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Törlés'),
+          ),
+        ],
+      ),
+    );
+    if (yes != true) return;
+    setState(() => _items.removeAt(i));
+    await _save();
+  }
+
+  Future<void> _open([Map<String, dynamic>? item]) async {
+    final result = await Navigator.pushNamed(
+      context,
+      '/provider/add_service',
+      arguments: item,
+    );
+    if (result == true) await _load();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: TakiAppBar(title: const Text('Szolgáltatásaim')),
+    body: SafeArea(
+      top: false,
+      child: _items.isEmpty
+          ? LayoutBuilder(
+              builder: (context, constraints) => SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: TakiEmptyState(
+                    icon: Icons.cleaning_services_outlined,
+                    title: 'Még nincs szolgáltatásod',
+                    text: 'Add meg, milyen munkákat vállalsz és milyen tájékoztató árakon.',
+                    action: FilledButton.icon(
+                      onPressed: () => _open(),
+                      icon: const Icon(Icons.add),
+                      label: const Text('Szolgáltatás hozzáadása'),
+                    ),
+                  ),
+                ),
+              ),
+            )
+          : ListView(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+              children: [
+                const Text(
+                  'Szolgáltatásaid és irányáraik',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: takiTealDark,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'A végleges díjat az ajánlatban egyeztetitek.',
+                  style: TextStyle(
+                    fontSize: 13,
+                    height: 1.35,
+                    color: takiMutedText,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                ..._items.asMap().entries.map(
+                  (entry) => _serviceCard(entry.key, entry.value),
+                ),
+              ],
+            ),
+    ),
+    bottomNavigationBar: _items.isEmpty
+        ? null
+        : SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+              child: FilledButton.icon(
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size.fromHeight(52),
+                  backgroundColor: takiOrange,
+                  foregroundColor: takiTealDark,
+                ),
+                onPressed: () => _open(),
+                icon: const Icon(Icons.add),
+                label: const Text('Új szolgáltatás'),
+              ),
+            ),
+          ),
+  );
+
+  Widget _serviceCard(int index, Map<String, dynamic> item) {
+    final name = item['name']?.toString() ?? '';
+    final priceRules = (item['price_rules'] as List?) ?? const [];
+    final rules = priceRules.length;
+    final dates = (item['dates'] as List?)?.length ?? 0;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: TakiPanel(
+        color: index.isEven ? takiMint : takiYellowSoft,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Image.asset(
+                  serviceImage(name),
+                  width: 42,
+                  height: 42,
+                  fit: BoxFit.contain,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    name,
+                    style: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w800,
+                      color: takiTealDark,
+                    ),
+                  ),
+                ),
+                PopupMenuButton<String>(
+                  tooltip: 'További műveletek',
+                  padding: EdgeInsets.zero,
+                  onSelected: (value) =>
+                      value == 'edit' ? _open(item) : _delete(index),
+                  itemBuilder: (_) => const [
+                    PopupMenuItem(value: 'edit', child: Text('Szerkesztés')),
+                    PopupMenuItem(value: 'delete', child: Text('Törlés')),
+                  ],
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        rules == 0 ? 'Nincs ártétel' : '$rules ártétel',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: takiTealDark,
+                        ),
+                      ),
+                      Text(
+                        '${priceRules.take(2).map((rule) {
+                          final map = rule as Map;
+                          return map['label'] ?? '';
+                        }).where((label) => label.toString().isNotEmpty).join(' • ')}${dates > 0 ? ' • $dates egyedi nap' : ' • Általános elérhetőség'}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: takiTealDark,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Módosítás',
+                  onPressed: () => _open(item),
+                  icon: const Icon(Icons.edit_outlined),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

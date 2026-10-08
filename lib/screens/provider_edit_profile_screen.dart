@@ -1,113 +1,385 @@
-﻿import 'dart:io';
+import '../widgets/taki_app_bar.dart';
+
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../theme.dart';
+import '../utils/profile_photo_loader.dart';
+import '../widgets/city_picker.dart';
+import '../widgets/profile_editor_components.dart';
+
 class ProviderEditProfileScreen extends StatefulWidget {
   const ProviderEditProfileScreen({super.key});
-  @override State<ProviderEditProfileScreen> createState()=>_S();
+
+  @override
+  State<ProviderEditProfileScreen> createState() =>
+      _ProviderEditProfileScreenState();
 }
-class _S extends State<ProviderEditProfileScreen>{
-  final bio = TextEditingController();
-  String? photoPath;
-  TimeOfDay? wdFrom, wdTo, weFrom, weTo;
 
-  @override void initState(){ super.initState(); _load(); }
+class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
+  final _bio = TextEditingController();
+  String _firstName = '';
+  String _city = 'Budapest';
+  String? _photoPath;
+  ImageProvider? _photoImage;
+  TimeOfDay? _wdFrom, _wdTo, _weFrom, _weTo, _sunFrom, _sunTo;
+  bool _holidays = false;
+  bool _loading = true;
+  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
   Future<void> _load() async {
-    final sp = await SharedPreferences.getInstance();
-    bio.text = sp.getString('provider_bio') ?? '';
-    photoPath = sp.getString('provider_photo_path') ?? sp.getString('registration_photo_path');
-    wdFrom = _parse(sp.getString('provider_wd_from'));
-    wdTo   = _parse(sp.getString('provider_wd_to'));
-    weFrom = _parse(sp.getString('provider_we_from'));
-    weTo   = _parse(sp.getString('provider_we_to'));
-    if(mounted) setState((){});
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final photo = await ProfilePhotoLoader.loadAny(role: 'provider');
+      if (!mounted) return;
+      setState(() {
+        _firstName =
+            prefs.getString('provider_first_name') ??
+            prefs.getString('customer_first_name') ??
+            prefs.getString('registration_first_name') ??
+            '';
+        _bio.text = prefs.getString('provider_bio') ?? '';
+        _city =
+            prefs.getString('provider_city') ??
+            prefs.getString('profile_city') ??
+            'Budapest';
+        _photoImage = photo;
+        _wdFrom = _parse(prefs.getString('provider_wd_from'));
+        _wdTo = _parse(prefs.getString('provider_wd_to'));
+        _weFrom = _parse(
+          prefs.getString('provider_sat_from') ??
+              (prefs.containsKey('provider_sat_configured')
+                  ? null
+                  : prefs.getString('provider_we_from')),
+        );
+        _weTo = _parse(
+          prefs.getString('provider_sat_to') ??
+              (prefs.containsKey('provider_sat_configured')
+                  ? null
+                  : prefs.getString('provider_we_to')),
+        );
+        _sunFrom = _parse(
+          prefs.getString('provider_sun_from') ??
+              (prefs.containsKey('provider_sun_configured')
+                  ? null
+                  : prefs.getString('provider_we_from')),
+        );
+        _sunTo = _parse(
+          prefs.getString('provider_sun_to') ??
+              (prefs.containsKey('provider_sun_configured')
+                  ? null
+                  : prefs.getString('provider_we_to')),
+        );
+        _holidays = prefs.getBool('provider_holidays') ?? false;
+        _loading = false;
+      });
+    } catch (_) {
+      _showError('Nem sikerült betölteni a profilt. Próbáld újra.');
+    }
   }
 
-  TimeOfDay? _parse(String? hhmm){
-    if(hhmm==null || !hhmm.contains(':')) return null;
-    final p = hhmm.split(':'); return TimeOfDay(hour: int.parse(p[0]), minute: int.parse(p[1]));
+  void _showError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
-  String _fmt(TimeOfDay? t)=> t==null? '--:--' : '${t.hour.toString().padLeft(2,'0')}:${t.minute.toString().padLeft(2,'0')}';
 
-  Future<void> _pickRange({required bool weekend}) async {
-    final fromInit = weekend ? (weFrom ?? const TimeOfDay(hour:9, minute:0))
-                             : (wdFrom ?? const TimeOfDay(hour:9, minute:0));
-    final toInit   = weekend ? (weTo   ?? const TimeOfDay(hour:17, minute:0))
-                             : (wdTo   ?? const TimeOfDay(hour:17, minute:0));
+  TimeOfDay? _parse(String? hhmm) {
+    final pieces = hhmm?.split(':');
+    if (pieces == null || pieces.length != 2) return null;
+    final hour = int.tryParse(pieces[0]);
+    final minute = int.tryParse(pieces[1]);
+    if (hour == null ||
+        minute == null ||
+        hour < 0 ||
+        hour > 23 ||
+        minute < 0 ||
+        minute > 59) {
+      return null;
+    }
+    return TimeOfDay(hour: hour, minute: minute);
+  }
 
-    final from = await showTimePicker(context: context, initialTime: fromInit, initialEntryMode: TimePickerEntryMode.dial);
-    if (from==null) return;
-    final to   = await showTimePicker(context: context, initialTime: toInit,   initialEntryMode: TimePickerEntryMode.dial);
-    if (to==null) return;
+  String _fmt(TimeOfDay? time) => time == null
+      ? '--:--'
+      : '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
 
-    setState((){
-      if(weekend){ weFrom = from; weTo = to; } else { wdFrom = from; wdTo = to; }
+  Future<void> _pickRange({required bool weekend, bool sunday = false}) async {
+    final fromInit = sunday
+        ? (_sunFrom ?? const TimeOfDay(hour: 9, minute: 0))
+        : weekend
+        ? (_weFrom ?? const TimeOfDay(hour: 9, minute: 0))
+        : (_wdFrom ?? const TimeOfDay(hour: 9, minute: 0));
+    final toInit = sunday
+        ? (_sunTo ?? const TimeOfDay(hour: 17, minute: 0))
+        : weekend
+        ? (_weTo ?? const TimeOfDay(hour: 17, minute: 0))
+        : (_wdTo ?? const TimeOfDay(hour: 17, minute: 0));
+    final from = await showTimePicker(
+      context: context,
+      initialTime: fromInit,
+      initialEntryMode: TimePickerEntryMode.dial,
+    );
+    if (from == null || !mounted) return;
+    final to = await showTimePicker(
+      context: context,
+      initialTime: toInit,
+      initialEntryMode: TimePickerEntryMode.dial,
+    );
+    if (to == null || !mounted) return;
+    if (to.hour * 60 + to.minute <= from.hour * 60 + from.minute) {
+      _showError('A befejezés a kezdés után legyen.');
+      return;
+    }
+    setState(() {
+      if (sunday) {
+        _sunFrom = from;
+        _sunTo = to;
+      } else if (weekend) {
+        _weFrom = from;
+        _weTo = to;
+      } else {
+        _wdFrom = from;
+        _wdTo = to;
+      }
     });
   }
 
   Future<void> _pickPhoto() async {
-    final x = await ImagePicker().pickImage(source: ImageSource.gallery, maxWidth: 1280);
-    if (x!=null) setState(()=> photoPath = x.path);
+    try {
+      final image = await ImagePicker().pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1280,
+        imageQuality: 88,
+      );
+      if (image == null || !mounted) return;
+      setState(() {
+        _photoPath = image.path;
+        _photoImage = FileImage(File(image.path));
+      });
+    } catch (_) {
+      _showError('Nem sikerült megnyitni a képet. Próbáld újra.');
+    }
+  }
+
+  Future<void> _pickCity() async {
+    FocusScope.of(context).unfocus();
+    final city = await showCityPicker(context, selectedCity: _city);
+    if (city != null && mounted) setState(() => _city = city);
   }
 
   Future<void> _save() async {
-    final sp = await SharedPreferences.getInstance();
-    await sp.setString('provider_bio', bio.text.trim());
-    if (photoPath!=null && photoPath!.isNotEmpty){
-      await sp.setString('provider_photo_path', photoPath!);
-      await sp.setString('registration_photo_path', photoPath!); // fallback a megjelenítéshez
+    if (_saving || _loading) return;
+    FocusScope.of(context).unfocus();
+    setState(() => _saving = true);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (_photoPath != null) {
+        await ProfilePhotoLoader.saveFromPath(_photoPath!, role: 'provider');
+      }
+      await _write(prefs, 'provider_bio', _bio.text.trim());
+      await _write(prefs, 'provider_city', _city);
+      if (_wdFrom != null) {
+        await _write(prefs, 'provider_wd_from', _fmt(_wdFrom));
+      }
+      if (_wdTo != null) await _write(prefs, 'provider_wd_to', _fmt(_wdTo));
+      for (final entry in {
+        'sat': [_weFrom, _weTo],
+        'sun': [_sunFrom, _sunTo],
+      }.entries) {
+        for (var i = 0; i < 2; i++) {
+          final key = 'provider_${entry.key}_${i == 0 ? 'from' : 'to'}';
+          final value = entry.value[i];
+          if (value == null) {
+            await prefs.remove(key);
+          } else {
+            await _write(prefs, key, _fmt(value));
+          }
+        }
+        await prefs.setBool('provider_${entry.key}_configured', true);
+      }
+      await prefs.setBool('provider_holidays', _holidays);
+      if (!mounted) return;
+      Navigator.pop(context, true);
+    } catch (_) {
+      _showError('Nem sikerült menteni a módosításokat. Próbáld újra.');
+    } finally {
+      if (mounted) setState(() => _saving = false);
     }
-    if (wdFrom!=null) await sp.setString('provider_wd_from', _fmt(wdFrom));
-    if (wdTo  !=null) await sp.setString('provider_wd_to',   _fmt(wdTo));
-    if (weFrom!=null) await sp.setString('provider_we_from', _fmt(weFrom));
-    if (weTo  !=null) await sp.setString('provider_we_to',   _fmt(weTo));
-    if(!mounted) return;
-    Navigator.pop(context, true);
   }
 
-  @override Widget build(BuildContext context){
-    return Scaffold(
-      appBar: AppBar(title: const Text('Profil szerkesztése')),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Center(
-            child: GestureDetector(
-              onTap: _pickPhoto,
-              child: CircleAvatar(
-                radius: 50,
-                backgroundImage: (photoPath!=null && photoPath!.isNotEmpty)? FileImage(File(photoPath!)) : null,
-                child: (photoPath==null || photoPath!.isEmpty)? const Icon(Icons.add_a_photo, size: 36):null,
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          const Text('Bemutatkozás'),
-          const SizedBox(height: 6),
-          TextField(controller: bio, maxLines: 3, decoration: const InputDecoration(border: OutlineInputBorder())),
-          const SizedBox(height: 20),
-          const Text('Általános elérhetőségi idő', style: TextStyle(fontWeight: FontWeight.w700)),
-          const SizedBox(height: 6),
-          ListTile(
-            onTap: ()=> _pickRange(weekend: false),
-            title: const Text('Hétköznap'),
-            subtitle: Text('${_fmt(wdFrom)} – ${_fmt(wdTo)}'),
-            trailing: const Icon(Icons.access_time),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: const BorderSide(color: Color(0x22000000))),
-          ),
-          const SizedBox(height: 8),
-          ListTile(
-            onTap: ()=> _pickRange(weekend: true),
-            title: const Text('Hétvége'),
-            subtitle: Text('${_fmt(weFrom)} – ${_fmt(weTo)}'),
-            trailing: const Icon(Icons.access_time),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: const BorderSide(color: Color(0x22000000))),
-          ),
-          const SizedBox(height: 24),
-          FilledButton(onPressed: _save, child: const Text('Mentés')),
-        ],
-      ),
-    );
+  Future<void> _write(SharedPreferences prefs, String key, String value) async {
+    if (!await prefs.setString(key, value)) {
+      throw StateError('Profile save failed');
+    }
   }
+
+  @override
+  void dispose() {
+    _bio.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: TakiAppBar(title: const Text('Profil szerkesztése')),
+    body: ProfileEditorBody(
+      children: [
+        ProfileEditorCard(
+          firstName: _firstName,
+          photo: _photoImage,
+          bio: _bio,
+          city: _city,
+          enabled: !_loading && !_saving,
+          onPickPhoto: _pickPhoto,
+          onPickCity: _pickCity,
+        ),
+        const SizedBox(height: 12),
+        const Text(
+          'Általános elérhetőség',
+          style: TextStyle(
+            fontSize: 17,
+            color: takiNavy,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const SizedBox(height: 8),
+        _TimeCard(
+          title: 'Hétköznap',
+          subtitle: '${_fmt(_wdFrom)} – ${_fmt(_wdTo)}',
+          icon: Icons.work_outline_rounded,
+          color: takiMint,
+          onTap: _loading || _saving ? null : () => _pickRange(weekend: false),
+        ),
+        const SizedBox(height: 8),
+        _TimeCard(
+          title: 'Szombat',
+          subtitle: '${_fmt(_weFrom)} – ${_fmt(_weTo)}',
+          icon: Icons.wb_sunny_outlined,
+          color: takiYellowSoft,
+          onTap: _loading || _saving ? null : () => _pickRange(weekend: true),
+        ),
+        const SizedBox(height: 6),
+        Wrap(
+          spacing: 8,
+          children: [
+            if (_weFrom != null)
+              TextButton(
+                onPressed: () => setState(() {
+                  _weFrom = null;
+                  _weTo = null;
+                }),
+                child: const Text('Szombaton nem dolgozom'),
+              ),
+            if (_sunFrom != null)
+              TextButton(
+                onPressed: () => setState(() {
+                  _sunFrom = null;
+                  _sunTo = null;
+                }),
+                child: const Text('Vasárnap nem dolgozom'),
+              ),
+          ],
+        ),
+        _TimeCard(
+          title: 'Vasárnap',
+          subtitle: _sunFrom == null
+              ? 'Nem dolgozom / időpont megadása'
+              : '${_fmt(_sunFrom)} – ${_fmt(_sunTo)}',
+          icon: Icons.wb_sunny_outlined,
+          color: takiMint,
+          onTap: _loading || _saving
+              ? null
+              : () => _pickRange(weekend: true, sunday: true),
+        ),
+        SwitchListTile.adaptive(
+          contentPadding: EdgeInsets.zero,
+          dense: true,
+          title: const Text('Ünnepnapon is vállalok munkát'),
+          subtitle: Text(_holidays ? 'Igen' : 'Nem'),
+          value: _holidays,
+          onChanged: _loading || _saving
+              ? null
+              : (value) => setState(() => _holidays = value),
+        ),
+        ProfileEditorActions(enabled: !_loading, busy: _saving, onSave: _save),
+      ],
+    ),
+  );
+}
+
+class _TimeCard extends StatelessWidget {
+  const _TimeCard({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color color;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) => Material(
+    color: color,
+    borderRadius: BorderRadius.circular(18),
+    child: InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: onTap,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 52),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          child: Row(
+            children: [
+              Icon(icon, color: takiNavy, size: 24),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: takiNavy,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                        color: takiMutedText,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: takiNavy,
+                size: 22,
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
 }

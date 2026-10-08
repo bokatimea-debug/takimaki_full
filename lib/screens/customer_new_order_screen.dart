@@ -1,4 +1,4 @@
-﻿import "package:flutter/material.dart";
+import "package:flutter/material.dart";
 
 class CustomerNewOrderScreen extends StatefulWidget {
   const CustomerNewOrderScreen({super.key});
@@ -11,17 +11,24 @@ class _CustomerNewOrderScreenState extends State<CustomerNewOrderScreen> {
   String? _service;
 
   final _services = const [
+    "Apartmantakarítás",
+    "Mosodai szolgáltatás",
     "Általános takarítás",
     "Nagytakarítás",
     "Felújítás utáni takarítás",
-    "Karbantartás",
     "Vízszerelés",
+    "Gázszerelés",
     "Villanyszerelés",
+    "Karbantartás",
+    "Klímatisztítás és -javítás",
+    "Bútorösszeszerelés",
   ];
 
   void _submit() {
     if (_service == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Válassz szolgáltatást")));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Válassz szolgáltatást")));
       return;
     }
     Navigator.pushNamed(context, "/offers", arguments: {"service": _service});
@@ -44,7 +51,7 @@ class _CustomerNewOrderScreenState extends State<CustomerNewOrderScreen> {
                 return ChoiceChip(
                   label: Text(s),
                   selected: sel,
-                  onSelected: (_) => setState(()=> _service = s),
+                  onSelected: (_) => setState(() => _service = s),
                 );
               }).toList(),
             ),

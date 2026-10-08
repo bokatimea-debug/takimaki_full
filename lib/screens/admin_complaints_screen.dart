@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../models/complaint.dart';
 import '../models/sanctions.dart';
 import '../services/notifications.dart';
@@ -88,7 +89,10 @@ class _AdminComplaintsScreenState extends State<AdminComplaintsScreen> {
                 children: [
                   const Align(
                     alignment: Alignment.centerLeft,
-                    child: Text('Szolgáltató fegyelmi állapot', style: TextStyle(fontWeight: FontWeight.w600)),
+                    child: Text(
+                      'Szolgáltató fegyelmi állapot',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Row(
@@ -99,14 +103,30 @@ class _AdminComplaintsScreenState extends State<AdminComplaintsScreen> {
                   ),
                   Row(
                     children: [
-                      Expanded(child: Text('Egymást követő no-show: ${s.consecutiveNoShows}')),
-                      Expanded(child: Text('Felfüggesztve eddig: ${s.suspendedUntil?.toIso8601String() ?? "-"}')),
+                      Expanded(
+                        child: Text(
+                          'Egymást követő no-show: ${s.consecutiveNoShows}',
+                        ),
+                      ),
+                      Expanded(
+                        child: Text(
+                          'Felfüggesztve eddig: ${s.suspendedUntil?.toIso8601String() ?? "-"}',
+                        ),
+                      ),
                     ],
                   ),
                   Row(
                     children: [
-                      Expanded(child: Text('Felfüggesztések száma: ${s.suspensionsCount}')),
-                      Expanded(child: Text('Végleg tiltva: ${s.banned ? "igen" : "nem"}')),
+                      Expanded(
+                        child: Text(
+                          'Felfüggesztések száma: ${s.suspensionsCount}',
+                        ),
+                      ),
+                      Expanded(
+                        child: Text(
+                          'Végleg tiltva: ${s.banned ? "igen" : "nem"}',
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 8),
@@ -138,14 +158,20 @@ class _AdminComplaintsScreenState extends State<AdminComplaintsScreen> {
                 Expanded(
                   child: TextField(
                     controller: _provCtrl,
-                    decoration: const InputDecoration(labelText: 'Szolgáltató neve', border: OutlineInputBorder()),
+                    decoration: const InputDecoration(
+                      labelText: 'Szolgáltató neve',
+                      border: OutlineInputBorder(),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: TextField(
                     controller: _custCtrl,
-                    decoration: const InputDecoration(labelText: 'Megrendelő neve', border: OutlineInputBorder()),
+                    decoration: const InputDecoration(
+                      labelText: 'Megrendelő neve',
+                      border: OutlineInputBorder(),
+                    ),
                   ),
                 ),
               ],
@@ -159,7 +185,10 @@ class _AdminComplaintsScreenState extends State<AdminComplaintsScreen> {
                 Expanded(
                   child: TextField(
                     controller: _reasonCtrl,
-                    decoration: const InputDecoration(labelText: 'Indok', border: OutlineInputBorder()),
+                    decoration: const InputDecoration(
+                      labelText: 'Indok',
+                      border: OutlineInputBorder(),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -178,7 +207,10 @@ class _AdminComplaintsScreenState extends State<AdminComplaintsScreen> {
               itemBuilder: (_, i) {
                 final c = items[i];
                 return ListTile(
-                  leading: const Icon(Icons.report_problem_outlined, color: Colors.orange),
+                  leading: const Icon(
+                    Icons.report_problem_outlined,
+                    color: Colors.orange,
+                  ),
                   title: Text('${c.providerName} • ${c.customerName}'),
                   subtitle: Text('${c.reason}\n${c.at.toLocal()}'),
                   isThreeLine: true,
@@ -197,9 +229,18 @@ class _AdminComplaintsScreenState extends State<AdminComplaintsScreen> {
                       }
                     },
                     itemBuilder: (_) => const [
-                      PopupMenuItem(value: 'warn', child: Text('Figyelmeztetés')),
-                      PopupMenuItem(value: 'suspend', child: Text('Felfüggesztés 14 nap')),
-                      PopupMenuItem(value: 'ban', child: Text('Végleges tiltás')),
+                      PopupMenuItem(
+                        value: 'warn',
+                        child: Text('Figyelmeztetés'),
+                      ),
+                      PopupMenuItem(
+                        value: 'suspend',
+                        child: Text('Felfüggesztés 14 nap'),
+                      ),
+                      PopupMenuItem(
+                        value: 'ban',
+                        child: Text('Végleges tiltás'),
+                      ),
                     ],
                   ),
                 );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../utils/phone_formatter.dart';
 import 'role_select_screen.dart';
 
@@ -134,7 +135,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   child: TextField(
                     controller: emailCodeCtrl,
                     decoration: InputDecoration(
-                      labelText: emailSent ? 'Email kód (demó: 123456)' : 'Email kód',
+                      labelText: emailSent
+                          ? 'Email kód (demó: 123456)'
+                          : 'Email kód',
                       isDense: true,
                       border: dense,
                     ),
@@ -151,8 +154,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   child: const Text('Ellenőrzés'),
                 ),
                 const SizedBox(width: 6),
-                Icon(emailOk ? Icons.verified : Icons.cancel,
-                    color: emailOk ? Colors.green : Colors.red),
+                Icon(
+                  emailOk ? Icons.verified : Icons.cancel,
+                  color: emailOk ? Colors.green : Colors.red,
+                ),
               ],
             ),
             const SizedBox(height: 8),
@@ -181,8 +186,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   child: const Text('Ellenőrzés'),
                 ),
                 const SizedBox(width: 6),
-                Icon(smsOk ? Icons.verified : Icons.cancel,
-                    color: smsOk ? Colors.green : Colors.red),
+                Icon(
+                  smsOk ? Icons.verified : Icons.cancel,
+                  color: smsOk ? Colors.green : Colors.red,
+                ),
               ],
             ),
 

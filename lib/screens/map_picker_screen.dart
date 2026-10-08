@@ -1,7 +1,8 @@
-﻿// lib/screens/map_picker_screen.dart
-import "package:flutter/material.dart";
-import "package:google_maps_flutter/google_maps_flutter.dart";
-import "package:geocoding/geocoding.dart" as geo;
+import '../widgets/taki_app_bar.dart';
+import 'package:flutter/material.dart';
+
+import '../theme.dart';
+import '../widgets/branded_background.dart';
 
 class MapPickerScreen extends StatefulWidget {
   const MapPickerScreen({super.key});
@@ -10,87 +11,96 @@ class MapPickerScreen extends StatefulWidget {
 }
 
 class _MapPickerScreenState extends State<MapPickerScreen> {
-  GoogleMapController? _ctrl;
-  LatLng _center = const LatLng(47.4979, 19.0402); // Budapest
-  final _addrCtrl = TextEditingController();
-  Marker? _pin;
-
+  final _address = TextEditingController();
   @override
   void dispose() {
-    _addrCtrl.dispose();
+    _address.dispose();
     super.dispose();
   }
 
-  Future<void> _search() async {
-    final q = _addrCtrl.text.trim();
-    if (q.isEmpty) return;
-    try {
-      final results = await geo.locationFromAddress(q, );
-      if (results.isNotEmpty) {
-        final loc = results.first;
-        final p = LatLng(loc.latitude, loc.longitude);
-        setState(() {
-          _center = p;
-          _pin = Marker(markerId: const MarkerId("pick"), position: p);
-        });
-        await _ctrl?.animateCamera(CameraUpdate.newLatLngZoom(p, 15));
-      }
-    } catch (_) {}
-  }
-
   void _use() {
-    Navigator.pop(context, _addrCtrl.text.trim());
+    final value = _address.text.trim();
+    if (value.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Írd be a címet.')));
+      return;
+    }
+    Navigator.pop(context, value);
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Cím kiválasztása (Google Maps)")),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _addrCtrl,
-                    decoration: const InputDecoration(
-                      hintText: "Írd be a címet...",
-                      border: OutlineInputBorder(),
-                    ),
-                    onSubmitted: (_) => _search(),
-                  ),
+  Widget build(BuildContext context) => Scaffold(
+    appBar: TakiAppBar(title: const Text('Helyszín megadása')),
+    body: ListView(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
+      children: [
+        const TakiHeroHeader(
+          eyebrow: 'Budapest',
+          icon: Icons.location_on_outlined,
+          title: 'Hol legyen a munka?',
+          subtitle:
+              'Add meg a pontos címet. A Google Maps címválasztó a következő verzióban kapcsolódik be.',
+        ),
+        const SizedBox(height: 24),
+        TakiPanel(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextField(
+                controller: _address,
+                autofocus: true,
+                textCapitalization: TextCapitalization.words,
+                decoration: const InputDecoration(
+                  labelText: 'Cím',
+                  hintText: 'Budapest, Példa utca 12.',
+                  prefixIcon: Icon(Icons.map_outlined),
                 ),
-                const SizedBox(width: 8),
-                FilledButton(onPressed: _search, child: const Text("Keresés")),
-              ],
-            ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                height: 190,
+                decoration: BoxDecoration(
+                  color: takiMint,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Stack(
+                  children: [
+                    Positioned.fill(
+                      child: Icon(
+                        Icons.map_rounded,
+                        size: 118,
+                        color: Color(0x3310AAA5),
+                      ),
+                    ),
+                    Center(
+                      child: CircleAvatar(
+                        radius: 28,
+                        backgroundColor: takiOrange,
+                        child: Icon(
+                          Icons.location_pin,
+                          color: Colors.white,
+                          size: 34,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          Expanded(
-            child: GoogleMap(
-              initialCameraPosition: CameraPosition(target: _center, zoom: 12),
-              onMapCreated: (c) => _ctrl = c,
-              markers: _pin == null ? {} : {_pin!},
-              onTap: (p) => setState(() {
-                _pin = Marker(markerId: const MarkerId("pick"), position: p);
-              }),
-              myLocationButtonEnabled: false,
-              zoomControlsEnabled: false,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: SizedBox(
-              width: double.infinity,
-              child: FilledButton(onPressed: _use, child: const Text("Cím beillesztése")),
-            ),
-          ),
-        ],
+        ),
+      ],
+    ),
+    bottomNavigationBar: SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
+        child: FilledButton.icon(
+          onPressed: _use,
+          icon: const Icon(Icons.check),
+          label: const Text('Cím használata'),
+        ),
       ),
-    );
-  }
+    ),
+  );
 }
-
-
-
