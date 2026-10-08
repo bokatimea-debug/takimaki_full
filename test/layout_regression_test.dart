@@ -160,10 +160,22 @@ void main() {
       tester,
     ) async {
       await _show(tester, const CustomerSearchScreen(), size, canPop: true);
+      await tester.tap(
+        find.byKey(const ValueKey('customer-service-selector')),
+      );
+      await tester.pumpAndSettle();
       for (final item in serviceChoices) {
         final option = find.byKey(ValueKey('service-option-${item['name']}'));
         expect(option, findsOneWidget);
       }
+      await tester.tap(
+        find.byKey(const ValueKey('service-option-Apartmantakarítás')),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('service-option-Nagytakarítás')),
+        findsNothing,
+      );
       final action = _button('Ajánlatok kérése');
       expect(action.hitTestable(), findsOneWidget);
       expect(
