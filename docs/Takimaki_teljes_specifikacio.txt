@@ -285,3 +285,11 @@ GitHubon a codex/takimaki-108 ágban teljes forráscheckpoint és specifikáció
 - A vállalt lehetőségek és az Ár hozzáadása ablak csempéi minden állapotban jól olvasható, kontrasztos sötét vagy fehér feliratot kapnak.
 - A kiválasztott csempe egységes türkiz, a választható csempék menta vagy halványsárga megjelenésűek.
 - Az elérhetőségi sorok és az ünnepnapi kapcsoló is a Takimaki türkiz–halványsárga kártyastílusát használja, egységes térközökkel és lekerekítéssel.
+
+26. 1.0.15 FELHASZNÁLÓI JAVÍTÁSOK — 2026. OKTÓBER 8.
+- A korábbi Takimaki adaptív alkalmazásikon visszaállítandó, a türkiz ikonháttérrel.
+- A megrendelői szolgáltatásválasztó kiválasztás után összecsukódik. Egyetlen, képpel és névvel ellátott választómező marad; erre koppintva nyitható meg újra a teljes katalógus.
+- Az apartmantakarítás Mosodai szolgáltatás és Helyszíni mosás lehetőségei egy sorban, tömör és jól olvasható csempékként jelennek meg.
+- Apartman-, általános, nagy- és felújítás utáni takarításnál több egymást követő m²-ársáv vihető fel: alsó m²-határ, felső m²-határ és a sáv fix ára. Az új sáv nem írhatja felül a korábbiakat.
+- Ugyanahhoz a szolgáltatáshoz több ártétel adható hozzá; a rendszer nem tilthatja le a teljes tételt az első ár felvitele után.
+- A Hétköznap, Szombat, Vasárnap és Ünnepnap sorai azonos szélességű, egymás alatti, tömör kártyák. Minden nap munkavégzése egyértelmű igen/nem kapcsolóval állítható. Kikapcsolt napnál nincs időintervallum; bekapcsoláskor kezdés és befejezés adandó meg.
