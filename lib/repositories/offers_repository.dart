@@ -30,9 +30,24 @@ class OffersRepository {
   void seedDemo(String requestId) {
     if (_items.any((o) => o.requestId == requestId)) return;
     _items.addAll([
-      Offer(id: 'o1', requestId: requestId, priceFt: 17000, providerName: 'Anna'),
-      Offer(id: 'o2', requestId: requestId, priceFt: 18000, providerName: 'Béla'),
-      Offer(id: 'o3', requestId: requestId, priceFt: 16500, providerName: 'Csaba'),
+      Offer(
+        id: 'o1',
+        requestId: requestId,
+        priceFt: 17000,
+        providerName: 'Anna',
+      ),
+      Offer(
+        id: 'o2',
+        requestId: requestId,
+        priceFt: 18000,
+        providerName: 'Béla',
+      ),
+      Offer(
+        id: 'o3',
+        requestId: requestId,
+        priceFt: 16500,
+        providerName: 'Csaba',
+      ),
     ]);
   }
 
@@ -40,7 +55,8 @@ class OffersRepository {
     final offer = _items.firstWhere((o) => o.id == offerId);
     offer.status = OfferStatus.accepted;
     for (final other in _items.where(
-        (o) => o.requestId == offer.requestId && o.id != offer.id)) {
+      (o) => o.requestId == offer.requestId && o.id != offer.id,
+    )) {
       other.status = OfferStatus.inactive;
     }
   }
