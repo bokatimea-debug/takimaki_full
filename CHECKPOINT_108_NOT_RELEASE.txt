@@ -1,0 +1,1 @@
+1.0.8 fejlesztési checkpoint. NINCS új APK. Részletes állapot: docs/Takimaki_teljes_specifikacio.txt 19. fejezet. A 1.0.7 kiadási bizonyítékok történeti adatok; nem érvényesek erre a módosított forrásra.

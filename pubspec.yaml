@@ -2,7 +2,7 @@ name: takimaki_full
 description: Takimaki mobile app
 publish_to: "none"
 
-version: 1.0.0+1
+version: 1.0.14+15
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
@@ -12,31 +12,32 @@ dependencies:
     sdk: flutter
   flutter:
     sdk: flutter
-  intl: 0.20.2
+  intl: ^0.20.2
   cupertino_icons: ^1.0.6
-  google_maps_flutter: ^2.12.3
-  shared_preferences: 2.2.2
-  sms_autofill: ^2.3.0
-  image_picker: ^1.2.0
-  table_calendar: ^3.1.3
-  geocoding: ^4.0.0
+  shared_preferences: ^2.5.5
+  image_picker: ^1.1.2
 
 dev_dependencies:
-  flutter_localizations:
-    sdk: flutter
   flutter_test:
     sdk: flutter
-  flutter_lints: ^3.0.0
+  flutter_lints: ^5.0.0
   flutter_launcher_icons: ^0.14.1
 
 flutter:
   uses-material-design: true
   assets:
     - assets/icons/takimaki_icon.png
+    - assets/icons/takimaki_icon_legacy.png
+    - assets/icons/takimaki_icon_foreground.png
+    - assets/images/takimaki_mascot.png
+    - assets/service_icons/
     - assets/services.json
 
 flutter_icons:
   android: true
   ios: true
-  image_path: assets/icons/takimaki_icon.png
+  image_path: assets/icons/takimaki_icon_legacy.png
+  adaptive_icon_background: "#087B7B"
+  adaptive_icon_foreground: assets/icons/takimaki_icon_foreground.png
+  adaptive_icon_foreground_inset: 0
   remove_alpha_ios: true
