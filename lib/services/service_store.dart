@@ -1,4 +1,4 @@
-﻿import "package:flutter/material.dart";
+import "package:flutter/material.dart";
 
 /// Egy szolgáltatási bejegyzés a szolgáltató oldalán.
 class ProviderService {
@@ -20,11 +20,7 @@ class ProviderService {
 enum PriceUnit { ftPerHour, ftPerSqm }
 
 class ServiceSlot {
-  ServiceSlot({
-    required this.date,
-    required this.from,
-    required this.to,
-  });
+  ServiceSlot({required this.date, required this.from, required this.to});
 
   final DateTime date;
   final TimeOfDay from;

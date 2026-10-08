@@ -25,4 +25,3 @@ class Notifier {
     ScaffoldMessenger.of(context).showSnackBar(_sb(msg, color: Colors.red));
   }
 }
-
