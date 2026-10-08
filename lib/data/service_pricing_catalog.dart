@@ -64,7 +64,13 @@ List<String> pricingUnitsFor(String service, String item) {
     ];
   }
   if (service == 'Apartmantakarítás' || service.contains('takarítás')) {
-    return const ['Ft/m²', 'Ft/óra', 'Ft/alkalom', 'Egyedi árajánlat'];
+    return const [
+      'Ft/m²-sáv',
+      'Ft/m²',
+      'Ft/óra',
+      'Ft/alkalom',
+      'Egyedi árajánlat',
+    ];
   }
   if (service == 'Mosodai szolgáltatás') {
     return const [
