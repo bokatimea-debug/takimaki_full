@@ -1,9 +1,29 @@
 import 'package:flutter/material.dart';
 
 const List<String> _roman = [
-  'I','II','III','IV','V','VI','VII','VIII','IX','X',
-  'XI','XII','XIII','XIV','XV','XVI','XVII','XVIII','XIX','XX',
-  'XXI','XXII','XXIII'
+  'I',
+  'II',
+  'III',
+  'IV',
+  'V',
+  'VI',
+  'VII',
+  'VIII',
+  'IX',
+  'X',
+  'XI',
+  'XII',
+  'XIII',
+  'XIV',
+  'XV',
+  'XVI',
+  'XVII',
+  'XVIII',
+  'XIX',
+  'XX',
+  'XXI',
+  'XXII',
+  'XXIII',
 ];
 
 /// Kerületválasztó modal: 1..23 indexeket ad vissza (pl. [13,14])
@@ -22,10 +42,14 @@ Future<List<int>?> pickDistricts(BuildContext context, List<int> initial) {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Kerületek (I–XXIII)', style: TextStyle(fontWeight: FontWeight.w600)),
+            const Text(
+              'Kerületek (I–XXIII)',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
             const SizedBox(height: 10),
             Wrap(
-              spacing: 8, runSpacing: 8,
+              spacing: 8,
+              runSpacing: 8,
               children: List.generate(23, (i) {
                 final idx = i + 1;
                 final active = sel.contains(idx);
@@ -33,7 +57,11 @@ Future<List<int>?> pickDistricts(BuildContext context, List<int> initial) {
                   selected: active,
                   label: Text(_roman[i]),
                   onSelected: (_) {
-                    if (active) { sel.remove(idx); } else { sel.add(idx); }
+                    if (active) {
+                      sel.remove(idx);
+                    } else {
+                      sel.add(idx);
+                    }
                   },
                 );
               }),
@@ -41,11 +69,20 @@ Future<List<int>?> pickDistricts(BuildContext context, List<int> initial) {
             const SizedBox(height: 12),
             Row(
               children: [
-                TextButton(onPressed: () => Navigator.pop(context, <int>[]), child: const Text('Törlés')),
+                TextButton(
+                  onPressed: () => Navigator.pop(context, <int>[]),
+                  child: const Text('Törlés'),
+                ),
                 const Spacer(),
-                TextButton(onPressed: () => Navigator.pop(context, null), child: const Text('Mégse')),
+                TextButton(
+                  onPressed: () => Navigator.pop(context, null),
+                  child: const Text('Mégse'),
+                ),
                 const SizedBox(width: 8),
-                FilledButton(onPressed: () => Navigator.pop(context, sel.toList()), child: const Text('OK')),
+                FilledButton(
+                  onPressed: () => Navigator.pop(context, sel.toList()),
+                  child: const Text('OK'),
+                ),
               ],
             ),
           ],
@@ -62,4 +99,3 @@ String summarizeDistricts(List<int> selected) {
   if (romans.length <= 3) return 'Budapest: ${romans.join(", ")}';
   return 'Budapest: ${romans.take(2).join(", ")} +${romans.length - 2}';
 }
-

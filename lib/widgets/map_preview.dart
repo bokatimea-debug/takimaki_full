@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import '../theme.dart';
 
 class MapPreview extends StatelessWidget {
   final String address;
@@ -7,8 +7,6 @@ class MapPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const budapest = LatLng(47.4979, 19.0402);
-
     return Container(
       height: 180,
       decoration: BoxDecoration(
@@ -16,18 +14,22 @@ class MapPreview extends StatelessWidget {
         border: Border.all(color: Colors.grey.shade300),
       ),
       clipBehavior: Clip.antiAlias,
-      child: GoogleMap(
-        initialCameraPosition: const CameraPosition(target: budapest, zoom: 11.5),
-        myLocationButtonEnabled: false,
-        zoomControlsEnabled: false,
-        liteModeEnabled: true,
-        markers: {
-          Marker(
-            markerId: const MarkerId('addr'),
-            position: budapest,
-            infoWindow: InfoWindow(title: 'Budapest', snippet: address),
-          ),
-        },
+      child: Container(
+        color: takiMint,
+        alignment: Alignment.center,
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.map_rounded, size: 46, color: takiTeal),
+            const SizedBox(height: 10),
+            Text(
+              address,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
+          ],
+        ),
       ),
     );
   }
