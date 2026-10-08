@@ -46,4 +46,16 @@ void main() {
     expect(serviceNeedsPermitWarning('Gázszerelés'), isTrue);
     expect(serviceNeedsPermitWarning('Villanyszerelés'), isTrue);
   });
+
+  test('all cleaning services support multiple square metre price bands', () {
+    for (final service in const [
+      'Apartmantakarítás',
+      'Általános takarítás',
+      'Nagytakarítás',
+      'Felújítás utáni takarítás',
+    ]) {
+      final primaryItem = servicePriceItems[service]!.first;
+      expect(pricingUnitsFor(service, primaryItem), contains('Ft/m²-sáv'));
+    }
+  });
 }
