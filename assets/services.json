@@ -39,6 +39,14 @@
     {
       "id": "electricity",
       "label": "Villanyszerelés"
+    },
+    {
+      "id": "upholstery_cleaning",
+      "label": "Kárpittisztítás"
+    },
+    {
+      "id": "drain_cleaning",
+      "label": "Lefolyótisztítás"
     }
   ]
 }
