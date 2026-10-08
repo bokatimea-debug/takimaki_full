@@ -1,0 +1,17 @@
+Verifies
+Verified using v1 scheme (JAR signing): false
+Verified using v2 scheme (APK Signature Scheme v2): true
+Verified using v3 scheme (APK Signature Scheme v3): true
+Verified using v3.1 scheme (APK Signature Scheme v3.1): false
+Verified using v4 scheme (APK Signature Scheme v4): false
+Verified for SourceStamp: false
+Number of signers: 1
+Signer #1 certificate DN: CN=Takimaki Test, O=Takimaki, C=HU
+Signer #1 certificate SHA-256 digest: 06d38b73714577338dbaac934fa864083c467d7bb063e5510cd948a1468a6b02
+Signer #1 certificate SHA-1 digest: 32ca0057d9ea9fbd2525909494176fe35979da62
+Signer #1 certificate MD5 digest: 2f39e8d77a2209ef3f78925eb9336743
+Signer #1 key algorithm: RSA
+Signer #1 key size (bits): 3072
+Signer #1 public key SHA-256 digest: 6f1e530c9c7fad5f22345edf2bbb5b806fffdbb74326c46e389b663214235b40
+Signer #1 public key SHA-1 digest: 9a4ab0ba6615f61fedd3d9c256e1036c77871c59
+Signer #1 public key MD5 digest: d57f5d58b9235dae6d7e1dc5e9202753

@@ -1,0 +1,16 @@
+Takimaki Teszt 1.0.13+14 – végleges ellenőrzési állapot
+
+- A specifikáció 1.0.13+14 változtatásai a forrásban megtalálhatók.
+- A katalógus- és jogosultsági regressziós ellenőrzések megerősítve.
+- Teljes Flutter tesztcsomag: 136/136 sikeres.
+- Reszponzív képernyőellenőrzés: 90/90 sikeres (320x640, 360x740, 412x892, valamint nagyított szöveg).
+- Statikus elemzés: fordítási hiba nincs; kizárólag meglévő figyelmeztetések és információs linttalálatok maradtak.
+- Release APK elkészült: Takimaki_Teszt_1.0.13.apk.
+- Csomagazonosító: hu.takimaki.test.
+- Verzió: 1.0.13+14.
+- APK-aláírás: érvényes v2 aláírás, 1 aláíró.
+- Aláíró SHA-256: 06d38b73714577338dbaac934fa864083c467d7bb063e5510cd948a1468a6b02.
+- ZIP alignment: sikeres, 16 KB-os oldalillesztés ellenőrizve.
+- APK SHA-256: c071a8820b8f83fdc4bc49a393b0bdb6d17c1637bc2e57a16206891615e40a20.
+
+Korlát: a jelenlegi tesztalkalmazásnak nincs éles backendje, ezért a saját megrendelésre jelentkezés tiltása kliensoldali védelem. Éles kiadás előtt ugyanezt szerveroldalon is kötelező kikényszeríteni.

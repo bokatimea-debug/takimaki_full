@@ -1,0 +1,8 @@
+{
+  "only_changed_entry": [
+    "AndroidManifest.xml"
+  ],
+  "input_sha256": "06c854c1951ed311a50acd2c1a283038367853ef370656d7a005fb87297e30d9",
+  "new_package": "hu.takimaki.test",
+  "label": "Takimaki Teszt"
+}

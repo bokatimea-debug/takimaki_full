@@ -1,0 +1,11 @@
+Takimaki 1.0.14+15 – fejlesztési ellenőrzési állapot
+
+- Az Új szolgáltatás oldal térközei és vezérlői tömörebbek.
+- A vállalt lehetőségek csempéi kontrasztos sárga/türkiz állapotot és olvasható feliratot kaptak.
+- Az Ár hozzáadása ablak tétel- és elszámoláscsempéi kontrasztosak.
+- Az elérhetőség sorai menta/halványsárga kártyákra kerültek.
+- Az ünnepnapi kapcsoló a közös kártyastílust használja.
+- A Dart formázás sikeres.
+- A teljes Flutter-teszt és az APK-build jelenleg nincs lezárva: a munkakörnyezet biztonsági rendszere a Flutter eszköz belső metaadat-hozzáférési kísérletét a felhasználói engedély ellenére blokkolta.
+
+Ez checkpoint, nem kész kiadás. Új APK csak sikeres Flutter- és képernyőteszt után adható át.

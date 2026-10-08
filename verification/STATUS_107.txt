@@ -1,0 +1,2 @@
+1.0.7+8 build complete. 121 tests passed. Customer order form fits 360x740 and 412x892 without scrolling; decoded picture screenshots verified. Provider service selection uses the same picture catalog. Smaller width/large font remains scrollable. Splash unchanged. Signed hu.takimaki.test with existing persisted test certificate. APK signature, package/version, and 16KB alignment verified. No physical-phone test performed.
+SHA256 c000440190e49eb15c0adadf09b262ff1a8d17dd37daee045fdcf949c4d3c9af

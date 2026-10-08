@@ -1,0 +1,15 @@
+{
+  "package": "hu.takimaki.test",
+  "version_name": "1.0.5",
+  "version_code": 6,
+  "signature_verified": true,
+  "certificate_sha256": "06d38b73714577338dbaac934fa864083c467d7bb063e5510cd948a1468a6b02",
+  "sha256": "12f86f67632b7304076319a34948d251b914e15a2619430e9d1217c05e9fd3ea",
+  "only_changed_payload_entry": [
+    "AndroidManifest.xml"
+  ],
+  "prior_full_tests_passed": 110,
+  "phone_install_tested": false,
+  "installs_beside": "hu.takimaki.app",
+  "data_migration": false
+}
