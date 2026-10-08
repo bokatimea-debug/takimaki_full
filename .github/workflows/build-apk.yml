@@ -1,0 +1,36 @@
+name: Build Takimaki APK
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  FLUTTER_VERSION: 3.35.7
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze --no-fatal-infos
+      - run: flutter test
+      - name: Build Takimaki Test APK
+        env:
+          ORG_GRADLE_PROJECT_takimakiTest: "true"
+        run: flutter build apk --release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Takimaki_Teszt_1.0.14
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 14
