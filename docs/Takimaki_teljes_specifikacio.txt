@@ -1,0 +1,287 @@
+TAKIMAKI TELJES ÖSSZEVONT SPECIFIKÁCIÓ
+Állapot: 2026. október 4. | Kapcsolódó kiadás: 1.0.7+8
+
+A dokumentum az ebben a beszélgetésben megadott követelményeket és a helyreállított projekt dokumentációjának érvényes előírásait egyesíti. A későbbi felhasználói döntés felülírja a korábbit. A követelmény rögzítése önmagában nem jelent kész vagy telefonon igazolt működést. A megvalósítás és az ellenőrzés állapotát a 17. fejezet külön kezeli. Korábbi, itt nem elérhető specifikációk tartalmát nem tekintjük visszaállítottnak.
+
+1. AZ ALKALMAZÁS CÉLJA ÉS SZEREPEI
+
+Magyar nyelvű Android-alkalmazás szolgáltatások megrendelésére és szolgáltatói munkavállalásra. Két szerep: megrendelő és szolgáltató. A szerepek között váltani lehet. A megrendelő szolgáltatást választ, helyet és időpontot ad meg, ajánlatot kér, ajánlatot fogad el, rendelést és üzeneteket kezel. A szolgáltató saját szolgáltatásait, árait, működési területét és elérhetőségét kezeli, megfelelő megkeresésekre ajánlatot küld, munkáit követi és csetel.
+
+A meglévő funkciókat a felületi javítások során meg kell őrizni. Új külső szolgáltatást, fizetési rendszert vagy szerveroldali működést nem szabad késznek állítani pusztán a felület megléte alapján.
+
+2. EGYSÉGES MEGJELENÉS
+
+D01. Befejezett, átgondolt, komoly alkalmazáshoz illő felület szükséges; a felhasználó 9/10-es minőségi célt jelölt meg.
+D02. A türkiz az elsődleges márkaszín, a sárga/arany kiemelőszín. Ugyanazt a színkészletet kell használni minden belső oldalon. A sárga nem uralhatja az egész alkalmazást.
+D03. A névjegykártya háttere türkiz, a közös sötét türkiz–türkiz átmenettel. A világos felületeket menta és halványsárga kártyák egészítik ki. Nem vezethető be külön kék vagy lila kártyarendszer.
+D04. Közös betűstílus, ikonkezelés, lekerekítések, mezők, gombok, belső margók és címsorok. Hosszú magyar szavak nem törhetnek egyetlen utolsó betűre.
+D05. A belső oldalak illeszkedjenek egymáshoz; ne legyen hirtelen, indokolatlan kontrasztváltás. A túl fehér, üres oldalak helyett a jóváhagyott türkiz–sárga megjelenést kell alkalmazni.
+D06. A háttér díszítő formái a képernyőn egyszer jelenjenek meg; görgetésnél vagy egymásba ágyazott oldalaknál ne ismétlődjenek levágott, összetoldott foltokként.
+D07. A jóváhagyott kezdőképernyő, kabalaillusztráció és szerepválasztó megőrzendő. A későbbi kifejezett kérés szerint a kezdőképernyőhöz nem szabad hozzányúlni.
+D08. Belső oldalakra ne kerüljön külön TakiMaki-fej dekoráció vagy a felhasználó saját fotóját helyettesítő kabalafotó. A saját profilnál a mentett felhasználói kép jelenjen meg.
+
+A közös téma jelenlegi konkrét színei a lib/theme.dart fájlban:
+Türkiz #10AAA5; sötét türkiz #083B46; arany #FFA51F; krém #FFFBF1; menta #DDF4EF; halványsárga #FFE7B0; mezőfelület #FFFEFA; másodlagos szöveg #617577. Ezek a meglévő megvalósítás színei, nem újonnan bevezetett paletta.
+
+3. KÉPERNYŐMÉRET ÉS HASZNÁLHATÓSÁG
+
+L01. Az egész alkalmazást át kell nézni: túl nagy üres terek, óriási kártyák és szükségtelen ismételt címek nem tolhatják le a fontos tartalmat.
+L02. Normál telefonméreten a főmenük fontos elemei, a rövid űrlapok és a rendelésrészletek fő műveletei férjenek a képernyőre. Külön cél az új megrendelés teljes űrlapjának egyképernyős elrendezése.
+L03. Gomb, címke és mező nem csúszhat az Android állapot- vagy navigációs sávja alá. A gomb ne tapadjon a kijelző aljához.
+L04. Rögzített alsó gomb vagy világos alsó réteg nem takarhat el kitöltendő mezőt. Nem maradhat nagy, használhatatlan fehér sáv az űrlap helyén.
+L05. Hosszú tartalom, nagyított betűméret és megnyitott billentyűzet esetén a teljes űrlap elérhető maradjon görgetéssel. A normál méretű egyképernyős cél nem jelenthet olvashatatlan betűt vagy levágást más méreten.
+L06. A hibás vagy hiányzó kötelező mezőt láthatóvá kell tenni, szükség esetén oda kell görgetni és fókuszt adni. Nem elegendő egy üzenet, ha az érintett mező rejtve marad.
+L07. A két profilszerkesztő tartalma azonos magasságban kezdődjön, azonos alapfelépítéssel.
+L08. Célzott ellenőrzési méretek: 360×740 és 412×892; továbbá 320×640, 1,3-szoros szövegmérettel. A felhasználó tényleges telefonos próbája külön ellenőrzési szint.
+
+4. INDÍTÓIKON ÉS KEZDÉS
+
+I01. Natív adaptív és kör alakú Android-indítóikon szükséges. Ne látszódjon egy kisebb négyzetes kép a telefon kör alakú ikonkeretén belül.
+I02. Az ikon minden használt Android-erőforrásváltozatban egységes legyen.
+I03. A jóváhagyott türkiz kezdőoldalt és a sárga Kezdés gombot meg kell őrizni.
+I04. A regisztráció és a kezdőoldal elérhetőségét a fiók állapota szabályozza; meglévő bejelentkezés nem azonos az oldalak törlésével. Kijelentkezés, új fiók és törölt fiók útvonalát külön kell ellenőrizni.
+
+5. REGISZTRÁCIÓ ÉS AZONOSÍTÁS
+
+R01. Profil létrehozásakor vezetéknév, keresztnév és profilkép megadása; ezt követi a telefonszám és a hatjegyű SMS-kód képernyője. A pontos kötelezőség a meglévő regisztrációs szabályokat követi.
+R02. A regisztrációs oldalak ugyanazt a belső stílust használják; türkiz és sárga megjelenés, ésszerű méretek.
+R03. A Tovább és Kód kérése gomb a tartalomhoz közel, biztonságosan látható helyen legyen, ne a rendszer navigációs sávjánál.
+R04. A telefonszám és a név a profilszerkesztőben nem módosítható.
+R05. Az SMS-küldés tényleges külső szolgáltatásának működését a felület vagy helyi teszt nem igazolja; éles használat előtt külön ellenőrzendő.
+
+6. PROFILOK ÉS PROFILKÉP
+
+P01. Mindkét profilszerkesztő közös türkiz kártyát és azonos kezdőigazítást használjon.
+P02. A kép mellett a mentett keresztnév szerepeljen a „Profilkép” felirat helyett.
+P03. A profilkép módosítható. A kép tartósan maradjon meg; ideiglenes fájl eltűnése ne tüntesse el.
+P04. Mindkét szerepnél szerkeszthető a bemutatkozás és város választásával a működési terület. A mentés után visszanyitva ugyanazok az értékek jelenjenek meg.
+P05. A megrendelő és a szolgáltató városadata külön tárolható; a szolgáltató mentett városa jelenjen meg a névjegyen és a szolgáltatás űrlapján is.
+P06. A szolgáltatói profilban az általános elérhetőség is szerkeszthető: hétköznap és hétvége időintervalluma.
+P07. A saját fotó a profilképernyőkön és a releváns kártyákon következetesen jelenjen meg.
+P08. A profiltörlés végleges helye a Beállítások. A profilszerkesztőből el kell távolítani. Ez felülírja a korábbi, mindkét szerkesztőbe kért törlésgombot.
+
+7. NÉVMEGJELENÍTÉS ÉS ÜZENETEK
+
+C01. A másik felhasználóból csak a keresztnév látszódjon: csetlistában, beszélgetésben, ajánlatkérésekben, ajánlatoknál és rendelésrészletekben. Teljes név ne jelenjen meg partnernévként.
+C02. Régi mentett rekordokra is érvényes a keresztnév-megjelenítés. Új adatokban külön keresztnévmező megőrzése szükséges; a régi magyar névsorrend szerinti megjelenítési pótlás nem írhatja át a fiók nevét.
+C03. Csetben a tényleges partner profilképe jelenjen meg. Csak hiányzó fotónál használható monogram vagy semleges pótlás.
+C04. A cset beviteli mezője és küldés művelete nyitott billentyűzet mellett is használható maradjon.
+C05. Rendelésből a kapcsolódó beszélgetés legyen elérhető.
+
+8. FŐMENÜK ÉS NAVIGÁCIÓ
+
+N01. Megrendelői főmenü: profilkártya, új rendelés, rendelések, üzenetek, profilszerkesztés; fejlécben beállítások és szerepváltás.
+N02. Szolgáltatói főmenü: profilkártya és meglévő mutatók, új megkeresések, saját szolgáltatások, munkák, üzenetek, profilszerkesztés; beállítások és szerepváltás.
+N03. Előfizetés kizárólag a Beállításokból érhető el; a főmenüben ne maradjon előfizetési csempe.
+N04. Minden releváns belső oldalról könnyű, közvetlen visszajutás szükséges az adott szerep főmenüjébe.
+N05. Rendelés sikeres mentése után a Vissza nem járhatja végig a már befejezett adatlapokat. A kitöltött rendelési folyamatot ki kell venni a navigációs előzményből.
+N06. Ajánlat elfogadása után se maradjon felesleges köztes ajánlat-/űrlaplánc a visszanavigálásban.
+N07. A főmenü tömör legyen, ne foglaljanak nagy üres felületek helyet a funkciók elől.
+
+9. SZOLGÁLTATÁSKATALÓGUS ÉS KÉPEK
+
+S01. A megrendelői és szolgáltatói szolgáltatásválasztó ugyanazt a képkészletet és közös kategóriakatalógust használja.
+S02. A felhasználó által mutatott térhatású tárgyképek megőrzendők: ágy, mosógép, takarítóeszközök, porszívó, cső/szerszám, szerszámkészlet, klíma, bútor stb. A szolgáltatói választó ne csak ismétlődő seprűikonokat használjon.
+S03. A kategória neve olvasható maradjon; a kiválasztás egyértelmű türkiz állapottal és jelöléssel látszódjon.
+S04. Kategóriák: Apartmantakarítás; Mosodai szolgáltatás; Általános takarítás; Nagytakarítás; Felújítás utáni takarítás; Vízszerelés; Gázszerelés; Villanyszerelés; Karbantartás; Klímatisztítás és -javítás; Bútorösszeszerelés.
+S05. A jelenlegi közös képleképezés: apartman service_00.png; általános takarítás 01; nagytakarítás és felújítás utáni takarítás 02; víz 03; gáz 04; villany és karbantartás 05; klíma 06; bútor 07; mosoda 08. Ez a megőrzött meglévő készlet, nem állítás arról, hogy minden kategóriának külön új képe készült.
+
+10. ÚJ MEGRENDELÉS
+
+O01. Normál telefonméreten a szolgáltatásválasztás, cím, dátum, időpont, opcionális megjegyzés és Ajánlatok kérése gomb egy képernyőn elérhető legyen.
+O02. A nagy, kétoszlopos képkártyák helyett kompakt képes választó szükséges. A képeket nem szabad elhagyni.
+O03. A cím kiválasztható, dátum és időpont megadható; megjegyzés opcionális. Kötelező értékek nélkül ne keletkezzen hibás rendelés.
+O04. A gomb nem fedheti az utolsó szolgáltatást vagy az űrlap alját. A címkék és a gomb teljes terjedelmükben látszódjanak.
+O05. Dupla gombnyomás ne hozzon létre véletlen többszörös rendelést. Sikeres mentés után a főmenü közvetlenül elérhető legyen.
+O06. Nagyított betűnél és kisebb kijelzőn a felület görgethetően maradjon teljes és használható.
+
+11. SZOLGÁLTATÁS FELVITELE ÉS SZERKESZTÉSE
+
+V01. Saját szolgáltatások listája: mentett kategória, irányár és elszámolás, meglévő részletes ársávok/elérhetőség, szerkesztés és új szolgáltatás.
+V02. A választó a 9. fejezet közös képeit használja. A kiválasztott kategória az űrlapon is ugyanazzal a képpel jelenjen meg.
+V03. A működési terület a profil mentett városa alapján látszódjon.
+V04. Ár és elszámolási egység megadható. A részletes árlista és a területsávokhoz rendelt árak megmaradjanak.
+V05. Az első szolgáltatás felvitelekor, ha nincs általános elérhetőség, ajánlja fel annak kitöltését. A mentett adat kerüljön a szolgáltatói profilba is.
+V06. Ha már van általános elérhetőség a profilban, az űrlap írja ki a konkrét mentett időszakokat, és használja ugyanazt az adatforrást.
+V07. Az általános elérhetőségen felül lehessen egyedi napokat is megadni. Ezek megőrzése és szerkesztése ne vesszen el a tömörítéskor.
+V08. A befejezési idő legyen a kezdési idő után.
+V09. A kitöltendő mezők és a Mentés a használható görgetési tartomány részei legyenek. Ne takarja el őket alsó fehér felület vagy indokolatlan üres sáv.
+V10. Érvénytelen ár esetén az ármező váljon láthatóvá és szerkeszthetővé; az „Adj meg érvényes árat” üzenet önmagában nem elég.
+
+12. MEGKERESÉSEK ÉS AJÁNLATKÜLDÉS
+
+A01. Új megkereséseknél csak a szolgáltató mentett tevékenységeihez tartozó kategóriák jelenjenek meg.
+A02. Csak nyitott, aktuális megkeresésre lehessen ajánlatot küldeni. Elfogadott munka a Munkáim közé tartozik, ne maradjon új ajánlatkérés.
+A03. Ha a szolgáltató általános takarítást vállal és a megkeresés megfelelő, az ajánlatküldés működjön. Ne maradjon magyarázat nélkül letiltott gomb.
+A04. Valódi akadály esetén látható ok szükséges: például nem megfelelő kategória, már lezárt kérés, előfizetési vagy felfüggesztési feltétel.
+A05. Böngészés ne hozzon létre automatikusan tesztajánlatokat vagy szolgáltatásokat.
+A06. Régi TEST ajánlat ne fogyassza el az első valódi szolgáltatói munkára vonatkozó ingyenes lehetőséget.
+
+13. RENDELÉSRÉSZLETEK ÉS MUNKÁK
+
+M01. Szolgáltatás, partner keresztneve, helyszín, időpont, ár, státusz és megjegyzés érthetően jelenjen meg.
+M02. A kapcsolódó cset, a munkakezdés és az adott állapotban elérhető lemondás látható és elérhető maradjon.
+M03. A lemondás nem kerülhet a rendszer navigációs sávja alá. Normál méretű képernyőn tömör elrendezés szükséges; kis képernyőn/nagy betűnél görgetéssel elérhető maradjon.
+M04. A meglévő rendelési állapotkezelést a megjelenési javítások nem írhatják felül.
+
+14. BEÁLLÍTÁSOK ÉS ELŐFIZETÉSEK
+
+B01. A Beállítások tartalmazza az előfizetéseket, értesítési kapcsolókat, kijelentkezést és fióktörlést.
+B02. Előfizetés és fióktörlés nem szerepelhet külön főmenü-csempeként vagy profilszerkesztői műveletként.
+B03. A megrendelői és szolgáltatói előfizetés külön kezelhető. A képernyő mutassa az állapotot és a csomag feltételeit.
+B04. A bemutatott meglévő feltételek: megrendelőnek az első 3 hónap ingyenes, utána 3 000 Ft/hó; szolgáltatónak az első elfogadott megrendelés ingyenes, utána 3 000 Ft/hó. Ezek meglévő tesztfelületi feltételek, a tényleges éles számlázás külön igazolandó.
+B05. A tesztelői aktiválás tesztműködésként legyen azonosítható. Nem jelent elkészült Google Play-fizetési integrációt.
+B06. A kijelentkezés és a fióktörlés külön művelet, eltérő következménnyel.
+
+15. FIÓKTÖRLÉS ÉS HÁROMHÓNAPOS KORLÁTOZÁS
+
+T01. Mindkét szerepből a Beállításokban legyen elérhető fióktörlés.
+T02. Törlés előtt kötelező megerősítés: a felhasználó három hónapig nem regisztrálhat újra; biztosan törli-e a fiókot?
+T03. A jelenlegi közös fiók törlése mindkét szerepet érinti; ezt a megerősítésben világosan közölni kell. Mégse esetén adat ne törlődjön.
+T04. A három hónap naptári hónapként kezelendő a meglévő specifikáció szerint. Korábbi telefonszám-korlátozás további fióktörlésektől ne vesszen el.
+T05. Jelenlegi korlát: a tiltás helyi alkalmazásadat. Adattörlés vagy másik eszköz ellen szerveroldali nyilvántartás szükséges; ez nincs igazolva elkészült funkcióként.
+
+16. MUNKAFOLYAMAT ÉS MENTÉS
+
+F01. Amíg a felhasználó a hibákat írja és várakozást kér, nem kezdődhet meg a munka és nem kell közbeszólni. Indulás csak egyértelmű „vége”, „ennyi”, „kezdheted” vagy ennek megfelelő utasítás után.
+F02. Képernyőtervezési szakaszban egyesével kell bemutatni a terveket. Jóváhagyás nélkül nem szabad továbblépni vagy kódolni. A későbbi kifejezett kódolási engedély az elfogadott feladatokra érvényes.
+F03. Rövid magyar kommunikáció; ne legyen üres ígéret, hosszú magyarázat vagy késznek nevezett, el nem készült APK.
+F04. A teljes specifikáció, forrás, ellenőrzési eredmények és átadott APK tartósan mentendő. A pusztán ideiglenes fájl és letöltési link nem biztonsági mentés.
+F05. A dokumentumot minden új követelménnyel frissíteni kell, az ellentmondó régi előírást lezártként megjelölve. A felhasználónak nem kell újra leírnia a korábbi kéréseket.
+F06. Az APK mindig pontosan a javított és ellenőrzött forrásból készüljön. Új verziószám, ellenőrzött csomagazonosító és aláírás szükséges.
+F07. A jelenlegi külön tesztalkalmazás neve Takimaki Teszt, azonosítója hu.takimaki.test. Az 1.0.5 után engedélyezett és mentett tesztkulcsot kell tovább használni; új kulcs önkényesen nem generálható.
+F08. Privát kulcs és jelszó nem kerülhet nyilvános forráscsomagba. A meglévő eredeti alkalmazás és a külön tesztalkalmazás frissíthetőségét nem szabad összekeverni.
+
+17. ELLENŐRZÉSI ÁLLAPOT ÉS ELFOGADÁSI FELTÉTELEK
+
+A jelenlegi 1.0.7+8 változtatás közvetlenül ellenőrzött részei:
+- 121 Flutter automatikus teszt sikeres, napló: verification/tests_107.log.
+- A teljes új megrendelési űrlap 360×740 és 412×892 méreten egy képernyőre fér. A képes kategóriák és a megjegyzésmező a műveletgomb fölött maradnak.
+- A szolgáltatói választó ugyanazokat a képfájlokat használja. Valóban betöltött képekkel készített képernyőképek ellenőrizve.
+- Kisebb kijelző/nagyobb betű esetén a választó két oszlopra vált, a tartalom görgethető.
+- Az APK fordításának, aláírásának és verziójának végső állapota: verification/STATUS_107.txt és verification/apk_107.txt. A jelen specifikáció nem helyettesíti ezeket a kiadási bizonyítékokat.
+
+Korábbi javítások dokumentáltak a README, AGENTS és verification kiadási jegyzeteiben. Az ebben a dokumentumban felsorolt összes funkció együttes, valós készülékes és szerveroldali ellenőrzése nincs igazolva. Fizikai telefonos tesztet az asszisztens ennél a kiadásnál nem végzett.
+
+A kiadási ellenőrzés kötelező céljai:
+1. Friss regisztráció és meglévő fiók belépése; kezdőoldal megőrzése.
+2. Mindkét szerep, szerepváltás, főmenü és közvetlen hazanavigálás.
+3. Profilfotó, keresztnév, bemutatkozás és város mentése, újranyitása.
+4. Beállításokban előfizetés és törlés; főmenüben nincs előfizetés.
+5. Törlés megszakítása és megerősítése; figyelmeztetés és helyi tiltás.
+6. Első szolgáltatás általános elérhetősége a profilban is megjelenik; meglévő értékek és egyedi napok megmaradnak.
+7. Ugyanazok a szolgáltatásképek mindkét szerepnél.
+8. Új rendelés összes mezője és gombja látható; mentés után nincs visszalépkedés a befejezett űrlapokon.
+9. Megkeresések kategóriaszűrése és ajánlatküldés, magyarázott tiltások.
+10. Csetpartner keresztneve és fotója, billentyűzet melletti használhatóság.
+11. Rendelésrészletek lemondással, rendszer sávjai felett.
+12. Színek, háttér, üres terek és szövegtörések az összes érintett oldalon.
+13. Aláírt, megfelelő verziójú APK; az előző Takimaki Teszt frissítése és adatmegőrzés tényleges telefonon külön ellenőrizendő.
+
+18. NYITOTT ÉS NEM IGAZOLT TERÜLETEK
+
+A helyi tesztadat-tárolás nem bizonyít több készüléken közös piacteret. Valós SMS-küldés, éles fizetés, távoli profil-/csetadat, szerveroldali fióktörlés és újraregisztrációs tiltás külön megvalósítási/ellenőrzési tétel. Ezeket nem szabad egy sikeres widgetteszt alapján késznek jelölni.
+
+A korábbi képfeltöltések egy része csak a beszélgetésben látszik, a hivatkozott ideiglenes fájlútvonal nem elérhető. A képeken leírt követelmények ebben a dokumentumban rögzítve vannak; a hiányzó eredeti képfájlokat nem állítjuk visszaállítottnak. A jelenlegi ellenőrzött képernyőképek a verification/screens_107 könyvtárban találhatók.
+
+19. VÁLTOZÁSOK ELSŐBBSÉGE
+
+A legújabb döntések szerint:
+- Fióktörlés: Beállítások, nem a profilszerkesztő.
+- Előfizetés: Beállítások, nem a főmenü.
+- Szolgáltatásválasztás: közös képes megjelenítés mindkét szerepnél; a korábbi csak ikonos/soros változatot ez felülírja.
+- Új megrendelés: kompakt, normál méreten egyképernyős űrlap.
+- Kezdőképernyő: változatlanul megőrzendő.
+- Teszt APK: a meglévő, tartósan mentett külön tesztkulccsal frissítendő.
+
+20. DOKUMENTÁCIÓ HELYE ÉS KARBANTARTÁSA
+
+A követelmények központi fájlja: docs/Takimaki_teljes_specifikacio.txt.
+A folytatáshoz ezt és az AGENTS.md fájlt kell először elolvasni.
+A kiadás tényszerű eredményei: verification/STATUS_107.txt, tests_107.log, build_107.log, apk_107.txt és screens_107.
+A teljes specifikáció külön letölthető példánya és a forráscsomagban lévő változata ugyanazt a tartalmat őrizze.
+
+Kiadási zárás: az 1.0.7+8 APK sikeresen elkészült. Csomagazonosító, verzió, meglévő tesztaláírás és 16 KB igazítás ellenőrizve. SHA-256: c000440190e49eb15c0adadf09b262ff1a8d17dd37daee045fdcf949c4d3c9af. Fizikai telefonos teszt nem történt.
+
+
+18. JÓVÁHAGYOTT BŐVÍTÉSEK — 2026. OKTÓBER 5.
+A jelen fejezet felülírja az ellentmondó korábbi működést. Követelmény, nem készrejelentés.
+
+18.1 Lemondás előtt mindkét szerepnél Mégse / Lemondás megerősítés, az érvényes következményekkel. Megrendelőnél 12 órán belüli lemondás: saját számláló, 3 alkalom után 5 napos felfüggesztés. Szolgáltatói lemondás büntetése nincs még meghatározva. Nem azonos a meg nem jelenéssel.
+18.2 Az elfogadott munka előtt 2 órával szolgáltatói értesítés: szolgáltatás, cím, időpont; megnyitás a munka adatlapjára, lemondás ott. Lemondott munkához nincs emlékeztető. Módosításnál a korábbi emlékeztető törlendő és új ütemezendő.
+18.3 Mindkét szerep saját, mindig vezetett appnaptárt kap: havi és heti nézet, napi feladatlista, munka részletei, cset, lemondás. Naptár csempe mindkét főmenün.
+18.4 Regisztrációkor választható saját telefonos naptár vagy nem csatlakoztatás. Google/Samsung/Apple naptárhoz az operációs rendszer által elérhető naptárakat kell kínálni. Hozzáférés csak engedéllyel. Az elfogadott munkák automatikusan bekerülnek, időpontváltozás és lemondás frissíti az app által létrehozott eseményeket. Más személyes eseményt nem módosíthatunk. Beállításokban a kapcsolat bekapcsolható, kikapcsolható és módosítható. Kikapcsolás után új szinkronizálás nem történik. A meglévő appesemények megtartása/törlése külön áttekinthető választás. A belső naptár ettől függetlenül működik.
+18.5 Megrendeléskor kötelező a várható időtartam. A naptár kezdés és várható befejezés alapján foglal időt.
+18.6 Elfogadott munka időpontját mindkét fél módosíthatja partneri konfirmáció nélkül. A másik fél értesítést kap régi és új időponttal. Napló, appnaptár, külső naptár és emlékeztetők frissülnek.
+18.7 Új munka elvállalása és időpontváltozás előtt szolgáltatói naptárellenőrzés. Átfedés vagy elégtelen utazási idő esetén figyelmeztetés és blokkolás. Valós útvonal/idő becsléshez külső szolgáltatás szükséges. A helyi teszt 30 perc szünetet használ különböző címek között; ez nem útvonaltervezés, és nem igazol tényleges odaérést.
+18.8 Probléma jelentése mindkét szerepnél a munka adatlapján: ok, rövid leírás; jelen körben nincs fotófeltöltés. Nem nyilvános, nem profilértékelés. Állapot: beérkezett / vizsgálat alatt / lezárva. Egy megrendeléshez összesen egy hibajegy nyitható. Egy felhasználó ugyanazt a másik felhasználót egyszer jelentheti; további információ a meglévő hibajegyhez adható. Ezt stabil fiókazonosítók és szerveres egyediség biztosítsák.
+18.9 Első feldolgozás AI-val: kategorizálás, összefoglalás, sürgősség, hiányzó információk, döntési javaslat. Hetente egyszer belső adminjelentés. Jelentés alapján nincs automatikus büntetés. Büntetést/tiltást admin hagy jóvá. AI-feldolgozás szerverről, API-hozzáféréssel, hozzáférésvédelemmel; kliensbe titkos kulcs nem kerülhet. Heti futtatás a Takimaki backend feladata, nem egy ettől független ChatGPT-emlékeztető.
+18.10 Mindkét fél csillagos és opcionális szöveges értékelést adhat. A munka tervezett végén indul a 72 órás határidő. A két értékelés mindkettő beküldéséig rejtett, ezután egyszerre jelennek meg. Ha csak az egyik értékelt, a határidő lejártakor jelenik meg. Határidő után új értékelés nincs; már beküldött értékelés nem írható át a másik értékelésének megismerése után. Nyilvános átlagba is csak megjelent értékelés számíthat. A szerver a rejtett partnerértékelést nem adhatja ki a kliensnek.
+18.11 A munka tervezett végén mindkét fél értesítést kap: teljesült-e (igen/nem), 1–5 csillag, szöveges értékelés, belső problémajelentés. A tervezett vég nem bizonyít teljesítést. Lemondott munkára nincs ilyen értesítés. Időpontváltozáskor az ütemezés is módosul.
+18.12 Profilkép változtatásakor a meglévő csetlistában és beszélgetésfejlécben is frissül a megfelelő partner képe. Partneri kép nem helyettesíthető az aktuálisan bejelentkezett, másik ember képével. Stabil partnerazonosító szükséges; a helyi régi rekordok csak egyértelmű azonosítás esetén migrálhatók.
+
+19. 1.0.8 FEJLESZTÉSI ÁLLAPOT (2026-10-05)
+Új forrás: kötelező időtartam; havi/heti belső naptár mindkét szerepnél; helyi ütközéstiltás 30 perces pufferrel; időpontmódosítás és előzmény; lemondási megerősítés és számláló; kétoldalú rejtett értékelés és 72 órás határidő; nyilvános értékelési átlag frissítése; privát hibajegy és saját fiók szerinti lista, egyediség és hozzáfűzés; appon belüli munkaértesítéslista; Android naptárengedély, írható naptár választása regisztrációkor és beállításokban, automatikus eseményfrissítés; Android emlékeztető és értesítésből munkaadatlap megnyitása; csetpartner-fotó frissítése és stabil peerId az új beszélgetésekben.
+Ellenőrzés: 14 önálló ütemezési/értékelési szabályellenőrzés sikeres. GitHub Actions teljes Flutter-elemzés és 127 teszt sikeres az előző checkpointon; a legutóbbi értesítéslista/értékelési átlag/peerId változat további ellenőrzésre vár. Natív build folyamatban, kész új APK még nincs.
+Fennmaradó korlátok: a meglévő app SharedPreferences helyi tesztadatokkal működik. Külön felhasználók külön telefonjai közötti megrendelés, cset, push és adatfrissítés nem működik valódi backend nélkül. A hibajegyek AI-os feldolgozása és heti adminjelentése nincs bekötve: szükséges a Takimaki háttérrendszer, adminfelület és szerveroldali AI API-hozzáférés. Az app nem használ helyi szövegszabályokat valódi AI-ként. A rejtett értékelés és hibajegy-védelem jelenleg helyi szabály, éles szerveres védelem nem létezik. A 30 perces utazási puffer nem útvonalbecslés. Régi csetpartnerek képe csak egyértelmű azonosításkor frissíthető. Telefonon tényleges háttérértesítés/naptár ellenőrzés még szükséges. Android energiatakarékosság az emlékeztetőt késleltetheti. Kikapcsolt naptárkapcsolat korábbi eseményei megmaradnak. SMS és éles fizetés a korábbi hiánylistában marad.
+GitHubon a codex/takimaki-108 ágban teljes forráscheckpoint és specifikáció található. A build a checkpointot bontja ki; a korábbi gyökérkönyvtárak történeti forrását nem használja.
+
+20. 1.0.9 felhasználói javítások
+
+- A profil törlése után a korábbi helyi munkamenet nem állhat vissza. A törölt fiók jelölése megmarad, az alkalmazás induláskor törli az esetlegesen visszamaradt munkamenetet, és az Android biztonsági mentése nem állíthatja vissza a tesztfiókot.
+- A sikeres regisztráció után a telefonos naptár kiválasztása automatikusan megnyílik. A felhasználó Google-, Samsung- vagy más írható naptárat választhat, illetve kihagyhatja a csatlakoztatást.
+- A belső naptár havi és heti nézete egységes, grafikus megjelenést használ. A munkával rendelkező napokat jelölni kell, a kiválasztott nap munkái időponttal, címmel, időtartammal és állapottal jelennek meg.
+- Az értesítési lista a megrendelői és szolgáltatói profil fejlécében lévő csengőikonról érhető el.
+- A saját hibajegyek a profil kezelőfelületén érhetők el. A Beállítások képernyőn az alkalmazás-, naptár-, előfizetés- és fiókkezelési beállítások maradnak.
+- A Beállítások sorrendje: előfizetés és értesítési kapcsolók, naptárkapcsolat, kijelentkezés, legalul elkülönítve a profil törlése.
+
+21. 1.0.11 MEGRENDELÉSI IDŐPONT ÉS ELRENDEZÉS
+
+- A „Várható időtartam” perces legördülő mező megszűnik. A megrendelő a dátum mellett külön kezdési és befejezési időt választ; a rendszer ezek különbségéből számolja az időtartamot.
+- A befejezési időnek ugyanazon a napon későbbinek kell lennie a kezdési időnél. Hibás sorrendben rendelés nem menthető.
+- Az időpontmezők egységes méretűek: a dátum teljes szélességű sorban, alatta a kezdés és a befejezés egymás mellett jelenik meg.
+- A megjegyzés nem lehet keskeny félmező. Teljes szélességű, legalább kétsoros, szükség szerint bővülő mezőként jelenik meg az időpontok alatt.
+- Az űrlap kisebb kijelzőn és nagyított szövegnél továbbra is görgethető; az alsó műveletgomb nem fedheti el a megjegyzést.
+
+22. 1.0.11 TESZTELÉSI VISSZAJELZÉSEK — 2026. OKTÓBER 7.
+
+- A megrendelői és szolgáltatói szolgáltatásválasztó ugyanazt a csempeméretet, képméretet, térközt, betűméretet és tördelést használja. A megrendelői választó nem lehet összenyomott változat.
+- A takarítási megrendeléseknél alapterületet kell megadni. Az m²-adat a megkeresésen, ajánlatküldésnél, ajánlatnál, munkalistán és rendelésrészleteknél is megjelenik.
+- Minden munka időpontja kezdés–befejezés formában látszik, nem csak a kezdési időponttal.
+- Ajánlat módosításakor a szolgáltató korábbi ajánlati ára és üzenete előre kitöltve jelenik meg.
+- Elfogadott munka időpontmódosításakor először látszik a jelenlegi dátum, kezdés és befejezés. Az új dátum-, kezdés- és befejezésválasztó ezekből az értékekből indul.
+- Új ajánlat érkezésekor a megrendelő azonnali belső és engedélyezés esetén rendszerértesítést kap. Az értesítés az adott ajánlatlistára vezet.
+- Új elfogadott munkánál a szolgáltató értesítést kap. A felső csengő, a Munkáim csempe és új üzenetnél az Üzenetek csempe piros olvasatlan jelvényt és darabszámot mutat.
+- Új megválaszolható megrendelésnél a szolgáltatói Megrendelések csempe csengője piros és számlálót mutat. A jelzés a kapcsolódó tartalom megnyitása után tűnik el.
+- Az értesítések, ajánlatküldés, ajánlatkérések, munkák, rendelésrészletek, hibajegyek és üzenetek oldalai következetesen a Takimaki türkiz–halványsárga kártyás megjelenését használják; új oldal nem maradhat egyszerű, üres alapképernyő.
+
+23. 1.0.12 SZOLGÁLTATÁSI ÉS ÁRAZÁSI ÉPÍTŐ — 2026. OKTÓBER 7.
+
+- A szolgáltatói adatlap árazása nem egyetlen kötelező egységárból áll. Az „Ár hozzáadása” gomb előre meghatározott tételcsempéket nyit meg; a szolgáltató nem írhat tetszőleges tételnevet.
+- Egy tételnél összeg és az engedélyezett elszámolási egység választandó. „Egyedi árajánlat” esetén összeg nem kérhető. A szolgáltatás legalább egy érvényes ártétel vagy egyedi árajánlat nélkül nem menthető.
+- Több ártétel egymás után hozzáadható és külön törölhető. Az árlista alatt egyetlen, legfeljebb egysoros opcionális megjegyzés adható meg.
+- Apartmantakarításnál a szolgáltató képességként jelölheti a mosást, vasalást, ágyneműmosást, helyszíni mosást, valamint az elszállítást és visszaszállítást. A megrendelő először mosodai szolgáltatással vagy anélkül keres, majd a szükséges képességeket választja ki. A megkeresést csak minden kiválasztott képességet vállaló szolgáltató láthatja.
+- Mosodai szolgáltatásnál külön választható a mosás, vasalás, bértextília és háztól házig szolgáltatás. Az árlistában mosás, vasalás, bértextília és kiszállás adható meg.
+- Bútorösszeszerelésnél kiszállás, Ft/óra, Ft/alkalom, százalékos vagy egyedi árajánlat használható.
+- Klímaszolgáltatásnál kiszállás, klímatisztítás Ft/egység vagy Ft/alkalom, illetve klímajavítás egyedi árajánlattal adható meg.
+- Karbantartásnál, villanyszerelésnél, vízszerelésnél és lefolyótisztításnál kiszállás és munkatétel/egyedi árajánlat adható meg.
+- Gázszerelésnél kiszállás, kazántisztítás Ft/alkalom, konvektortisztítás Ft/alkalom és szerelés egyedi árajánlattal adható meg.
+- Villany- és gázszerelés kiválasztásakor figyelmeztetni kell, hogy a tevékenységet csak a szükséges képesítéssel és engedéllyel rendelkező szakember végezheti.
+- Két új fő szolgáltatás kerül a közös szolgáltatásválasztóba, ezért a megrendelő és a szolgáltató oldalán egyaránt elérhető: Kárpittisztítás és Lefolyótisztítás.
+- A kiválasztott megrendelési képességek a megkeresés, ajánlatküldés és elfogadott munka részletein is megjelennek; elfogadáskor az ajánlat rekordjába is továbbadódnak.
+
+24. 2026. OKTÓBER 7. 12:54-KOR JÓVÁHAGYOTT JAVÍTÁSOK
+- Apartmantakarításnál a Mit vállalsz? és megrendelői képességválasztó csak Mosodai szolgáltatás és Helyszíni mosás csempét használ.
+- Apartmantakarítás ártételei kizárólag Apartmantakarítás, Mosás, Vasalás. Ugyanezek a megrendelőnél is választhatók. Más szolgáltatások katalógusa megmarad.
+- Szolgáltatásaim, Rendeléseim, Munkáim és új megkeresések a választó eredeti rajzos képeit használják.
+- Csempék helyigénye csökkent, a szolgáltatásválasztó két szerepnél azonos. A kiválasztás jelölt; a szöveg és mértékegység közös katalógusból jön.
+- Szombat és vasárnap külön időintervallum, kikapcsolható munkavégzéssel. Ünnepnap igen/nem. Korábbi hétvégi idősáv mindkét napra átvételre kerül, amíg az adott nap külön beállítást nem kap.
+- Szolgáltatószerkesztéskor a meglévő adat megmarad akkor is, ha ugyanazt a kategóriát választják újra. Megrendelői kötelező mezők hibája mező mellett és oda görgetve jelenik meg.
+- Saját megrendelésre ajánlatküldés és saját ajánlat elfogadása tiltott. A listából is kiszűrjük. Elfogadáskor az eltárolt ajánlat azonosítóját ellenőrizzük, a hívó módosított azonosítóját nem fogadjuk el.
+- A jelenlegi helyi tesztappban nincs szerveroldali adatkezelés; a saját munka tilalmának éles szerveroldali kikényszerítése továbbra is a backend feladata. E kiadás ezt nem állítja elkészültnek.
+
+25. 2026. OKTÓBER 8. SZOLGÁLTATÁSI ADATLAP MEGJELENÉSE
+- Az Új szolgáltatás adatlap normál telefonméreten tömör, lehetőség szerint egyképernyős elrendezést használ; kisebb kijelzőn és nagyított szövegnél továbbra is görgethető.
+- A vállalt lehetőségek és az Ár hozzáadása ablak csempéi minden állapotban jól olvasható, kontrasztos sötét vagy fehér feliratot kapnak.
+- A kiválasztott csempe egységes türkiz, a választható csempék menta vagy halványsárga megjelenésűek.
+- Az elérhetőségi sorok és az ünnepnapi kapcsoló is a Takimaki türkiz–halványsárga kártyastílusát használja, egységes térközökkel és lekerekítéssel.
