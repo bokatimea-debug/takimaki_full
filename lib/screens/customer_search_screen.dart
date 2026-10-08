@@ -305,6 +305,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
               color: takiMint,
               borderRadius: BorderRadius.circular(18),
               child: ListTile(
+                key: const ValueKey('customer-service-selector'),
                 minTileHeight: 56,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 14),
                 leading: _service == null

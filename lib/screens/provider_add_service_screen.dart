@@ -107,14 +107,18 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
   Widget _generalHoursRow(String period, String label) {
     final enabled = _generalHours['${period}_from'] != null;
     return Container(
-    margin: const EdgeInsets.only(bottom: 4),
-    decoration: BoxDecoration(
-      color: period == 'sat' ? takiYellowSoft : takiMint,
-      borderRadius: BorderRadius.circular(14),
-    ),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: 44),
-        child: Padding(
+      margin: const EdgeInsets.only(bottom: 4),
+      decoration: BoxDecoration(
+        color: period == 'sat' ? takiYellowSoft : takiMint,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: InkWell(
+        key: ValueKey('general-hours-$period'),
+        onTap: () => _editGeneralHours(period),
+        borderRadius: BorderRadius.circular(14),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 44),
+          child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Row(
             children: [
@@ -130,7 +134,6 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
               ),
               if (enabled)
                 InkWell(
-                  key: ValueKey('general-hours-$period'),
                   onTap: () => _editGeneralHours(period),
                   borderRadius: BorderRadius.circular(10),
                   child: Padding(
@@ -138,7 +141,7 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
                     child: Row(
                       children: [
                         Text(
-                          '${_generalHours['${period}_from']}–${_generalHours['${period}_to']}',
+                          '${_generalHours['${period}_from']} – ${_generalHours['${period}_to']}',
                           style: const TextStyle(
                             color: takiTealDark,
                             fontSize: 12,
@@ -169,6 +172,7 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
                 },
               ),
             ],
+            ),
           ),
         ),
       ),
