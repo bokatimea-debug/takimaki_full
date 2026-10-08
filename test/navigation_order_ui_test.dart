@@ -179,8 +179,14 @@ void main() {
       await showApp(tester);
       nav.currentState!.pushNamed('/customer/search');
       await tester.pumpAndSettle();
-      await tester.ensureVisible(find.text('Általános takarítás'));
-      await tester.tap(find.text('Általános takarítás'));
+            await tester.tap(
+        find.byKey(const ValueKey('customer-service-selector')),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byKey(const ValueKey('service-option-Általános takarítás')),
+      );
+      await tester.pumpAndSettle();
       final address = find.widgetWithText(TextField, 'Cím kiválasztása');
       await tester.scrollUntilVisible(
         address,
