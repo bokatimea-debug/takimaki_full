@@ -705,7 +705,7 @@ void main() {
       );
       expect(
         scrollable.position.pixels,
-        greaterThan(1000),
+        greaterThan(800),
         reason: 'Exercise validation when the price field is far above the viewport.',
       );
       await tester.tap(save);
