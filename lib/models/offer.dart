@@ -1,12 +1,12 @@
 // lib/models/offer.dart
 
 enum OfferStatus {
-  sent,       // kiküldve
-  responded,  // szolgáltató adott árat
-  accepted,   // megrendelő elfogadta
-  inactive,   // másik ajánlat elfogadva
-  completed,  // teljesítve
-  cancelled   // meghiúsult
+  sent, // kiküldve
+  responded, // szolgáltató adott árat
+  accepted, // megrendelő elfogadta
+  inactive, // másik ajánlat elfogadva
+  completed, // teljesítve
+  cancelled, // meghiúsult
 }
 
 class Offer {

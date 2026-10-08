@@ -30,21 +30,38 @@ class ChatStore {
 
   void send(String author, String text) {
     _purgeOld();
-    _messages.add(ChatMessage(
-      id: DateTime.now().microsecondsSinceEpoch.toString(),
-      author: author,
-      text: text,
-      at: DateTime.now(),
-    ));
+    _messages.add(
+      ChatMessage(
+        id: DateTime.now().microsecondsSinceEpoch.toString(),
+        author: author,
+        text: text,
+        at: DateTime.now(),
+      ),
+    );
   }
 
   void seedDemoIfEmpty() {
     if (_messages.isNotEmpty) return;
     final now = DateTime.now();
     _messages.addAll([
-      ChatMessage(id: '1', author: 'other', text: 'Szia! Pontosítsuk az időpontot?', at: now.subtract(const Duration(minutes: 35))),
-      ChatMessage(id: '2', author: 'me', text: 'Szia! Nekem 10:00 megfelel.', at: now.subtract(const Duration(minutes: 30))),
-      ChatMessage(id: '3', author: 'other', text: 'Rendben, 10:00-ra megyek. Köszönöm!', at: now.subtract(const Duration(minutes: 25))),
+      ChatMessage(
+        id: '1',
+        author: 'other',
+        text: 'Szia! Pontosítsuk az időpontot?',
+        at: now.subtract(const Duration(minutes: 35)),
+      ),
+      ChatMessage(
+        id: '2',
+        author: 'me',
+        text: 'Szia! Nekem 10:00 megfelel.',
+        at: now.subtract(const Duration(minutes: 30)),
+      ),
+      ChatMessage(
+        id: '3',
+        author: 'other',
+        text: 'Rendben, 10:00-ra megyek. Köszönöm!',
+        at: now.subtract(const Duration(minutes: 25)),
+      ),
     ]);
   }
 

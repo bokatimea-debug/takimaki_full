@@ -2,13 +2,15 @@
 enum SanctionAction { none, warn, suspend14d, banPermanent }
 
 class ProviderDisciplineState {
-  int points = 0;                // súlyozott pontok (panasz/negatív értékelés)
-  int oneStarCount = 0;          // 1 csillagos értékelések darabszáma (5 => felfüggesztés)
-  int consecutiveNoShows = 0;    // egymás utáni no-show-k (2 => 14 nap)
-  int warningsThisWeek = 0;      // heti figyelmeztetések számolása
-  int suspensionsCount = 0;      // hányszor ért el 10 pontot (2. alkalom = végleges tiltás)
-  DateTime? suspendedUntil;      // ha nem null => felfüggesztett eddig
-  bool banned = false;           // végleges tiltás
+  int points = 0; // súlyozott pontok (panasz/negatív értékelés)
+  int oneStarCount =
+      0; // 1 csillagos értékelések darabszáma (5 => felfüggesztés)
+  int consecutiveNoShows = 0; // egymás utáni no-show-k (2 => 14 nap)
+  int warningsThisWeek = 0; // heti figyelmeztetések számolása
+  int suspensionsCount =
+      0; // hányszor ért el 10 pontot (2. alkalom = végleges tiltás)
+  DateTime? suspendedUntil; // ha nem null => felfüggesztett eddig
+  bool banned = false; // végleges tiltás
 
   bool get isSuspendedNow =>
       suspendedUntil != null && DateTime.now().isBefore(suspendedUntil!);
@@ -91,4 +93,3 @@ class SanctionEngine {
     return SanctionAction.suspend14d;
   }
 }
-

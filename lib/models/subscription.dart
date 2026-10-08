@@ -4,8 +4,8 @@ enum UserRole { customer, provider }
 class SubscriptionPolicy {
   static Duration trialFor(UserRole role) {
     return role == UserRole.customer
-        ? const Duration(days: 90)   // 3 hónap
-        : const Duration(days: 30);  // 1 hónap
+        ? const Duration(days: 90) // 3 hónap
+        : const Duration(days: 30); // 1 hónap
   }
 
   static bool isActive({
