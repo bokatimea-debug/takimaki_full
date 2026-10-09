@@ -337,7 +337,7 @@ class _WorkCalendarScreenState extends State<WorkCalendarScreen> {
                                 ],
                               ),
                             ),
-                          ));
+                          )));
                         }),
                       ),
                     ),
