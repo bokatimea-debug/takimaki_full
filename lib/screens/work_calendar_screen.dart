@@ -297,24 +297,21 @@ class _WorkCalendarScreenState extends State<WorkCalendarScreen> {
                       ],
                     ),
                     SizedBox(
-                      height: 92,
-                      child: ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(horizontal: 6),
-                        itemCount: 7,
-                        separatorBuilder: (_, __) => const SizedBox(width: 7),
-                        itemBuilder: (context, i) {
+                      height: 86,
+                      child: Row(
+                        children: List.generate(7, (i) {
                           final day = monday.add(Duration(days: i));
                           final selected = DateUtils.isSameDay(day, _day);
                           final count = _count(day);
-                          return InkWell(
+                          return Expanded(child: Padding(
+                            padding: EdgeInsets.only(right: i == 6 ? 0 : 4),
+                            child: InkWell(
                             key: ValueKey('week-day-$i'),
                             borderRadius: BorderRadius.circular(18),
                             onTap: () => setState(() => _day = day),
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 180),
-                              width: 58,
-                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              padding: const EdgeInsets.symmetric(vertical: 7),
                               decoration: BoxDecoration(
                                 color: selected ? takiTeal : _dayColor(day.weekday),
                                 borderRadius: BorderRadius.circular(18),
@@ -327,7 +324,7 @@ class _WorkCalendarScreenState extends State<WorkCalendarScreen> {
                                     style: TextStyle(color: selected ? Colors.white : takiMutedText, fontWeight: FontWeight.w700, fontSize: 12),
                                   ),
                                   const SizedBox(height: 4),
-                                  Text('${day.day}', style: TextStyle(color: selected ? Colors.white : takiTealDark, fontWeight: FontWeight.w900, fontSize: 24)),
+                                  Text('${day.day}', style: TextStyle(color: selected ? Colors.white : takiTealDark, fontWeight: FontWeight.w900, fontSize: 20)),
                                   const Spacer(),
                                   Container(
                                     width: count > 0 ? 24 : 6,
@@ -340,8 +337,8 @@ class _WorkCalendarScreenState extends State<WorkCalendarScreen> {
                                 ],
                               ),
                             ),
-                          );
-                        },
+                          ));
+                        }),
                       ),
                     ),
                   ],

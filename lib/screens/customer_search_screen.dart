@@ -344,6 +344,21 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
                         visualDensity: VisualDensity.compact,
                         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         selected: _requestedOptions.contains(option),
+                        showCheckmark: true,
+                        backgroundColor: takiYellowSoft,
+                        selectedColor: takiTeal,
+                        checkmarkColor: Colors.white,
+                        side: BorderSide(
+                          color: _requestedOptions.contains(option)
+                              ? takiTeal
+                              : const Color(0xFFE4C56F),
+                        ),
+                        labelStyle: TextStyle(
+                          color: _requestedOptions.contains(option)
+                              ? Colors.white
+                              : takiTealDark,
+                          fontWeight: FontWeight.w800,
+                        ),
                         label: Text(option),
                         onSelected: (value) => setState(() {
                           value
@@ -370,6 +385,20 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
                         key: ValueKey('customer-item-$item'),
                         label: Text(item),
                         selected: _requestedOptions.contains(item),
+                        backgroundColor: takiMint,
+                        selectedColor: takiTeal,
+                        checkmarkColor: Colors.white,
+                        side: BorderSide(
+                          color: _requestedOptions.contains(item)
+                              ? takiTeal
+                              : const Color(0xFF9ACCC6),
+                        ),
+                        labelStyle: TextStyle(
+                          color: _requestedOptions.contains(item)
+                              ? Colors.white
+                              : takiTealDark,
+                          fontWeight: FontWeight.w800,
+                        ),
                         onSelected: (value) => setState(() {
                           value
                               ? _requestedOptions.add(item)

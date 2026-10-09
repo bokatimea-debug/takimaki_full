@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../services/device_workflow.dart';
+import '../theme.dart';
 import '../widgets/taki_app_bar.dart';
 
 class CalendarConnectionScreen extends StatefulWidget {
@@ -159,6 +160,11 @@ class _CalendarConnectionScreenState extends State<CalendarConnectionScreen> {
             ),
           if (_selected != null)
             OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                backgroundColor: takiMint,
+                foregroundColor: takiTealDark,
+                side: const BorderSide(color: takiTeal, width: 1.4),
+              ),
               onPressed: _busy ? null : _disconnect,
               child: const Text('Automatikus hozzáadás kikapcsolása'),
             ),

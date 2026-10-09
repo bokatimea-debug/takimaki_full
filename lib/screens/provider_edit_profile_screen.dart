@@ -188,10 +188,13 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
       }
       await _write(prefs, 'provider_bio', _bio.text.trim());
       await _write(prefs, 'provider_city', _city);
-      if (_wdFrom != null) {
+      if (_wdFrom == null) {
+        await prefs.remove('provider_wd_from');
+        await prefs.remove('provider_wd_to');
+      } else {
         await _write(prefs, 'provider_wd_from', _fmt(_wdFrom));
+        await _write(prefs, 'provider_wd_to', _fmt(_wdTo));
       }
-      if (_wdTo != null) await _write(prefs, 'provider_wd_to', _fmt(_wdTo));
       for (final entry in {
         'sat': [_weFrom, _weTo],
         'sun': [_sunFrom, _sunTo],
@@ -255,10 +258,20 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
         const SizedBox(height: 8),
         _TimeCard(
           title: 'Hétköznap',
-          subtitle: '${_fmt(_wdFrom)} – ${_fmt(_wdTo)}',
+          subtitle: _wdFrom == null ? 'Nem dolgozom' : '${_fmt(_wdFrom)} – ${_fmt(_wdTo)}',
           icon: Icons.work_outline_rounded,
           color: takiMint,
           onTap: _loading || _saving ? null : () => _pickRange(weekend: false),
+          enabled: _wdFrom != null,
+          onChanged: _loading || _saving ? null : (value) => setState(() {
+            if (value) {
+              _wdFrom = const TimeOfDay(hour: 9, minute: 0);
+              _wdTo = const TimeOfDay(hour: 17, minute: 0);
+            } else {
+              _wdFrom = null;
+              _wdTo = null;
+            }
+          }),
         ),
         const SizedBox(height: 8),
         _TimeCard(
@@ -267,29 +280,18 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
           icon: Icons.wb_sunny_outlined,
           color: takiYellowSoft,
           onTap: _loading || _saving ? null : () => _pickRange(weekend: true),
+          enabled: _weFrom != null,
+          onChanged: _loading || _saving ? null : (value) => setState(() {
+            if (value) {
+              _weFrom = const TimeOfDay(hour: 9, minute: 0);
+              _weTo = const TimeOfDay(hour: 14, minute: 0);
+            } else {
+              _weFrom = null;
+              _weTo = null;
+            }
+          }),
         ),
-        const SizedBox(height: 6),
-        Wrap(
-          spacing: 8,
-          children: [
-            if (_weFrom != null)
-              TextButton(
-                onPressed: () => setState(() {
-                  _weFrom = null;
-                  _weTo = null;
-                }),
-                child: const Text('Szombaton nem dolgozom'),
-              ),
-            if (_sunFrom != null)
-              TextButton(
-                onPressed: () => setState(() {
-                  _sunFrom = null;
-                  _sunTo = null;
-                }),
-                child: const Text('Vasárnap nem dolgozom'),
-              ),
-          ],
-        ),
+        const SizedBox(height: 8),
         _TimeCard(
           title: 'Vasárnap',
           subtitle: _sunFrom == null
@@ -300,6 +302,16 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
           onTap: _loading || _saving
               ? null
               : () => _pickRange(weekend: true, sunday: true),
+          enabled: _sunFrom != null,
+          onChanged: _loading || _saving ? null : (value) => setState(() {
+            if (value) {
+              _sunFrom = const TimeOfDay(hour: 9, minute: 0);
+              _sunTo = const TimeOfDay(hour: 14, minute: 0);
+            } else {
+              _sunFrom = null;
+              _sunTo = null;
+            }
+          }),
         ),
         SwitchListTile.adaptive(
           contentPadding: EdgeInsets.zero,
@@ -324,6 +336,8 @@ class _TimeCard extends StatelessWidget {
     required this.icon,
     required this.color,
     required this.onTap,
+    required this.enabled,
+    required this.onChanged,
   });
 
   final String title;
@@ -331,6 +345,8 @@ class _TimeCard extends StatelessWidget {
   final IconData icon;
   final Color color;
   final VoidCallback? onTap;
+  final bool enabled;
+  final ValueChanged<bool>? onChanged;
 
   @override
   Widget build(BuildContext context) => Material(
@@ -371,10 +387,9 @@ class _TimeCard extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(
-                Icons.chevron_right_rounded,
-                color: takiNavy,
-                size: 22,
+              Switch.adaptive(
+                value: enabled,
+                onChanged: onChanged,
               ),
             ],
           ),

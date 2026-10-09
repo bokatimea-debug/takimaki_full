@@ -132,8 +132,10 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
                   ),
                 ),
               ),
-              if (enabled)
-                InkWell(
+              SizedBox(
+                width: 156,
+                child: enabled
+                ? InkWell(
                   onTap: () => _editGeneralHours(period),
                   borderRadius: BorderRadius.circular(10),
                   child: Padding(
@@ -154,8 +156,11 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
                     ),
                   ),
                 )
-              else
-                const Text('Nem', style: TextStyle(color: takiMutedText, fontSize: 12)),
+                : const Align(
+                    alignment: Alignment.centerRight,
+                    child: Text('Nem', style: TextStyle(color: takiMutedText, fontSize: 12)),
+                  ),
+              ),
               const SizedBox(width: 6),
               Switch.adaptive(
                 value: enabled,
@@ -305,14 +310,14 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
                   Text("Kiválasztva: ${selected.length}/10"),
                   const SizedBox(height: 12),
                   Expanded(
-                    child: GridView.builder(
+                      child: GridView.builder(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 4,
                             mainAxisSpacing: 8,
                             crossAxisSpacing: 8,
-                            childAspectRatio: 1.45,
+                            childAspectRatio: 1.35,
                           ),
                       itemCount: 90,
                       itemBuilder: (context, index) {
@@ -324,8 +329,17 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
                         final isSelected = selected.contains(date);
                         return FilterChip(
                           selected: isSelected,
+                          showCheckmark: false,
+                          backgroundColor: date.day.isEven ? takiMint : takiYellowSoft,
+                          selectedColor: takiTeal,
+                          side: BorderSide(color: isSelected ? takiTeal : const Color(0xFF9ABDB8)),
+                          labelStyle: TextStyle(
+                            color: isSelected ? Colors.white : takiTealDark,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 12,
+                          ),
                           label: Text(
-                            "${date.month}.${date.day}.",
+                            "${date.month}.${date.day}.\n${const ['H', 'K', 'Sze', 'Cs', 'P', 'Szo', 'V'][date.weekday - 1]}",
                             textAlign: TextAlign.center,
                           ),
                           onSelected: (value) {
@@ -584,6 +598,40 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
   Widget _serviceOptionsPicker() {
     final options = serviceOptionLabels[_service] ?? const <String>[];
     if (options.isEmpty) return const SizedBox.shrink();
+    Widget optionChip(String option, {bool fill = false}) {
+      final selected = _serviceOptions.contains(option);
+      return FilterChip(
+        key: ValueKey('service-option-detail-$option'),
+        selected: selected,
+        showCheckmark: true,
+        backgroundColor: takiYellowSoft,
+        selectedColor: takiTeal,
+        checkmarkColor: Colors.white,
+        side: BorderSide(
+          color: selected ? takiTeal : const Color(0xFFE4C56F),
+        ),
+        labelStyle: TextStyle(
+          color: selected ? Colors.white : takiTealDark,
+          fontWeight: FontWeight.w800,
+        ),
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        visualDensity: VisualDensity.compact,
+        label: SizedBox(
+          width: fill ? double.infinity : null,
+          child: Text(
+            option,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        onSelected: (value) => setState(() {
+          value
+              ? _serviceOptions.add(option)
+              : _serviceOptions.remove(option);
+        }),
+      );
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -592,34 +640,27 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 6),
-        Wrap(
-          spacing: 7,
-          runSpacing: 7,
-          children: options.map((option) {
-            final selected = _serviceOptions.contains(option);
-            return FilterChip(
-              key: ValueKey('service-option-detail-$option'),
-              selected: selected,
-              showCheckmark: true,
-              backgroundColor: takiYellowSoft,
-              selectedColor: takiTeal,
-              checkmarkColor: Colors.white,
-              side: BorderSide(
-                color: selected ? takiTeal : const Color(0xFFE4C56F),
-              ),
-              labelStyle: TextStyle(
-                color: selected ? Colors.white : takiTealDark,
-                fontWeight: FontWeight.w800,
-              ),
-              label: Text(option),
-              onSelected: (value) => setState(() {
-                value
-                    ? _serviceOptions.add(option)
-                    : _serviceOptions.remove(option);
-              }),
-            );
-          }).toList(),
-        ),
+        if (options.length == 2)
+          Row(
+            children: options
+                .map(
+                  (option) => Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.only(
+                        right: option == options.last ? 0 : 6,
+                      ),
+                      child: optionChip(option, fill: true),
+                    ),
+                  ),
+                )
+                .toList(),
+          )
+        else
+          Wrap(
+            spacing: 6,
+            runSpacing: 5,
+            children: options.map(optionChip).toList(),
+          ),
       ],
     );
   }
@@ -1032,7 +1073,11 @@ class _PriceRuleDialogState extends State<_PriceRuleDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      scrollable: true,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      titlePadding: const EdgeInsets.fromLTRB(20, 16, 20, 6),
+      contentPadding: const EdgeInsets.fromLTRB(20, 6, 20, 4),
+      actionsPadding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
       title: const Text('Ár hozzáadása'),
       content: SizedBox(
         width: 360,
