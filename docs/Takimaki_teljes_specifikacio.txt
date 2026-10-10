@@ -293,3 +293,10 @@ GitHubon a codex/takimaki-108 ágban teljes forráscheckpoint és specifikáció
 - Apartman-, általános, nagy- és felújítás utáni takarításnál több egymást követő m²-ársáv vihető fel: alsó m²-határ, felső m²-határ és a sáv fix ára. Az új sáv nem írhatja felül a korábbiakat.
 - Ugyanahhoz a szolgáltatáshoz több ártétel adható hozzá; a rendszer nem tilthatja le a teljes tételt az első ár felvitele után.
 - A Hétköznap, Szombat, Vasárnap és Ünnepnap sorai azonos szélességű, egymás alatti, tömör kártyák. Minden nap munkavégzése egyértelmű igen/nem kapcsolóval állítható. Kikapcsolt napnál nincs időintervallum; bekapcsoláskor kezdés és befejezés adandó meg.
+
+27. 1.0.18 ELÉRHETŐSÉG ÉS EGYEDI NAPOK — 2026. OKTÓBER 10.
+- A Hétköznap sora vizuálisan ugyanazt a kapcsolós kártyát használja, mint a többi nap. A hétköznap nem kapcsolható ki; a kapcsoló vagy a sor megnyomásával a felhasználó maga adja meg a kezdési és befejezési időpontot.
+- Az egyedi napok választója a belső havi naptár hétnapos, hétfőtől vasárnapig tartó elrendezését használja. Egyszerre több nap jelölhető ki, nincs 10 napos korlát.
+- Egy kijelölt napcsoporthoz egy közös időintervallum adható. Mentés után további napcsoport vehető fel más időintervallummal; a korábbi napok nem vesznek el.
+- A mentett egyedi napok időintervallum szerint csoportosított, tömör türkiz–halványsárga kártyákon jelennek meg, és csoportosan szerkeszthetők vagy törölhetők.
+- Ha az Ünnepnap beállítás Nem, a szolgáltató magyar munkaszüneti napra nem kap megkeresést. Kivétel az a konkrét ünnepnap, amelyet az adott szolgáltatás Egyedi napjai között munkaidővel külön megadott.
