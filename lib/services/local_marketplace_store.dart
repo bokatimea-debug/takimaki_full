@@ -221,6 +221,50 @@ class LocalMarketplaceStore {
     return available.containsAll(requested);
   }
 
+  static DateTime _easterSunday(int year) {
+    final a = year % 19;
+    final b = year ~/ 100;
+    final c = year % 100;
+    final d = b ~/ 4;
+    final e = b % 4;
+    final f = (b + 8) ~/ 25;
+    final g = (b - f + 1) ~/ 3;
+    final h = (19 * a + b - d - g + 15) % 30;
+    final i = c ~/ 4;
+    final k = c % 4;
+    final l = (32 + 2 * e + 2 * i - h - k) % 7;
+    final m = (a + 11 * h + 22 * l) ~/ 451;
+    final month = (h + l - 7 * m + 114) ~/ 31;
+    final day = (h + l - 7 * m + 114) % 31 + 1;
+    return DateTime(year, month, day);
+  }
+
+  static bool _isHungarianPublicHoliday(DateTime date) {
+    final fixed = <String>{
+      '1-1', '3-15', '5-1', '8-20', '10-23', '11-1', '12-25', '12-26',
+    };
+    if (fixed.contains('${date.month}-${date.day}')) return true;
+    final easter = _easterSunday(date.year);
+    final day = DateTime(date.year, date.month, date.day);
+    return day.millisecondsSinceEpoch ==
+            easter.subtract(const Duration(days: 2)).millisecondsSinceEpoch ||
+        day.millisecondsSinceEpoch ==
+            easter.add(const Duration(days: 1)).millisecondsSinceEpoch ||
+        day.millisecondsSinceEpoch ==
+            easter.add(const Duration(days: 50)).millisecondsSinceEpoch;
+  }
+
+  static bool _hasCustomDate(
+    Map<String, dynamic> providerService,
+    DateTime date,
+  ) {
+    final key = DateTime(date.year, date.month, date.day);
+    return (providerService['dates'] as List? ?? const [])
+        .map((value) => DateTime.tryParse(value.toString()))
+        .whereType<DateTime>()
+        .any((value) => DateTime(value.year, value.month, value.day) == key);
+  }
+
   static bool _isOpenRequest(Map<String, dynamic> request) =>
       const ['pending', 'offered'].contains(request['status']) &&
       !isResponseExpired(request);
@@ -230,6 +274,7 @@ class LocalMarketplaceStore {
     final requests = await _read(requestsKey);
     final prefs = await SharedPreferences.getInstance();
     final ownId = prefs.getString('registration_phone');
+    final worksOnHolidays = prefs.getBool('provider_holidays') ?? false;
     final ownOrders = await _read(customerOrdersKey);
     return requests.where((request) {
       final service = services
@@ -240,6 +285,11 @@ class LocalMarketplaceStore {
           .firstOrNull;
       return !isOwnRequest(request, ownId, ownOrders) &&
           service != null &&
+          (() {
+            final date = DateTime.tryParse(request['date']?.toString() ?? '');
+            if (date == null || !_isHungarianPublicHoliday(date)) return true;
+            return worksOnHolidays || _hasCustomDate(service, date);
+          })() &&
           _providerMatchesRequestOptions(service, request) &&
           _isOpenRequest(request);
     }).toList();
