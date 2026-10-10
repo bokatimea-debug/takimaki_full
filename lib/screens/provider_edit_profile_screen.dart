@@ -113,7 +113,7 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
       ? '--:--'
       : '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
 
-  Future<void> _pickRange({required bool weekend, bool sunday = false}) async {
+  Future<bool> _pickRange({required bool weekend, bool sunday = false}) async {
     final fromInit = sunday
         ? (_sunFrom ?? const TimeOfDay(hour: 9, minute: 0))
         : weekend
@@ -129,16 +129,16 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
       initialTime: fromInit,
       initialEntryMode: TimePickerEntryMode.dial,
     );
-    if (from == null || !mounted) return;
+    if (from == null || !mounted) return false;
     final to = await showTimePicker(
       context: context,
       initialTime: toInit,
       initialEntryMode: TimePickerEntryMode.dial,
     );
-    if (to == null || !mounted) return;
+    if (to == null || !mounted) return false;
     if (to.hour * 60 + to.minute <= from.hour * 60 + from.minute) {
       _showError('A befejezés a kezdés után legyen.');
-      return;
+      return false;
     }
     setState(() {
       if (sunday) {
@@ -152,6 +152,7 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
         _wdTo = to;
       }
     });
+    return true;
   }
 
   Future<void> _pickPhoto() async {
@@ -258,67 +259,63 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
         const SizedBox(height: 8),
         _TimeCard(
           title: 'Hétköznap',
-          subtitle: _wdFrom == null ? 'Nem dolgozom' : '${_fmt(_wdFrom)} – ${_fmt(_wdTo)}',
+          subtitle: _wdFrom == null
+              ? 'Időpont megadása'
+              : '${_fmt(_wdFrom)} – ${_fmt(_wdTo)}',
           icon: Icons.work_outline_rounded,
           color: takiMint,
           onTap: _loading || _saving ? null : () => _pickRange(weekend: false),
-          enabled: _wdFrom != null,
-          onChanged: _loading || _saving ? null : (value) => setState(() {
-            if (value) {
-              _wdFrom = const TimeOfDay(hour: 9, minute: 0);
-              _wdTo = const TimeOfDay(hour: 17, minute: 0);
-            } else {
-              _wdFrom = null;
-              _wdTo = null;
-            }
-          }),
+          enabled: null,
+          onChanged: null,
         ),
         const SizedBox(height: 8),
         _TimeCard(
           title: 'Szombat',
-          subtitle: '${_fmt(_weFrom)} – ${_fmt(_weTo)}',
+          subtitle: _weFrom == null ? 'Nem' : '${_fmt(_weFrom)} – ${_fmt(_weTo)}',
           icon: Icons.wb_sunny_outlined,
           color: takiYellowSoft,
           onTap: _loading || _saving ? null : () => _pickRange(weekend: true),
           enabled: _weFrom != null,
-          onChanged: _loading || _saving ? null : (value) => setState(() {
+          onChanged: _loading || _saving ? null : (value) async {
             if (value) {
-              _weFrom = const TimeOfDay(hour: 9, minute: 0);
-              _weTo = const TimeOfDay(hour: 14, minute: 0);
-            } else {
-              _weFrom = null;
-              _weTo = null;
+              await _pickRange(weekend: true);
+            } else if (mounted) {
+              setState(() {
+                _weFrom = null;
+                _weTo = null;
+              });
             }
-          }),
+          },
         ),
         const SizedBox(height: 8),
         _TimeCard(
           title: 'Vasárnap',
-          subtitle: _sunFrom == null
-              ? 'Nem dolgozom / időpont megadása'
-              : '${_fmt(_sunFrom)} – ${_fmt(_sunTo)}',
+          subtitle: _sunFrom == null ? 'Nem' : '${_fmt(_sunFrom)} – ${_fmt(_sunTo)}',
           icon: Icons.wb_sunny_outlined,
           color: takiMint,
           onTap: _loading || _saving
               ? null
               : () => _pickRange(weekend: true, sunday: true),
           enabled: _sunFrom != null,
-          onChanged: _loading || _saving ? null : (value) => setState(() {
+          onChanged: _loading || _saving ? null : (value) async {
             if (value) {
-              _sunFrom = const TimeOfDay(hour: 9, minute: 0);
-              _sunTo = const TimeOfDay(hour: 14, minute: 0);
-            } else {
-              _sunFrom = null;
-              _sunTo = null;
+              await _pickRange(weekend: true, sunday: true);
+            } else if (mounted) {
+              setState(() {
+                _sunFrom = null;
+                _sunTo = null;
+              });
             }
-          }),
+          },
         ),
-        SwitchListTile.adaptive(
-          contentPadding: EdgeInsets.zero,
-          dense: true,
-          title: const Text('Ünnepnapon is vállalok munkát'),
-          subtitle: Text(_holidays ? 'Igen' : 'Nem'),
-          value: _holidays,
+        const SizedBox(height: 8),
+        _TimeCard(
+          title: 'Ünnepnap',
+          subtitle: _holidays ? 'Igen' : 'Nem',
+          icon: Icons.celebration_outlined,
+          color: takiYellowSoft,
+          onTap: null,
+          enabled: _holidays,
           onChanged: _loading || _saving
               ? null
               : (value) => setState(() => _holidays = value),
@@ -345,7 +342,7 @@ class _TimeCard extends StatelessWidget {
   final IconData icon;
   final Color color;
   final VoidCallback? onTap;
-  final bool enabled;
+  final bool? enabled;
   final ValueChanged<bool>? onChanged;
 
   @override
@@ -364,33 +361,36 @@ class _TimeCard extends StatelessWidget {
               Icon(icon, color: takiNavy, size: 24),
               const SizedBox(width: 12),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                        color: takiNavy,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      style: const TextStyle(
-                        color: takiMutedText,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: takiNavy,
+                  ),
                 ),
               ),
-              Switch.adaptive(
-                value: enabled,
-                onChanged: onChanged,
+              SizedBox(
+                width: 132,
+                child: Text(
+                  subtitle,
+                  textAlign: TextAlign.right,
+                  maxLines: 1,
+                  style: const TextStyle(
+                    color: takiMutedText,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
+              const SizedBox(width: 6),
+              if (enabled == null)
+                const SizedBox(
+                  width: 52,
+                  child: Icon(Icons.edit_outlined, color: takiNavy, size: 22),
+                )
+              else
+                Switch.adaptive(value: enabled!, onChanged: onChanged),
             ],
           ),
         ),

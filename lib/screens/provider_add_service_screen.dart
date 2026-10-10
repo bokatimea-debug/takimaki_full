@@ -106,6 +106,7 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
 
   Widget _generalHoursRow(String period, String label) {
     final enabled = _generalHours['${period}_from'] != null;
+    final isWeekday = period == 'wd';
     return Container(
       margin: const EdgeInsets.only(bottom: 4),
       decoration: BoxDecoration(
@@ -156,26 +157,38 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
                     ),
                   ),
                 )
-                : const Align(
+                : Align(
                     alignment: Alignment.centerRight,
-                    child: Text('Nem', style: TextStyle(color: takiMutedText, fontSize: 12)),
+                    child: Text(
+                      isWeekday ? 'Időpont megadása' : 'Nem',
+                      style: const TextStyle(color: takiMutedText, fontSize: 12),
+                    ),
                   ),
               ),
               const SizedBox(width: 6),
-              Switch.adaptive(
-                value: enabled,
-                onChanged: (value) async {
-                  if (value) {
-                    await _editGeneralHours(period);
-                  } else {
-                    setState(() {
-                      _generalHours.remove('${period}_from');
-                      _generalHours.remove('${period}_to');
-                      _changedHours.add(period);
-                    });
-                  }
-                },
-              ),
+              if (isWeekday)
+                const SizedBox(
+                  width: 52,
+                  child: Align(
+                    alignment: Alignment.center,
+                    child: Icon(Icons.edit_outlined, color: takiTealDark, size: 20),
+                  ),
+                )
+              else
+                Switch.adaptive(
+                  value: enabled,
+                  onChanged: (value) async {
+                    if (value) {
+                      await _editGeneralHours(period);
+                    } else {
+                      setState(() {
+                        _generalHours.remove('${period}_from');
+                        _generalHours.remove('${period}_to');
+                        _changedHours.add(period);
+                      });
+                    }
+                  },
+                ),
             ],
             ),
           ),
@@ -923,24 +936,45 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
                     _generalHoursRow('wd', 'Hétköznap'),
                     _generalHoursRow('sat', 'Szombat'),
                     _generalHoursRow('sun', 'Vasárnap'),
-                    SwitchListTile.adaptive(
-                      tileColor: takiYellowSoft,
-                      shape: RoundedRectangleBorder(
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 4),
+                      decoration: BoxDecoration(
+                        color: takiYellowSoft,
                         borderRadius: BorderRadius.circular(14),
                       ),
-                      contentPadding: const EdgeInsets.only(left: 12, right: 6),
-                      dense: true,
-                      visualDensity: VisualDensity.compact,
-                      title: Text(
-                        'Ünnepnap: ${_holidays ? 'igen' : 'nem'}',
-                        style: const TextStyle(
-                          color: takiTealDark,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w800,
-                        ),
+                      constraints: const BoxConstraints(minHeight: 44),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Row(
+                        children: [
+                          const Expanded(
+                            child: Text(
+                              'Ünnepnap',
+                              style: TextStyle(
+                                color: takiTealDark,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            width: 156,
+                            child: Text(
+                              _holidays ? 'Igen' : 'Nem',
+                              textAlign: TextAlign.right,
+                              style: const TextStyle(
+                                color: takiMutedText,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Switch.adaptive(
+                            value: _holidays,
+                            onChanged: (value) =>
+                                setState(() => _holidays = value),
+                          ),
+                        ],
                       ),
-                      value: _holidays,
-                      onChanged: (value) => setState(() => _holidays = value),
                     ),
                     const SizedBox(height: 6),
                     OutlinedButton.icon(
