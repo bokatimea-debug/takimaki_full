@@ -1,3 +1,4 @@
+import '../widgets/taki_screen_header.dart';
 import '../widgets/service_choice_grid.dart';
 import '../widgets/taki_app_bar.dart';
 
@@ -103,24 +104,12 @@ class _ProviderServicesScreenState extends State<ProviderServicesScreen> {
           : ListView(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
               children: [
-                const Text(
-                  'Szolgáltatásaid és irányáraik',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    color: takiTealDark,
-                  ),
+                const TakiScreenHeader(
+                  title: 'Saját szolgáltatások',
+                  subtitle: 'Árak és elérhetőség kezelése',
+                  icon: Icons.design_services_outlined,
                 ),
-                const SizedBox(height: 4),
-                const Text(
-                  'A végleges díjat az ajánlatban egyeztetitek.',
-                  style: TextStyle(
-                    fontSize: 13,
-                    height: 1.35,
-                    color: takiMutedText,
-                  ),
-                ),
-                const SizedBox(height: 14),
+                const SizedBox(height: 12),
                 ..._items.asMap().entries.map(
                   (entry) => _serviceCard(entry.key, entry.value),
                 ),
