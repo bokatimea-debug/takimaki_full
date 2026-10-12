@@ -1,3 +1,4 @@
+import '../widgets/taki_screen_header.dart';
 import '../widgets/taki_app_bar.dart';
 
 import "dart:io";
@@ -35,81 +36,88 @@ class _ChatListScreenState extends State<ChatListScreen> {
       appBar: TakiAppBar(title: const Text("Üzenetek")),
       body: BrandedBackground(
         child: threads.isEmpty
-          ? const TakiEmptyState(
-              icon: Icons.chat_bubble_outline,
-              title: 'Még nincs üzeneted',
-              text: 'Elfogadott ajánlat után itt tudtok egyeztetni.',
-            )
-          : ListView.separated(
-              padding: EdgeInsets.fromLTRB(
-                18,
-                12,
-                18,
-                MediaQuery.paddingOf(context).bottom + 28,
-              ),
-              itemCount: threads.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 8),
-              itemBuilder: (_, i) {
-                final t = threads[i];
-                final last = t.messages.isNotEmpty ? t.messages.last : null;
-                return Material(
-                  color: i.isEven ? takiMint : takiYellowSoft,
-                  borderRadius: BorderRadius.circular(24),
-                  elevation: 2,
-                  shadowColor: takiTealDark.withOpacity(.10),
-                  child: ListTile(
-                    minVerticalPadding: 18,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 18,
-                      vertical: 8,
-                    ),
-                    leading: ChatPeerAvatar(thread: t, radius: 25),
-                    title: Text(
-                      t.displayName,
-                      style: const TextStyle(fontWeight: FontWeight.w800),
-                    ),
-                    subtitle: Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Text(
-                        last?.text ?? "Indíts beszélgetést",
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+            ? const TakiEmptyState(
+                icon: Icons.chat_bubble_outline,
+                title: 'Még nincs üzeneted',
+                text: 'Elfogadott ajánlat után itt tudtok egyeztetni.',
+              )
+            : ListView.separated(
+                padding: EdgeInsets.fromLTRB(
+                  18,
+                  12,
+                  18,
+                  MediaQuery.paddingOf(context).bottom + 28,
+                ),
+                itemCount: threads.length + 1,
+                separatorBuilder: (_, __) => const SizedBox(height: 8),
+                itemBuilder: (_, i) {
+                  if (i == 0)
+                    return const TakiScreenHeader(
+                      title: 'Üzeneteid',
+                      subtitle: 'Aktív beszélgetések',
+                      icon: Icons.chat_bubble_outline,
+                    );
+                  final itemIndex = i - 1;
+                  final t = threads[itemIndex];
+                  final last = t.messages.isNotEmpty ? t.messages.last : null;
+                  return Material(
+                    color: itemIndex.isEven ? takiMint : takiYellowSoft,
+                    borderRadius: BorderRadius.circular(24),
+                    elevation: 2,
+                    shadowColor: takiTealDark.withOpacity(.10),
+                    child: ListTile(
+                      minVerticalPadding: 18,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 18,
+                        vertical: 8,
                       ),
-                    ),
-                    trailing: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(last != null ? _ago(last.ts) : ""),
-                        const SizedBox(height: 7),
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: takiTeal,
-                            shape: BoxShape.circle,
+                      leading: ChatPeerAvatar(thread: t, radius: 25),
+                      title: Text(
+                        t.displayName,
+                        style: const TextStyle(fontWeight: FontWeight.w800),
+                      ),
+                      subtitle: Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          last?.text ?? "Indíts beszélgetést",
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      trailing: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(last != null ? _ago(last.ts) : ""),
+                          const SizedBox(height: 7),
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: const BoxDecoration(
+                              color: takiTeal,
+                              shape: BoxShape.circle,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
+                      onTap: () async {
+                        final prefs = await SharedPreferences.getInstance();
+                        await LocalChatStore.markThreadRead(
+                          prefs.getString('active_role') ?? 'customer',
+                          t.id,
+                        );
+                        if (!context.mounted) return;
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ChatThreadScreen(threadId: t.id),
+                          ),
+                        );
+                        if (mounted) setState(() {});
+                      },
                     ),
-                    onTap: () async {
-                      final prefs = await SharedPreferences.getInstance();
-                      await LocalChatStore.markThreadRead(
-                        prefs.getString('active_role') ?? 'customer',
-                        t.id,
-                      );
-                      if (!context.mounted) return;
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ChatThreadScreen(threadId: t.id),
-                        ),
-                      );
-                      if (mounted) setState(() {});
-                    },
-                  ),
-                );
-              },
-            ),
+                  );
+                },
+              ),
       ),
     );
   }
@@ -206,148 +214,147 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
       ),
       body: BrandedBackground(
         child: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 18),
-              itemCount: _thread.messages.length + 1,
-              itemBuilder: (_, i) {
-                if (i == 0) {
-                  return const Padding(
-                    padding: EdgeInsets.only(bottom: 14),
-                    child: Row(
-                      children: [
-                        Expanded(child: Divider()),
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 12),
-                          child: Text(
-                            'Ma',
-                            style: TextStyle(
-                              color: takiMutedText,
-                              fontWeight: FontWeight.w700,
+          children: [
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 18),
+                itemCount: _thread.messages.length + 1,
+                itemBuilder: (_, i) {
+                  if (i == 0) {
+                    return const Padding(
+                      padding: EdgeInsets.only(bottom: 14),
+                      child: Row(
+                        children: [
+                          Expanded(child: Divider()),
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 12),
+                            child: Text(
+                              'Ma',
+                              style: TextStyle(
+                                color: takiMutedText,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                           ),
+                          Expanded(child: Divider()),
+                        ],
+                      ),
+                    );
+                  }
+                  final m = _thread.messages[i - 1];
+                  final me = m.from == "Én";
+                  return Align(
+                    alignment: me
+                        ? Alignment.centerRight
+                        : Alignment.centerLeft,
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(vertical: 5),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 10,
+                        horizontal: 14,
+                      ),
+                      constraints: BoxConstraints(
+                        maxWidth: MediaQuery.sizeOf(context).width * .76,
+                      ),
+                      decoration: BoxDecoration(
+                        color: me ? takiYellowSoft : takiMint,
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x14083B46),
+                            blurRadius: 12,
+                            offset: Offset(0, 5),
+                          ),
+                        ],
+                        borderRadius: BorderRadius.only(
+                          topLeft: const Radius.circular(20),
+                          topRight: const Radius.circular(20),
+                          bottomLeft: Radius.circular(me ? 20 : 5),
+                          bottomRight: Radius.circular(me ? 5 : 20),
                         ),
-                        Expanded(child: Divider()),
-                      ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: me
+                            ? CrossAxisAlignment.end
+                            : CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            m.text,
+                            style: TextStyle(color: takiTealDark, height: 1.35),
+                          ),
+                          const SizedBox(height: 5),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                dt(context, m.ts),
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: me ? Colors.white70 : Colors.black54,
+                                ),
+                              ),
+                              if (me) ...[
+                                const SizedBox(width: 4),
+                                const Icon(
+                                  Icons.done_all_rounded,
+                                  size: 15,
+                                  color: Colors.white70,
+                                ),
+                              ],
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   );
-                }
-                final m = _thread.messages[i - 1];
-                final me = m.from == "Én";
-                return Align(
-                  alignment: me ? Alignment.centerRight : Alignment.centerLeft,
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(vertical: 5),
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 10,
-                      horizontal: 14,
-                    ),
-                    constraints: BoxConstraints(
-                      maxWidth: MediaQuery.sizeOf(context).width * .76,
-                    ),
-                    decoration: BoxDecoration(
-                      color: me ? takiTeal : takiFieldSurface,
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Color(0x14083B46),
-                          blurRadius: 12,
-                          offset: Offset(0, 5),
-                        ),
-                      ],
-                      borderRadius: BorderRadius.only(
-                        topLeft: const Radius.circular(20),
-                        topRight: const Radius.circular(20),
-                        bottomLeft: Radius.circular(me ? 20 : 5),
-                        bottomRight: Radius.circular(me ? 5 : 20),
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: me
-                          ? CrossAxisAlignment.end
-                          : CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          m.text,
-                          style: TextStyle(
-                            color: me ? Colors.white : takiTealDark,
-                            height: 1.35,
-                          ),
-                        ),
-                        const SizedBox(height: 5),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              dt(context, m.ts),
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: me ? Colors.white70 : Colors.black54,
-                              ),
-                            ),
-                            if (me) ...[
-                              const SizedBox(width: 4),
-                              const Icon(
-                                Icons.done_all_rounded,
-                                size: 15,
-                                color: Colors.white70,
-                              ),
-                            ],
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-          SafeArea(
-            top: false,
-            child: Container(
-              margin: const EdgeInsets.fromLTRB(12, 6, 12, 16),
-              padding: const EdgeInsets.fromLTRB(6, 5, 5, 5),
-              decoration: BoxDecoration(
-                color: takiFieldSurface,
-                borderRadius: BorderRadius.circular(28),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x20083B46),
-                    blurRadius: 20,
-                    offset: Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _input,
-                      minLines: 1,
-                      maxLines: 4,
-                      textInputAction: TextInputAction.send,
-                      onSubmitted: (_) => _send(),
-                      decoration: const InputDecoration(
-                        hintText: "Írj üzenetet…",
-                        border: InputBorder.none,
-                        filled: false,
-                      ),
-                    ),
-                  ),
-                  IconButton.filled(
-                    tooltip: 'Küldés',
-                    style: IconButton.styleFrom(
-                      backgroundColor: takiOrange,
-                      foregroundColor: takiNavy,
-                    ),
-                    onPressed: _send,
-                    icon: const Icon(Icons.send_rounded),
-                  ),
-                ],
+                },
               ),
             ),
-          ),
-        ],
+            SafeArea(
+              top: false,
+              child: Container(
+                margin: const EdgeInsets.fromLTRB(12, 6, 12, 16),
+                padding: const EdgeInsets.fromLTRB(6, 5, 5, 5),
+                decoration: BoxDecoration(
+                  color: takiFieldSurface,
+                  borderRadius: BorderRadius.circular(28),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x20083B46),
+                      blurRadius: 20,
+                      offset: Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _input,
+                        minLines: 1,
+                        maxLines: 4,
+                        textInputAction: TextInputAction.send,
+                        onSubmitted: (_) => _send(),
+                        decoration: const InputDecoration(
+                          hintText: "Írj üzenetet…",
+                          border: InputBorder.none,
+                          filled: false,
+                        ),
+                      ),
+                    ),
+                    IconButton.filled(
+                      tooltip: 'Küldés',
+                      style: IconButton.styleFrom(
+                        backgroundColor: takiOrange,
+                        foregroundColor: takiNavy,
+                      ),
+                      onPressed: _send,
+                      icon: const Icon(Icons.send_rounded),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
