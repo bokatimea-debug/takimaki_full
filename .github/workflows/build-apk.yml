@@ -4,7 +4,12 @@ on:
   push:
     branches:
       - main
+      - work/ui-completion-20261012
   workflow_dispatch:
+
+concurrency:
+  group: takimaki-ui-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
