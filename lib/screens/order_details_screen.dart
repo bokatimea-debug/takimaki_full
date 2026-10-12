@@ -1,3 +1,4 @@
+import '../widgets/taki_calendar.dart';
 import '../widgets/taki_screen_header.dart';
 import '../utils/public_name.dart';
 import '../widgets/taki_app_bar.dart';
@@ -62,7 +63,10 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         scrollable: true,
-        title: const Text('Időpont módosítása'),
+        title: const TakiScreenHeader(
+          title: 'Időpont módosítása',
+          icon: Icons.info_outline_rounded,
+        ),
         content: Text(
           'Jelenlegi időpont:\n${_order['date']} • ${hm(currentStart)}–${hm(currentEnd)}\n\nA másik fél értesítést kap a változásról.',
         ),
@@ -79,19 +83,19 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       ),
     );
     if (proceed != true || !mounted) return;
-    final date = await showDatePicker(
+    final date = await showTakiDatePicker(
       context: context,
       initialDate: currentStart.isBefore(now) ? now : currentStart,
       firstDate: now,
       lastDate: DateTime(now.year + 2),
     );
     if (date == null || !mounted) return;
-    final time = await showTimePicker(
+    final time = await showTakiTimePicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(currentStart),
     );
     if (time == null || !mounted) return;
-    final endTime = await showTimePicker(
+    final endTime = await showTakiTimePicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(currentEnd),
       helpText: 'Befejezési idő',
@@ -124,7 +128,10 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         scrollable: true,
-        title: const Text('Munka lemondása'),
+        title: const TakiScreenHeader(
+          title: 'Munka lemondása',
+          icon: Icons.info_outline_rounded,
+        ),
         content: const Text(
           'A munka kikerül a naptárból, a megrendelő értesítést kap. A szolgáltatói lemondáshoz még nincs külön büntetés meghatározva. Biztosan lemondod?',
         ),
@@ -185,7 +192,11 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
           scrollable: true,
-          title: const TakiScreenHeader(title: 'Értékelés', subtitle: 'Milyen volt a szolgáltatás?', icon: Icons.star_outline),
+          title: const TakiScreenHeader(
+            title: 'Értékelés',
+            subtitle: 'Milyen volt a szolgáltatás?',
+            icon: Icons.star_outline,
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -214,7 +225,8 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 controller: reviewController,
                 maxLines: 3,
                 decoration: const InputDecoration(
-                  labelText: 'Szöveges értékelés (opcionális)',
+                  labelText: 'Tapasztalat',
+                  helperText: 'Szöveges értékelés, nem kötelező',
                 ),
               ),
             ],
@@ -253,7 +265,10 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, change) => AlertDialog(
           scrollable: true,
-          title: const Text('Probléma jelentése'),
+          title: const TakiScreenHeader(
+            title: 'Probléma jelentése',
+            icon: Icons.info_outline_rounded,
+          ),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -334,7 +349,10 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         scrollable: true,
-        title: const Text('Rendelés lemondása'),
+        title: const TakiScreenHeader(
+          title: 'Rendelés lemondása',
+          icon: Icons.info_outline_rounded,
+        ),
         content: Text(
           late
               ? '12 órán belül mondod le. Eddigi késői lemondásaid: $count. Ez lesz a ${count + 1}. alkalom. Három ilyen lemondás után 5 napos felfüggesztés jár. Biztosan lemondod?'
@@ -427,9 +445,16 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           ? SafeArea(
               top: false,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 4,
+                ),
                 child: TextButton(
-                  onPressed: _busy ? null : () => _guard(isProvider ? _providerCancel : _customerCancel),
+                  onPressed: _busy
+                      ? null
+                      : () => _guard(
+                          isProvider ? _providerCancel : _customerCancel,
+                        ),
                   child: const Text('Rendelés lemondása'),
                 ),
               ),
@@ -562,7 +587,6 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                   icon: const Icon(Icons.edit_calendar),
                   label: const Text('Időpont módosítása'),
                 ),
-
               ],
               if (WorkSchedule.canReview(_order, _role, DateTime.now()))
                 FilledButton.icon(
