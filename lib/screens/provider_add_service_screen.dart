@@ -867,8 +867,8 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
                                     )
                                   : Image.asset(
                                       serviceImage(_service!),
-                                      width: 42,
-                                      height: 42,
+                                      width: 32,
+                                      height: 32,
                                       fit: BoxFit.contain,
                                     ),
                               title: Text(
