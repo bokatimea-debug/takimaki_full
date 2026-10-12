@@ -144,7 +144,7 @@ class _ProviderServicesScreenState extends State<ProviderServicesScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: TakiPanel(
-        color: index.isEven ? takiMint : takiYellowSoft,
+        color: index.isEven ? takiCardMint : takiCardYellow,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
