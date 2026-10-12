@@ -1,3 +1,4 @@
+import '../widgets/taki_status_tabs.dart';
 import '../widgets/taki_screen_header.dart';
 import '../widgets/service_choice_grid.dart';
 import '../utils/public_name.dart';
@@ -18,6 +19,7 @@ class ProviderRequestsScreen extends StatefulWidget {
 
 class _ProviderRequestsScreenState extends State<ProviderRequestsScreen> {
   List<Map<String, dynamic>> _requests = [];
+  int _selectedStatus = 0;
   @override
   void initState() {
     super.initState();
@@ -43,17 +45,43 @@ class _ProviderRequestsScreenState extends State<ProviderRequestsScreen> {
               )
             : ListView.separated(
                 padding: const EdgeInsets.all(18),
-                itemCount: _requests.length + 1,
+                itemCount:
+                    _requests
+                        .where((r) => TakiStatusTabs.shows(r, _selectedStatus))
+                        .length +
+                    1,
                 separatorBuilder: (_, __) => const SizedBox(height: 10),
                 itemBuilder: (context, index) {
                   if (index == 0)
-                    return const TakiScreenHeader(
-                      title: 'Megkeresések',
-                      subtitle: 'Új ajánlatkérések',
-                      icon: Icons.notifications_none_rounded,
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const TakiScreenHeader(
+                          title: 'Megkeresések',
+                          subtitle: 'Új ajánlatkérések',
+                          icon: Icons.notifications_none_rounded,
+                        ),
+                        const SizedBox(height: 6),
+                        TakiStatusTabs(
+                          selected: _selectedStatus,
+                          onChanged: (value) =>
+                              setState(() => _selectedStatus = value),
+                        ),
+                        if (!_requests.any(
+                          (r) => TakiStatusTabs.shows(r, _selectedStatus),
+                        ))
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 24),
+                            child: Text(
+                              'Ebben az állapotban nincs megjeleníthető tétel.',
+                            ),
+                          ),
+                      ],
                     );
                   final itemIndex = index - 1;
-                  final request = _requests[itemIndex];
+                  final request = _requests
+                      .where((r) => TakiStatusTabs.shows(r, _selectedStatus))
+                      .elementAt(itemIndex);
                   final end = WorkSchedule.end(request);
                   final endText = end == null
                       ? ''
@@ -72,8 +100,8 @@ class _ProviderRequestsScreenState extends State<ProviderRequestsScreen> {
                                 serviceImage(
                                   request['service']?.toString() ?? '',
                                 ),
-                                width: 42,
-                                height: 42,
+                                width: 32,
+                                height: 32,
                                 fit: BoxFit.contain,
                               ),
                               const SizedBox(width: 12),
@@ -81,7 +109,7 @@ class _ProviderRequestsScreenState extends State<ProviderRequestsScreen> {
                                 child: Text(
                                   request['service']?.toString() ?? '',
                                   style: const TextStyle(
-                                    fontSize: 18,
+                                    fontSize: 16,
                                     fontWeight: FontWeight.w800,
                                   ),
                                 ),
