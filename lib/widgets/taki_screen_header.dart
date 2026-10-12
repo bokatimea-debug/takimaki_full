@@ -9,10 +9,12 @@ class TakiScreenHeader extends StatelessWidget {
     required this.title,
     this.subtitle,
     this.icon = Icons.auto_awesome_outlined,
+    this.leading,
   });
   final String title;
   final String? subtitle;
   final IconData icon;
+  final Widget? leading;
 
   @override
   Widget build(BuildContext context) => Container(
@@ -27,7 +29,7 @@ class TakiScreenHeader extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.only(top: 2),
-          child: Icon(icon, size: 22, color: takiOrange),
+          child: leading ?? Icon(icon, size: 22, color: takiOrange),
         ),
         const SizedBox(width: 10),
         Expanded(
