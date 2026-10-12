@@ -83,13 +83,9 @@ class _CustomerOrdersScreenState extends State<CustomerOrdersScreen> {
                 final endText = end == null
                     ? ''
                     : '${end.hour.toString().padLeft(2, '0')}:${end.minute.toString().padLeft(2, '0')}';
-                return Card(
+                return TakiPanel(
                   color: itemIndex.isEven ? takiCardMint : takiCardYellow,
-                  elevation: 0,
-                  margin: EdgeInsets.zero,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
+                  padding: EdgeInsets.zero,
                   child: ListTile(
                     contentPadding: const EdgeInsets.all(12),
                     leading: Image.asset(
