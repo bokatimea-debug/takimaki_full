@@ -295,7 +295,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
             const Text(
               'Szolgáltatás *',
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 15,
                 fontWeight: FontWeight.w800,
                 color: takiNavy,
               ),
@@ -322,15 +322,16 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
                         )
                       : Image.asset(
                           serviceImage(_service!),
-                          width: 44,
-                          height: 44,
+                          width: 32,
+                          height: 32,
                           fit: BoxFit.contain,
                         ),
                   title: Text(
                     _service ?? 'Válassz szolgáltatást',
                     style: const TextStyle(
                       color: Colors.white,
-                      fontWeight: FontWeight.w800,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                   trailing: const Icon(Icons.expand_more, color: Colors.white),
