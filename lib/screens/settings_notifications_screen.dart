@@ -94,35 +94,73 @@ class _NotificationTile extends StatelessWidget {
   final bool value;
   final ValueChanged<bool> onChanged;
   @override
-  Widget build(BuildContext context) => Row(
-    children: [
-      Container(
-        width: 52,
-        height: 52,
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: .15),
-          borderRadius: BorderRadius.circular(17),
-        ),
-        child: Icon(icon, color: color),
-      ),
-      const SizedBox(width: 14),
-      Expanded(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      if (constraints.maxWidth < 300) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              title,
-              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
+            Row(
+              children: [
+                Icon(icon, color: color, size: 32),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 3),
+            const SizedBox(height: 6),
             Text(
               subtitle,
-              style: const TextStyle(color: Color(0xFF617577), height: 1.3),
+              style: const TextStyle(color: takiMutedText, height: 1.3),
+            ),
+            Align(
+              alignment: Alignment.centerRight,
+              child: Switch(value: value, onChanged: onChanged),
             ),
           ],
-        ),
-      ),
-      Switch(value: value, onChanged: onChanged),
-    ],
+        );
+      }
+      return Row(
+        children: [
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: .15),
+              borderRadius: BorderRadius.circular(17),
+            ),
+            child: Icon(icon, color: color),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  subtitle,
+                  style: const TextStyle(color: Color(0xFF617577), height: 1.3),
+                ),
+              ],
+            ),
+          ),
+          Switch(value: value, onChanged: onChanged),
+        ],
+      );
+    },
   );
 }
