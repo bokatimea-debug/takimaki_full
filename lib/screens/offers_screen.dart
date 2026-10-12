@@ -159,16 +159,25 @@ class _OffersScreenState extends State<OffersScreen> {
                                         Text(
                                           peerNameFor(offer, 'provider'),
                                           style: const TextStyle(
-                                            fontSize: 19,
+                                            fontSize: 16,
                                             fontWeight: FontWeight.w800,
                                           ),
                                         ),
                                         Row(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
-                                            const Icon(Icons.star_rounded, size: 18, color: takiOrange),
+                                            const Icon(
+                                              Icons.star_rounded,
+                                              size: 18,
+                                              color: takiOrange,
+                                            ),
                                             const SizedBox(width: 4),
-                                            Expanded(child: Text('${offer['provider_rating'] ?? 'Új'}  •  ${offer['provider_success_count'] ?? 0} sikeres munka')),
+                                            Expanded(
+                                              child: Text(
+                                                '${offer['provider_rating'] ?? 'Új'}  •  ${offer['provider_success_count'] ?? 0} sikeres munka',
+                                              ),
+                                            ),
                                           ],
                                         ),
                                       ],
@@ -180,7 +189,7 @@ class _OffersScreenState extends State<OffersScreen> {
                               Text(
                                 '${offer['price']} Ft',
                                 style: const TextStyle(
-                                  fontSize: 27,
+                                  fontSize: 22,
                                   fontWeight: FontWeight.w900,
                                   color: takiOrange,
                                 ),
