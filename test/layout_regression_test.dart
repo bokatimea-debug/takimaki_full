@@ -415,6 +415,31 @@ void main() {
       },
     );
   }
+  testWidgets('both profile editors use identical profile-card dimensions', (
+    tester,
+  ) async {
+    await _show(
+      tester,
+      const ProviderEditProfileScreen(),
+      const Size(360, 740),
+      canPop: true,
+    );
+    final provider = tester.getSize(
+      find.byKey(const ValueKey('profile-editor-card')),
+    );
+    await _show(
+      tester,
+      const CustomerEditProfileScreen(),
+      const Size(360, 740),
+      canPop: true,
+    );
+    final customer = tester.getSize(
+      find.byKey(const ValueKey('profile-editor-card')),
+    );
+    expect(customer, provider);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('manual date entry remains available and validates limits', (
     tester,
   ) async {
