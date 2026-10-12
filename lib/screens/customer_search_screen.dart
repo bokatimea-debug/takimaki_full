@@ -419,7 +419,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
               textCapitalization: TextCapitalization.words,
               decoration: InputDecoration(
                 errorText: _errors['address'],
-                labelText: "Cím kiválasztása",
+                labelText: "Cím",
                 isDense: true,
                 contentPadding: EdgeInsets.symmetric(
                   horizontal: 12,
@@ -532,7 +532,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
               maxLines: 4,
               textCapitalization: TextCapitalization.sentences,
               decoration: const InputDecoration(
-                labelText: "Megjegyzés (opcionális)",
+                labelText: "Megjegyzés",
                 hintText: "Írd le a feladat fontos részleteit…",
                 alignLabelWithHint: true,
                 contentPadding: EdgeInsets.symmetric(
