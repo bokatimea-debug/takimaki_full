@@ -163,7 +163,8 @@ class _ProviderOfferReplyScreenState extends State<ProviderOfferReplyScreen> {
                 minLines: 3,
                 maxLines: 5,
                 decoration: const InputDecoration(
-                  labelText: 'Üzenet a megrendelőnek (opcionális)',
+                  labelText: 'Megjegyzés',
+                  hintText: 'Opcionális üzenet a megrendelőnek',
                   prefixIcon: Icon(Icons.chat_bubble_outline),
                 ),
               ),
