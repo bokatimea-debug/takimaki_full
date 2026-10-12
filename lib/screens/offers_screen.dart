@@ -86,30 +86,10 @@ class _OffersScreenState extends State<OffersScreen> {
       child: _loading
           ? const Center(child: CircularProgressIndicator())
           : _offers.where((o) => o['status'] == 'pending').isEmpty
-          ? const Center(
-              child: Padding(
-                padding: EdgeInsets.all(28),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.schedule_rounded, size: 72, color: takiTeal),
-                    SizedBox(height: 18),
-                    Text(
-                      'Még nincs elérhető szolgáltató',
-                      style: TextStyle(
-                        fontSize: 23,
-                        fontWeight: FontWeight.w800,
-                        color: takiTealDark,
-                      ),
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      'Az új ajánlatok automatikusan itt jelennek meg.',
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
+          ? const TakiEmptyState(
+              icon: Icons.schedule_rounded,
+              title: 'Még nincs elérhető szolgáltató',
+              text: 'Az új ajánlatok automatikusan itt jelennek meg.',
             )
           : ListView(
               padding: const EdgeInsets.fromLTRB(18, 12, 18, 16),
@@ -122,7 +102,7 @@ class _OffersScreenState extends State<OffersScreen> {
                 if (_offers.isNotEmpty) ...[
                   const SizedBox(height: 12),
                   TakiPanel(
-                    color: takiMint,
+                    color: takiCardMint,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 12,
@@ -149,7 +129,7 @@ class _OffersScreenState extends State<OffersScreen> {
                     .where((o) => o['status'] == 'pending')
                     .map(
                       (offer) => Card(
-                        color: takiMint,
+                        color: takiCardMint,
                         elevation: 0,
                         child: Padding(
                           padding: const EdgeInsets.all(18),
