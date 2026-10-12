@@ -567,7 +567,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
             const SizedBox(height: 12),
             SafeArea(
               top: false,
-              minimum: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+              minimum: const EdgeInsets.fromLTRB(0, 4, 0, 12),
               child: Padding(
                 padding: const EdgeInsets.only(bottom: 12),
                 child: ConstrainedBox(
