@@ -1,3 +1,4 @@
+import '../widgets/taki_status_tabs.dart';
 import '../widgets/taki_screen_header.dart';
 import '../widgets/service_choice_grid.dart';
 import '../widgets/taki_app_bar.dart';
@@ -18,6 +19,7 @@ class ProviderAllOrdersScreen extends StatefulWidget {
 
 class _ProviderAllOrdersScreenState extends State<ProviderAllOrdersScreen> {
   List<Map<String, dynamic>> _orders = [];
+  int _selectedStatus = 0;
   String _mode = 'all';
   bool _loaded = false;
   @override
@@ -26,6 +28,7 @@ class _ProviderAllOrdersScreenState extends State<ProviderAllOrdersScreen> {
     if (_loaded) return;
     _loaded = true;
     _mode = ModalRoute.of(context)?.settings.arguments?.toString() ?? 'all';
+    if (_mode == 'completed') _selectedStatus = 2;
     _load();
   }
 
@@ -61,17 +64,54 @@ class _ProviderAllOrdersScreenState extends State<ProviderAllOrdersScreen> {
             )
           : ListView.separated(
               padding: const EdgeInsets.fromLTRB(18, 8, 18, 16),
-              itemCount: _orders.length + 1,
+              itemCount:
+                  _orders
+                      .where(
+                        (r) =>
+                            (_mode == 'reviews' ||
+                            TakiStatusTabs.shows(r, _selectedStatus)),
+                      )
+                      .length +
+                  1,
               separatorBuilder: (_, __) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
                 if (index == 0)
-                  return const TakiScreenHeader(
-                    title: 'Munkák',
-                    subtitle: 'Elfogadott munkák és értékelések',
-                    icon: Icons.assignment_outlined,
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const TakiScreenHeader(
+                        title: 'Munkák',
+                        subtitle: 'Elfogadott munkák és értékelések',
+                        icon: Icons.assignment_outlined,
+                      ),
+                      const SizedBox(height: 6),
+                      if (_mode != 'reviews')
+                        TakiStatusTabs(
+                          selected: _selectedStatus,
+                          onChanged: (value) =>
+                              setState(() => _selectedStatus = value),
+                        ),
+                      if (!_orders.any(
+                        (r) =>
+                            (_mode == 'reviews' ||
+                            TakiStatusTabs.shows(r, _selectedStatus)),
+                      ))
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 24),
+                          child: Text(
+                            'Ebben az állapotban nincs megjeleníthető tétel.',
+                          ),
+                        ),
+                    ],
                   );
                 final itemIndex = index - 1;
-                final order = _orders[itemIndex];
+                final order = _orders
+                    .where(
+                      (r) =>
+                          (_mode == 'reviews' ||
+                          TakiStatusTabs.shows(r, _selectedStatus)),
+                    )
+                    .elementAt(itemIndex);
                 final end = WorkSchedule.end(order);
                 final endText = end == null
                     ? ''
@@ -84,13 +124,13 @@ class _ProviderAllOrdersScreenState extends State<ProviderAllOrdersScreen> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: ListTile(
-                    contentPadding: const EdgeInsets.all(16),
+                    contentPadding: const EdgeInsets.all(12),
                     leading: Image.asset(
                       serviceImage(
                         (order['service'] ?? order['title'] ?? '').toString(),
                       ),
-                      width: 42,
-                      height: 42,
+                      width: 32,
+                      height: 32,
                       fit: BoxFit.contain,
                     ),
                     title: Text(
