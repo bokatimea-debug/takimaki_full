@@ -1,3 +1,5 @@
+import '../widgets/taki_screen_header.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -110,6 +112,12 @@ class _CalendarConnectionScreenState extends State<CalendarConnectionScreen> {
       child: ListView(
         padding: const EdgeInsets.all(20),
         children: [
+          const TakiScreenHeader(
+            title: 'Saját naptár',
+            subtitle: 'Automatikus hozzáadás',
+            icon: Icons.calendar_month_outlined,
+          ),
+          const SizedBox(height: 12),
           const Text(
             'Az app saját naptárát mindig vezetjük. Ha szeretnéd, az elfogadott munkák a telefonodon elérhető Google-, Samsung- vagy más naptárba is automatikusan bekerülnek.',
           ),
@@ -117,7 +125,7 @@ class _CalendarConnectionScreenState extends State<CalendarConnectionScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFFDDF4EF),
+              color: takiCardMint,
               borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
