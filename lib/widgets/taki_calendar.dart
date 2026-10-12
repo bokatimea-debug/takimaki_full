@@ -272,8 +272,8 @@ Future<TimeOfDay?> showTakiTimePicker({
   builder: (ctx, child) => Theme(
     data: Theme.of(ctx).copyWith(
       timePickerTheme: TimePickerThemeData(
-        backgroundColor: takiCream,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: Theme.of(ctx).dialogTheme.backgroundColor,
+        shape: Theme.of(ctx).dialogTheme.shape,
         hourMinuteColor: takiCardMint,
         hourMinuteTextColor: takiNavy,
         dialBackgroundColor: takiCardMint,
