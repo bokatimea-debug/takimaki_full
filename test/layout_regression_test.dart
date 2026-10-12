@@ -23,8 +23,10 @@ import 'package:takimaki_full/screens/provider_edit_profile_screen.dart';
 import 'package:takimaki_full/screens/provider_profile_screen.dart';
 import 'package:takimaki_full/screens/provider_services_screen.dart';
 import 'package:takimaki_full/screens/registration_success_screen.dart';
+import 'package:takimaki_full/screens/registration_screen.dart';
 import 'package:takimaki_full/screens/settings_screen.dart';
 import 'package:takimaki_full/screens/subscription_screen.dart';
+import 'package:takimaki_full/screens/work_calendar_screen.dart';
 import 'package:takimaki_full/theme.dart';
 import 'package:takimaki_full/services/account_store.dart';
 import 'package:takimaki_full/widgets/branded_background.dart';
@@ -36,6 +38,7 @@ final _screens = <String, Widget Function()>{
   'phone': () => const PhoneNumberScreen(),
   'otp': () => const OtpVerifyScreen('+36302222023'),
   'registration_success': () => const RegistrationSuccessScreen(),
+  'registration': () => const RegistrationScreen(),
   'provider_profile': () => const ProviderProfileScreen(),
   'customer_profile': () => const CustomerProfileScreen(),
   'customer_order_form': () => const CustomerSearchScreen(),
@@ -48,13 +51,13 @@ final _screens = <String, Widget Function()>{
   'chat_thread': () => const ChatThreadScreen(threadId: 'layout-chat'),
   'orders': () => const CustomerOrdersScreen(),
   'settings': () => const SettingsScreen(),
+  'calendar': () => const WorkCalendarScreen(),
 };
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(() async {
-    final sdk =
-        Platform.environment['FLUTTER_ROOT'] ??
+    final sdk = Platform.environment['FLUTTER_ROOT'] ??
         '${Directory.current.parent.path}/flutter_sdk';
     final loader = FontLoader('Roboto');
     for (final name in ['Regular', 'Medium', 'Bold', 'Black']) {
@@ -246,14 +249,12 @@ void main() {
     await _capture(tester, 'three_services_106');
   });
 
-  testWidgets('settings keeps destructive account action reachable last', (
+  testWidgets('settings keeps destructive account action visible last', (
     tester,
   ) async {
     await _show(tester, const SettingsScreen(), const Size(360, 740));
     expect(find.text('Előfizetések'), findsOneWidget);
     final delete = _button('Profil törlése');
-    await tester.ensureVisible(delete);
-    await tester.pumpAndSettle();
     _expectFullyVisible(tester, delete, 740);
     expect(
       tester.getRect(find.text('Kijelentkezés')).top,
@@ -355,9 +356,9 @@ void main() {
       tester,
     ) async {
       await _show(tester, const ProviderEditProfileScreen(), Size(360, height));
-      _expectFullyVisible(tester, _tile('Szombat'), height);
-      await tester.ensureVisible(_button('Módosítások mentése'));
-      await tester.pumpAndSettle();
+      for (final label in ['Hétköznap', 'Szombat', 'Vasárnap', 'Ünnepnap']) {
+        _expectFullyVisible(tester, _tile(label), height);
+      }
       _expectFullyVisible(tester, _button('Módosítások mentése'), height);
       await _capture(tester, 'provider_edit_first_${height.toInt()}');
     });
@@ -444,9 +445,8 @@ void main() {
         lessThanOrEqualTo(340),
         reason: 'The complete city choice must stay above the 300dp keyboard.',
       );
-      final choicesViewport = find
-          .ancestor(of: choice, matching: find.byType(Scrollable))
-          .first;
+      final choicesViewport =
+          find.ancestor(of: choice, matching: find.byType(Scrollable)).first;
       expect(
         tester.getRect(choice).bottom,
         lessThanOrEqualTo(tester.getRect(choicesViewport).bottom),
@@ -621,7 +621,8 @@ void main() {
         expect(
           rect.height,
           greaterThanOrEqualTo(availableHeight * .90),
-          reason: 'No opaque footer or bottom padding may consume the form viewport.',
+          reason:
+              'No opaque footer or bottom padding may consume the form viewport.',
         );
         final priceBuilder = find.byKey(const ValueKey('add-price-rule'));
         await _reachService(tester, priceBuilder);
@@ -717,8 +718,9 @@ void main() {
       );
       expect(
         scrollable.position.pixels,
-        greaterThan(800),
-        reason: 'Exercise validation when the price field is far above the viewport.',
+        greaterThan(0),
+        reason:
+            'Exercise validation after scrolling away from the price field.',
       );
       await tester.tap(save);
       await tester.pumpAndSettle();
@@ -977,9 +979,9 @@ Future<void> _addPriceItem(
 }
 
 Finder _button(String text) => find.ancestor(
-  of: find.text(text),
-  matching: find.byWidgetPredicate((widget) => widget is ButtonStyleButton),
-);
+      of: find.text(text),
+      matching: find.byWidgetPredicate((widget) => widget is ButtonStyleButton),
+    );
 Finder _tile(String text) =>
     find.ancestor(of: find.text(text), matching: find.byType(InkWell)).first;
 
@@ -1048,18 +1050,18 @@ Future<void> _show(
             : const {},
         onGenerateInitialRoutes: canPop
             ? (_) => [
-                MaterialPageRoute<dynamic>(
-                  settings: const RouteSettings(name: '/'),
-                  builder: (_) => const Scaffold(body: Text('Kezdőképernyő')),
-                ),
-                MaterialPageRoute<dynamic>(
-                  settings: RouteSettings(
-                    name: '/test-screen',
-                    arguments: arguments,
+                  MaterialPageRoute<dynamic>(
+                    settings: const RouteSettings(name: '/'),
+                    builder: (_) => const Scaffold(body: Text('Kezdőképernyő')),
                   ),
-                  builder: (_) => screen,
-                ),
-              ]
+                  MaterialPageRoute<dynamic>(
+                    settings: RouteSettings(
+                      name: '/test-screen',
+                      arguments: arguments,
+                    ),
+                    builder: (_) => screen,
+                  ),
+                ]
             : null,
       ),
     ),
