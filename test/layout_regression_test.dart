@@ -332,6 +332,28 @@ void main() {
         );
       },
     );
+    testWidgets('address confirmation stays above keyboard ${size.width}', (
+      tester,
+    ) async {
+      await _show(
+        tester,
+        const MapPickerScreen(),
+        size,
+        scale: size.width == 320 ? 1.3 : 1,
+        keyboard: 270,
+        canPop: true,
+      );
+      await tester.enterText(find.byType(TextField), 'Budapest, Váci utca 1.');
+      await tester.pumpAndSettle();
+      final action = _button('Cím használata');
+      expect(action.hitTestable(), findsOneWidget);
+      expect(
+        tester.getRect(action).bottom,
+        lessThanOrEqualTo(size.height - 270),
+      );
+      expect(tester.takeException(), isNull);
+      await _capture(tester, 'address_keyboard_${size.width.toInt()}');
+    });
     testWidgets(
       'approved order action stays fixed above keyboard ${size.width}',
       (tester) async {
