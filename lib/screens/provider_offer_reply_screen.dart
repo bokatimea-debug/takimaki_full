@@ -108,7 +108,7 @@ class _ProviderOfferReplyScreenState extends State<ProviderOfferReplyScreen> {
               ),
               const SizedBox(height: 18),
               TakiPanel(
-                color: takiFieldSurface,
+                color: takiCardMint,
                 padding: const EdgeInsets.all(18),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
