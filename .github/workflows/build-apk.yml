@@ -25,12 +25,26 @@ jobs:
       - run: flutter pub get
       - run: flutter analyze --no-fatal-infos --no-fatal-warnings
       - run: flutter test
+        env:
+          TAKIMAKI_CAPTURE: verification/rendered-ui
       - name: Build Takimaki Test APK
         env:
           ORG_GRADLE_PROJECT_takimakiTest: "true"
         run: flutter build apk --release
+      - name: Collect official Android signing tools
+        if: always()
+        run: |
+          sdk_tools=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          mkdir -p verification/android-tools
+          cp "$sdk_tools/lib/apksigner.jar" verification/android-tools/
+          cp "$sdk_tools/zipalign" verification/android-tools/
+          if [ -d "$sdk_tools/lib64" ]; then cp -a "$sdk_tools/lib64" verification/android-tools/; fi
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: Takimaki_Teszt_1.0.20
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: Takimaki_UI_Verification_${{ github.run_number }}
+          path: |
+            build/app/outputs/flutter-apk/app-release.apk
+            verification/rendered-ui
+            verification/android-tools
           retention-days: 14
