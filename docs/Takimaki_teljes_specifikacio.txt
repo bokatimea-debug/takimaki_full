@@ -300,3 +300,11 @@ GitHubon a codex/takimaki-108 ágban teljes forráscheckpoint és specifikáció
 - Egy kijelölt napcsoporthoz egy közös időintervallum adható. Mentés után további napcsoport vehető fel más időintervallummal; a korábbi napok nem vesznek el.
 - A mentett egyedi napok időintervallum szerint csoportosított, tömör türkiz–halványsárga kártyákon jelennek meg, és csoportosan szerkeszthetők vagy törölhetők.
 - Ha az Ünnepnap beállítás Nem, a szolgáltató magyar munkaszüneti napra nem kap megkeresést. Kivétel az a konkrét ünnepnap, amelyet az adott szolgáltatás Egyedi napjai között munkaidővel külön megadott.
+
+
+28. 2026. OKTÓBER 12. UI-EGYSÉGESÍTÉS — NEM TESZTELT MUNKAMENTÉS
+- Az 1.0.21+22 felhasználói forrásból folytatjuk a projektet. A korábban jelzett 1.0.24 és 6dcf3fe forrás nem volt elérhető.
+- Az első jóváhagyott oldalak, grafikai elemek, téma, szolgáltatási katalógus, adattárolás és navigáció megőrzendő.
+- A 18 elfogadott látványterv szerint a belső képernyők kompakt türkiz átmenetes fejléceket, menta–sárga kártyákat és narancs főgombokat használnak.
+- A két szerep munkanaptára közös komponens marad; csak a hozzá tartozó adatok különböznek.
+- A módosításokhoz még szükséges a Flutter widgetteszt, képernyőrenderelés, kis/nagy kijelző és billentyűzetes ellenőrzés, majd az új APK buildje és aláírása. Ez a mentés nem kész kiadás.
