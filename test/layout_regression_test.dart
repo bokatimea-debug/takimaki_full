@@ -213,7 +213,7 @@ void main() {
       final work = <String, dynamic>{'id':'layout-review', 'request_id':'layout-review', 'service':'Apartmantakarítás', 'date':day, 'time':'09:00', 'duration_minutes':120, 'status':'Teljesítve', 'view_role':'customer'};
       await _show(tester, const OrderDetailsScreen(), size, scale: size.width == 320 ? 1.3 : 1, canPop: true, arguments: work);
       final rate = _button('Teljesítés és értékelés');
-      await tester.ensureVisible(rate);
+      await tester.scrollUntilVisible(rate, 200, scrollable: find.byType(Scrollable).first);
       await tester.pumpAndSettle();
       await tester.tap(rate);
       await tester.pumpAndSettle();
