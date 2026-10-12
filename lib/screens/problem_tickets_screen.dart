@@ -39,7 +39,10 @@ class _ProblemTicketsScreenState extends State<ProblemTicketsScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         scrollable: true,
-        title: const Text('További információ'),
+        title: const TakiScreenHeader(
+          title: 'További információ',
+          icon: Icons.info_outline_rounded,
+        ),
         content: TextField(controller: controller, maxLines: 4),
         actions: [
           TextButton(
