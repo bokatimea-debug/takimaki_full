@@ -331,7 +331,11 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
                 children: [
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: TakiScreenHeader(title: 'Egyedi napok', subtitle: 'Válaszd ki a munkanapokat', icon: Icons.calendar_month_outlined),
+                    child: TakiScreenHeader(
+                      title: 'Egyedi napok',
+                      subtitle: 'Válaszd ki a munkanapokat',
+                      icon: Icons.calendar_month_outlined,
+                    ),
                   ),
                   const SizedBox(height: 6),
                   Text("${selected.length} nap kiválasztva"),
@@ -354,15 +358,17 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
                                 ),
                           icon: const Icon(Icons.chevron_left_rounded),
                         ),
-                        Expanded(child: Text(
-                          '${displayedMonth.year}. ${const ['január', 'február', 'március', 'április', 'május', 'június', 'július', 'augusztus', 'szeptember', 'október', 'november', 'december'][displayedMonth.month - 1]}',
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: takiNavy,
-                            fontSize: 17,
-                            fontWeight: FontWeight.w800,
+                        Expanded(
+                          child: Text(
+                            '${displayedMonth.year}. ${const ['január', 'február', 'március', 'április', 'május', 'június', 'július', 'augusztus', 'szeptember', 'október', 'november', 'december'][displayedMonth.month - 1]}',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: takiNavy,
+                              fontSize: 17,
+                              fontWeight: FontWeight.w800,
+                            ),
                           ),
-                        )),
+                        ),
                         IconButton(
                           onPressed: () => setModalState(
                             () => displayedMonth = DateTime(
@@ -1127,7 +1133,9 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
                           margin: const EdgeInsets.only(bottom: 5),
                           padding: const EdgeInsets.fromLTRB(12, 8, 6, 8),
                           decoration: BoxDecoration(
-                            color: entry.key.isEven ? takiCardMint : takiCardYellow,
+                            color: entry.key.isEven
+                                ? takiCardMint
+                                : takiCardYellow,
                             borderRadius: BorderRadius.circular(14),
                           ),
                           child: Row(
@@ -1380,12 +1388,13 @@ class _PriceRuleDialogState extends State<_PriceRuleDialog> {
                     Expanded(
                       child: TextField(
                         key: const ValueKey('price-area-from'),
-                  scrollPadding: const EdgeInsets.only(bottom: 100),
-                  textInputAction: TextInputAction.next,
+                        scrollPadding: const EdgeInsets.only(bottom: 100),
+                        textInputAction: TextInputAction.next,
                         controller: _areaFromCtrl,
                         keyboardType: TextInputType.number,
                         decoration: const InputDecoration(
-                          labelText: 'Ettől (m²)',
+                          labelText: 'Ettől',
+                          suffixText: 'm²',
                         ),
                       ),
                     ),
@@ -1393,12 +1402,13 @@ class _PriceRuleDialogState extends State<_PriceRuleDialog> {
                     Expanded(
                       child: TextField(
                         key: const ValueKey('price-area-to'),
-                  scrollPadding: const EdgeInsets.only(bottom: 100),
-                  textInputAction: TextInputAction.next,
+                        scrollPadding: const EdgeInsets.only(bottom: 100),
+                        textInputAction: TextInputAction.next,
                         controller: _areaToCtrl,
                         keyboardType: TextInputType.number,
                         decoration: const InputDecoration(
-                          labelText: 'Eddig (m²)',
+                          labelText: 'Eddig',
+                          suffixText: 'm²',
                         ),
                       ),
                     ),
@@ -1408,8 +1418,8 @@ class _PriceRuleDialogState extends State<_PriceRuleDialog> {
               ],
               TextField(
                 key: const ValueKey('price-rule-amount'),
-                  scrollPadding: const EdgeInsets.only(bottom: 100),
-                  textInputAction: TextInputAction.next,
+                scrollPadding: const EdgeInsets.only(bottom: 100),
+                textInputAction: TextInputAction.next,
                 controller: _priceCtrl,
                 keyboardType: TextInputType.number,
                 autofocus: _unit != 'Ft/m²-sáv',
