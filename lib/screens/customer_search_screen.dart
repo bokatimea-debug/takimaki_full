@@ -1,3 +1,4 @@
+import '../widgets/taki_calendar.dart';
 import '../widgets/taki_app_bar.dart';
 
 import "package:flutter/material.dart";
@@ -93,7 +94,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
 
   Future<void> _pickDate() async {
     final now = DateTime.now();
-    final d = await showDatePicker(
+    final d = await showTakiDatePicker(
       context: context,
       initialDate: _date ?? now,
       firstDate: now,
@@ -103,7 +104,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
   }
 
   Future<void> _pickStartTime() async {
-    final t = await showTimePicker(
+    final t = await showTakiTimePicker(
       context: context,
       initialTime: _startTime ?? const TimeOfDay(hour: 9, minute: 0),
     );
@@ -122,7 +123,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
 
   Future<void> _pickEndTime() async {
     final initial = _endTime ?? const TimeOfDay(hour: 11, minute: 0);
-    final t = await showTimePicker(context: context, initialTime: initial);
+    final t = await showTakiTimePicker(context: context, initialTime: initial);
     if (t != null) setState(() => _endTime = t);
   }
 
@@ -289,7 +290,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
       appBar: TakiAppBar(title: const Text("Új megrendelés")),
       body: BrandedBackground(
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
           children: [
             const Text(
               'Szolgáltatás *',
@@ -302,32 +303,38 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
             const SizedBox(height: 8),
             Material(
               key: _serviceKey,
-              color: takiMint,
+              color: Colors.transparent,
               borderRadius: BorderRadius.circular(18),
-              child: ListTile(
-                key: const ValueKey('customer-service-selector'),
-                minTileHeight: 56,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 14),
-                leading: _service == null
-                    ? const Icon(
-                        Icons.design_services_outlined,
-                        color: takiNavy,
-                      )
-                    : Image.asset(
-                        serviceImage(_service!),
-                        width: 44,
-                        height: 44,
-                        fit: BoxFit.contain,
-                      ),
-                title: Text(
-                  _service ?? 'Válassz szolgáltatást',
-                  style: const TextStyle(
-                    color: takiNavy,
-                    fontWeight: FontWeight.w800,
-                  ),
+              child: Ink(
+                decoration: BoxDecoration(
+                  gradient: takiProfileGradient,
+                  borderRadius: BorderRadius.circular(18),
                 ),
-                trailing: const Icon(Icons.expand_more, color: takiNavy),
-                onTap: _chooseService,
+                child: ListTile(
+                  key: const ValueKey('customer-service-selector'),
+                  minTileHeight: 56,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 14),
+                  leading: _service == null
+                      ? const Icon(
+                          Icons.design_services_outlined,
+                          color: Colors.white,
+                        )
+                      : Image.asset(
+                          serviceImage(_service!),
+                          width: 44,
+                          height: 44,
+                          fit: BoxFit.contain,
+                        ),
+                  title: Text(
+                    _service ?? 'Válassz szolgáltatást',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  trailing: const Icon(Icons.expand_more, color: Colors.white),
+                  onTap: _chooseService,
+                ),
               ),
             ),
             if (_errors['service'] != null)
@@ -348,7 +355,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
                         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         selected: _requestedOptions.contains(option),
                         showCheckmark: true,
-                        backgroundColor: takiYellowSoft,
+                        backgroundColor: takiCardYellow,
                         selectedColor: takiTeal,
                         checkmarkColor: Colors.white,
                         side: BorderSide(
@@ -388,7 +395,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
                         key: ValueKey('customer-item-$item'),
                         label: Text(item),
                         selected: _requestedOptions.contains(item),
-                        backgroundColor: takiMint,
+                        backgroundColor: takiCardMint,
                         selectedColor: takiTeal,
                         checkmarkColor: Colors.white,
                         side: BorderSide(
@@ -546,42 +553,43 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
               ),
             ),
             const SizedBox(height: 12),
-          ],
-        ),
-      ),
-      bottomNavigationBar: SafeArea(
-        minimum: const EdgeInsets.fromLTRB(16, 4, 16, 12),
-        child: Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 48),
-            child: FilledButton(
-              style: FilledButton.styleFrom(
-                backgroundColor: takiOrange,
-                foregroundColor: takiTealDark,
-                minimumSize: const Size.fromHeight(48),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 10,
-                ),
-              ),
-              onPressed: _saving ? null : _search,
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Flexible(
-                    child: Text(
-                      "Ajánlatok kérése",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontWeight: FontWeight.w800),
+            SafeArea(
+              top: false,
+              minimum: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 48),
+                  child: FilledButton(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: takiOrange,
+                      foregroundColor: takiTealDark,
+                      minimumSize: const Size.fromHeight(48),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
+                    ),
+                    onPressed: _saving ? null : _search,
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            "Ajánlatok kérése",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontWeight: FontWeight.w800),
+                          ),
+                        ),
+                        SizedBox(width: 8),
+                        Icon(Icons.arrow_forward_rounded),
+                      ],
                     ),
                   ),
-                  SizedBox(width: 8),
-                  Icon(Icons.arrow_forward_rounded),
-                ],
+                ),
               ),
             ),
-          ),
+          ],
         ),
       ),
     );
