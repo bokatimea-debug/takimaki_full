@@ -120,8 +120,8 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
       margin: const EdgeInsets.only(bottom: 4),
       decoration: BoxDecoration(
         color: period == 'sat' || period == 'holiday'
-            ? takiYellowSoft
-            : takiMint,
+            ? takiCardYellow
+            : takiCardMint,
         borderRadius: BorderRadius.circular(14),
       ),
       child: InkWell(
@@ -145,7 +145,7 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
                   ),
                 ),
                 SizedBox(
-                  width: 156,
+                  width: enabled ? 156 : 40,
                   child: enabled
                       ? InkWell(
                           onTap: () => _editGeneralHours(period),
@@ -903,7 +903,7 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
           maxLines: 1,
           maxLength: 120,
           decoration: const InputDecoration(
-            labelText: 'Megjegyzés az árakhoz (opcionális)',
+            labelText: 'Megjegyzés',
             hintText: 'Például: A díj tartalmazza a tisztítószereket.',
             counterText: '',
             isDense: true,
