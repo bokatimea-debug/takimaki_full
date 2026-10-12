@@ -49,12 +49,14 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
       final photo = await ProfilePhotoLoader.loadAny(role: 'provider');
       if (!mounted) return;
       setState(() {
-        _firstName = prefs.getString('provider_first_name') ??
+        _firstName =
+            prefs.getString('provider_first_name') ??
             prefs.getString('customer_first_name') ??
             prefs.getString('registration_first_name') ??
             '';
         _bio.text = prefs.getString('provider_bio') ?? '';
-        _city = prefs.getString('provider_city') ??
+        _city =
+            prefs.getString('provider_city') ??
             prefs.getString('profile_city') ??
             'Budapest';
         _photoImage = photo;
@@ -86,7 +88,8 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
         );
         _holidayFrom = _parse(prefs.getString('provider_holiday_from'));
         _holidayTo = _parse(prefs.getString('provider_holiday_to'));
-        _holidays = (prefs.getBool('provider_holidays') ?? false) &&
+        _holidays =
+            (prefs.getBool('provider_holidays') ?? false) &&
             _holidayFrom != null &&
             _holidayTo != null;
         _loading = false;
@@ -98,9 +101,8 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
 
   void _showError(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   TimeOfDay? _parse(String? hhmm) {
@@ -131,17 +133,17 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
     final fromInit = holiday
         ? (_holidayFrom ?? const TimeOfDay(hour: 9, minute: 0))
         : sunday
-            ? (_sunFrom ?? const TimeOfDay(hour: 9, minute: 0))
-            : weekend
-                ? (_weFrom ?? const TimeOfDay(hour: 9, minute: 0))
-                : (_wdFrom ?? const TimeOfDay(hour: 9, minute: 0));
+        ? (_sunFrom ?? const TimeOfDay(hour: 9, minute: 0))
+        : weekend
+        ? (_weFrom ?? const TimeOfDay(hour: 9, minute: 0))
+        : (_wdFrom ?? const TimeOfDay(hour: 9, minute: 0));
     final toInit = holiday
         ? (_holidayTo ?? const TimeOfDay(hour: 17, minute: 0))
         : sunday
-            ? (_sunTo ?? const TimeOfDay(hour: 17, minute: 0))
-            : weekend
-                ? (_weTo ?? const TimeOfDay(hour: 17, minute: 0))
-                : (_wdTo ?? const TimeOfDay(hour: 17, minute: 0));
+        ? (_sunTo ?? const TimeOfDay(hour: 17, minute: 0))
+        : weekend
+        ? (_weTo ?? const TimeOfDay(hour: 17, minute: 0))
+        : (_wdTo ?? const TimeOfDay(hour: 17, minute: 0));
     final from = await showTimePicker(
       context: context,
       initialTime: fromInit,
@@ -267,130 +269,129 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: TakiAppBar(title: const Text('Profil szerkesztése')),
-        body: ProfileEditorBody(
-          children: [
-            ProfileEditorCard(
-              firstName: _firstName,
-              photo: _photoImage,
-              bio: _bio,
-              city: _city,
-              enabled: !_loading && !_saving,
-              onPickPhoto: _pickPhoto,
-              onPickCity: _pickCity,
-              compact: true,
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Általános elérhetőség',
-              style: TextStyle(
-                fontSize: 17,
-                color: takiNavy,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 6),
-            _TimeCard(
-              title: 'Hétköznap',
-              subtitle:
-                  _wdFrom == null ? 'Nem' : '${_fmt(_wdFrom)} – ${_fmt(_wdTo)}',
-              icon: Icons.work_outline_rounded,
-              color: takiCardMint,
-              onTap:
-                  _loading || _saving ? null : () => _pickRange(weekend: false),
-              enabled: _wdFrom != null,
-              onChanged: _loading || _saving
-                  ? null
-                  : (value) async {
-                      if (value) {
-                        await _pickRange(weekend: false);
-                      } else if (mounted) {
-                        setState(() {
-                          _wdFrom = null;
-                          _wdTo = null;
-                        });
-                      }
-                    },
-            ),
-            const SizedBox(height: 6),
-            _TimeCard(
-              title: 'Szombat',
-              subtitle:
-                  _weFrom == null ? 'Nem' : '${_fmt(_weFrom)} – ${_fmt(_weTo)}',
-              icon: Icons.wb_sunny_outlined,
-              color: takiCardYellow,
-              onTap:
-                  _loading || _saving ? null : () => _pickRange(weekend: true),
-              enabled: _weFrom != null,
-              onChanged: _loading || _saving
-                  ? null
-                  : (value) async {
-                      if (value) {
-                        await _pickRange(weekend: true);
-                      } else if (mounted) {
-                        setState(() {
-                          _weFrom = null;
-                          _weTo = null;
-                        });
-                      }
-                    },
-            ),
-            const SizedBox(height: 6),
-            _TimeCard(
-              title: 'Vasárnap',
-              subtitle: _sunFrom == null
-                  ? 'Nem'
-                  : '${_fmt(_sunFrom)} – ${_fmt(_sunTo)}',
-              icon: Icons.wb_sunny_outlined,
-              color: takiCardMint,
-              onTap: _loading || _saving
-                  ? null
-                  : () => _pickRange(weekend: true, sunday: true),
-              enabled: _sunFrom != null,
-              onChanged: _loading || _saving
-                  ? null
-                  : (value) async {
-                      if (value) {
-                        await _pickRange(weekend: true, sunday: true);
-                      } else if (mounted) {
-                        setState(() {
-                          _sunFrom = null;
-                          _sunTo = null;
-                        });
-                      }
-                    },
-            ),
-            const SizedBox(height: 6),
-            _TimeCard(
-              title: 'Ünnepnap',
-              subtitle: !_holidays || _holidayFrom == null
-                  ? 'Nem'
-                  : '${_fmt(_holidayFrom)} – ${_fmt(_holidayTo)}',
-              icon: Icons.celebration_outlined,
-              color: takiCardYellow,
-              onTap: _loading || _saving
-                  ? null
-                  : () => _pickRange(weekend: false, holiday: true),
-              enabled: _holidays,
-              onChanged: _loading || _saving
-                  ? null
-                  : (value) async {
-                      if (value) {
-                        await _pickRange(weekend: false, holiday: true);
-                      } else if (mounted) {
-                        setState(() {
-                          _holidays = false;
-                          _holidayFrom = null;
-                          _holidayTo = null;
-                        });
-                      }
-                    },
-            ),
-            ProfileEditorActions(
-                enabled: !_loading, busy: _saving, onSave: _save),
-          ],
+    appBar: TakiAppBar(title: const Text('Profil szerkesztése')),
+    body: ProfileEditorBody(
+      children: [
+        ProfileEditorCard(
+          firstName: _firstName,
+          photo: _photoImage,
+          bio: _bio,
+          city: _city,
+          enabled: !_loading && !_saving,
+          onPickPhoto: _pickPhoto,
+          onPickCity: _pickCity,
+          compact: true,
         ),
-      );
+        const SizedBox(height: 8),
+        const Text(
+          'Általános elérhetőség',
+          style: TextStyle(
+            fontSize: 17,
+            color: takiNavy,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const SizedBox(height: 6),
+        _TimeCard(
+          title: 'Hétköznap',
+          subtitle: _wdFrom == null
+              ? 'Nem'
+              : '${_fmt(_wdFrom)} – ${_fmt(_wdTo)}',
+          icon: Icons.work_outline_rounded,
+          color: takiCardMint,
+          onTap: _loading || _saving ? null : () => _pickRange(weekend: false),
+          enabled: _wdFrom != null,
+          onChanged: _loading || _saving
+              ? null
+              : (value) async {
+                  if (value) {
+                    await _pickRange(weekend: false);
+                  } else if (mounted) {
+                    setState(() {
+                      _wdFrom = null;
+                      _wdTo = null;
+                    });
+                  }
+                },
+        ),
+        const SizedBox(height: 6),
+        _TimeCard(
+          title: 'Szombat',
+          subtitle: _weFrom == null
+              ? 'Nem'
+              : '${_fmt(_weFrom)} – ${_fmt(_weTo)}',
+          icon: Icons.wb_sunny_outlined,
+          color: takiCardYellow,
+          onTap: _loading || _saving ? null : () => _pickRange(weekend: true),
+          enabled: _weFrom != null,
+          onChanged: _loading || _saving
+              ? null
+              : (value) async {
+                  if (value) {
+                    await _pickRange(weekend: true);
+                  } else if (mounted) {
+                    setState(() {
+                      _weFrom = null;
+                      _weTo = null;
+                    });
+                  }
+                },
+        ),
+        const SizedBox(height: 6),
+        _TimeCard(
+          title: 'Vasárnap',
+          subtitle: _sunFrom == null
+              ? 'Nem'
+              : '${_fmt(_sunFrom)} – ${_fmt(_sunTo)}',
+          icon: Icons.wb_sunny_outlined,
+          color: takiCardMint,
+          onTap: _loading || _saving
+              ? null
+              : () => _pickRange(weekend: true, sunday: true),
+          enabled: _sunFrom != null,
+          onChanged: _loading || _saving
+              ? null
+              : (value) async {
+                  if (value) {
+                    await _pickRange(weekend: true, sunday: true);
+                  } else if (mounted) {
+                    setState(() {
+                      _sunFrom = null;
+                      _sunTo = null;
+                    });
+                  }
+                },
+        ),
+        const SizedBox(height: 6),
+        _TimeCard(
+          title: 'Ünnepnap',
+          subtitle: !_holidays || _holidayFrom == null
+              ? 'Nem'
+              : '${_fmt(_holidayFrom)} – ${_fmt(_holidayTo)}',
+          icon: Icons.celebration_outlined,
+          color: takiCardYellow,
+          onTap: _loading || _saving
+              ? null
+              : () => _pickRange(weekend: false, holiday: true),
+          enabled: _holidays,
+          onChanged: _loading || _saving
+              ? null
+              : (value) async {
+                  if (value) {
+                    await _pickRange(weekend: false, holiday: true);
+                  } else if (mounted) {
+                    setState(() {
+                      _holidays = false;
+                      _holidayFrom = null;
+                      _holidayTo = null;
+                    });
+                  }
+                },
+        ),
+        ProfileEditorActions(enabled: !_loading, busy: _saving, onSave: _save),
+      ],
+    ),
+  );
 }
 
 class _TimeCard extends StatelessWidget {
@@ -414,57 +415,54 @@ class _TimeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Material(
-        color: color,
-        borderRadius: BorderRadius.circular(18),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(18),
-          onTap: onTap,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 48),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              child: Row(
-                children: [
-                  Icon(icon, color: takiNavy, size: 24),
-                  const SizedBox(width: 12),
-                  SizedBox(
-                    width: 82,
-                    child: Text(
+    color: color,
+    borderRadius: BorderRadius.circular(18),
+    child: InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: onTap,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 48),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          child: Row(
+            children: [
+              Icon(icon, color: takiNavy, size: 24),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
                       title,
-                      maxLines: 1,
-                      overflow: TextOverflow.visible,
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w800,
                         color: takiNavy,
                       ),
                     ),
-                  ),
-                  Expanded(
-                    child: Text(
+                    Text(
                       subtitle,
-                      textAlign: TextAlign.right,
-                      maxLines: 1,
                       style: const TextStyle(
                         color: takiMutedText,
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 6),
-                  if (enabled == null)
-                    const SizedBox(
-                      width: 52,
-                      child:
-                          Icon(Icons.edit_outlined, color: takiNavy, size: 22),
-                    )
-                  else
-                    Switch.adaptive(value: enabled!, onChanged: onChanged),
-                ],
+                  ],
+                ),
               ),
-            ),
+              const SizedBox(width: 6),
+              if (enabled == null)
+                const SizedBox(
+                  width: 52,
+                  child: Icon(Icons.edit_outlined, color: takiNavy, size: 22),
+                )
+              else
+                Switch.adaptive(value: enabled!, onChanged: onChanged),
+            ],
           ),
         ),
-      );
+      ),
+    ),
+  );
 }
