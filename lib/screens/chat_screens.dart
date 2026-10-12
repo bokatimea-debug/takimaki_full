@@ -60,11 +60,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
                   final itemIndex = i - 1;
                   final t = threads[itemIndex];
                   final last = t.messages.isNotEmpty ? t.messages.last : null;
-                  return Material(
+                  return TakiPanel(
                     color: itemIndex.isEven ? takiCardMint : takiCardYellow,
-                    borderRadius: BorderRadius.circular(24),
-                    elevation: 2,
-                    shadowColor: takiTealDark.withOpacity(.10),
+                    padding: EdgeInsets.zero,
                     child: ListTile(
                       minVerticalPadding: 18,
                       contentPadding: const EdgeInsets.symmetric(
