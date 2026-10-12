@@ -1,3 +1,4 @@
+import '../widgets/taki_screen_header.dart';
 import '../widgets/taki_app_bar.dart';
 
 import "package:flutter/material.dart";
@@ -291,6 +292,12 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
           children: [
+            const TakiScreenHeader(
+              title: 'Új megrendelés',
+              subtitle: 'Szolgáltatás és időpont',
+              icon: Icons.receipt_long_outlined,
+            ),
+            const SizedBox(height: 10),
             const Text(
               'Szolgáltatás *',
               style: TextStyle(
@@ -309,7 +316,10 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
                 minTileHeight: 56,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 14),
                 leading: _service == null
-                    ? const Icon(Icons.design_services_outlined, color: takiNavy)
+                    ? const Icon(
+                        Icons.design_services_outlined,
+                        color: takiNavy,
+                      )
                     : Image.asset(
                         serviceImage(_service!),
                         width: 44,
