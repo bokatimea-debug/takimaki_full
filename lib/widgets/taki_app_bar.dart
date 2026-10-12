@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class TakiAppBar extends AppBar {
   TakiAppBar({super.key, required Widget title, double? titleSpacing})
     : super(
-        title: title,
+        title: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: title),
         titleSpacing: titleSpacing,
         actions: [
           Builder(
