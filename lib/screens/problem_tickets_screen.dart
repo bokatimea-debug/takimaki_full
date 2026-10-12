@@ -75,7 +75,7 @@ class _ProblemTicketsScreenState extends State<ProblemTicketsScreen> {
           ),
           const SizedBox(height: 12),
           const TakiPanel(
-            color: takiMint,
+            color: takiCardMint,
             padding: EdgeInsets.all(16),
             child: Row(
               children: [
@@ -91,13 +91,14 @@ class _ProblemTicketsScreenState extends State<ProblemTicketsScreen> {
             ),
           ),
           if (_tickets.isEmpty)
-            const Padding(
-              padding: EdgeInsets.all(24),
-              child: Text('Még nincs hibajegyed.'),
+            const TakiEmptyState(
+              icon: Icons.confirmation_number_outlined,
+              title: 'Még nincs hibajegyed.',
+              text: 'A problémát a rendelés részleteinél jelentheted.',
             ),
           for (final t in _tickets)
             TakiPanel(
-              color: takiYellowSoft,
+              color: takiCardYellow,
               padding: const EdgeInsets.all(16),
               child: Padding(
                 padding: EdgeInsets.zero,
