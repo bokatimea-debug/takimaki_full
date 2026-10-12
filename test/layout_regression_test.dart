@@ -246,6 +246,12 @@ void main() {
       expect(find.text('Mosodai szolgáltatás'), findsNothing);
       expect(tester.takeException(), isNull);
       await _capture(tester, '${role}_calendar_confirmed_only');
+      await tester.tap(find.text('Heti nézet'));
+      await tester.pumpAndSettle();
+      expect(find.text('Apartmantakarítás'), findsWidgets);
+      expect(find.text('Mosodai szolgáltatás'), findsNothing);
+      expect(tester.takeException(), isNull);
+      await _capture(tester, '${role}_calendar_week_confirmed_only');
     });
   }
 
