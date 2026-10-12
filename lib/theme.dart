@@ -7,6 +7,9 @@ const takiNavy = takiTealDark;
 const takiOrange = Color(0xFFFFA51F);
 const takiCream = Color(0xFFFFFBF1);
 const takiMint = Color(0xFFDDF4EF);
+// Existing approved dashboard tile colours, shared by internal content cards.
+const takiCardMint = Color(0xFF8ADFD6);
+const takiCardYellow = Color(0xFFFFD76A);
 const takiYellowSoft = Color(0xFFFFE7B0);
 const takiFieldSurface = Color(0xFFFFFEFA);
 const takiMutedText = Color(0xFF617577);
