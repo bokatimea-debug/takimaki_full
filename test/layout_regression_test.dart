@@ -164,6 +164,56 @@ void main() {
     }
   }
 
+  for (final size in [const Size(320, 640), const Size(412, 892)]) {
+    testWidgets('price dialog keeps focused field and actions above keyboard ${size.width}', (tester) async {
+      await _show(tester, const ProviderAddServiceScreen(), size,
+        scale: size.width == 320 ? 1.3 : 1, canPop: true);
+      await _chooseService(tester, 'Apartmantakarítás');
+      final add = find.byKey(const ValueKey('add-price-rule'));
+      await _reachService(tester, add);
+      await tester.tap(add);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('price-item-Apartmantakarítás')));
+      await tester.pumpAndSettle();
+      final unit = find.byKey(const ValueKey('price-unit-Ft/m²-sáv'));
+      await tester.ensureVisible(unit);
+      await tester.pumpAndSettle();
+      await tester.tap(unit);
+      await tester.pumpAndSettle();
+      tester.view.viewInsets = const FakeViewPadding(bottom: 270);
+      tester.view.padding = const FakeViewPadding(top: 24);
+      await tester.pumpAndSettle();
+      final amount = find.byKey(const ValueKey('price-rule-amount'));
+      await tester.ensureVisible(amount);
+      await tester.pumpAndSettle();
+      await tester.enterText(amount, '15000');
+      await tester.pumpAndSettle();
+      expect(tester.getRect(amount).bottom, lessThanOrEqualTo(size.height - 270));
+      final submit = find.byKey(const ValueKey('price-rule-add'));
+      expect(submit.hitTestable(), findsOneWidget);
+      expect(tester.getRect(submit).bottom, lessThanOrEqualTo(size.height - 270));
+      expect(tester.takeException(), isNull);
+      await _capture(tester, 'price_dialog_keyboard_${size.width.toInt()}');
+    });
+  }
+  for (final role in ['customer', 'provider']) {
+    testWidgets('$role calendar excludes pending requests', (tester) async {
+      final day = DateTime.now().toIso8601String().split('T').first;
+      final orders = [
+        {'id': 'confirmed', 'request_id': 'confirmed', 'service': 'Apartmantakarítás', 'date': day, 'time': '09:00', 'duration_minutes': 120, 'status': 'Elfogadva'},
+        {'id': 'pending', 'request_id': 'pending', 'service': 'Mosodai szolgáltatás', 'date': day, 'time': '12:00', 'duration_minutes': 60, 'status': 'Függőben'},
+      ];
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('customer_orders', jsonEncode(orders));
+      await prefs.setString('provider_orders', jsonEncode(orders));
+      await _show(tester, const WorkCalendarScreen(), const Size(360, 740), canPop: true, arguments: role);
+      expect(find.text('Apartmantakarítás'), findsOneWidget);
+      expect(find.text('Mosodai szolgáltatás'), findsNothing);
+      expect(tester.takeException(), isNull);
+      await _capture(tester, '${role}_calendar_confirmed_only');
+    });
+  }
+
   final remainingScreens = <String, Widget Function()>{
     'provider_requests': () => const ProviderRequestsScreen(),
     'provider_jobs': () => const ProviderAllOrdersScreen(),
