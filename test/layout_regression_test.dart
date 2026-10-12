@@ -384,6 +384,31 @@ void main() {
         await prefs.setString('customer_orders', jsonEncode([work]));
         await prefs.setString('provider_orders', jsonEncode([work]));
         await prefs.setString(
+          'provider_requests',
+          jsonEncode([
+            {
+              ...work,
+              'customer_id': '+36309999999',
+              'status': 'pending',
+              'service_options': <String>[],
+            },
+          ]),
+        );
+        await prefs.setString(
+          'private_problem_tickets',
+          jsonEncode([
+            {
+              'request_id': 'layout-work',
+              'role': 'customer',
+              'reporter': '+36302222023',
+              'reason': 'Fizetési probléma',
+              'status': 'Folyamatban',
+              'description': 'A visszaigazolás ellenőrzését kérem.',
+              'updates': <dynamic>[],
+            },
+          ]),
+        );
+        await prefs.setString(
           'customer_offers',
           jsonEncode([
             {
@@ -402,6 +427,10 @@ void main() {
           canPop: true,
           arguments: work,
         );
+        if (screen.key == 'provider_requests')
+          expect(find.text('Apartmantakarítás'), findsOneWidget);
+        if (screen.key == 'problem_tickets')
+          expect(find.text('Fizetési probléma • Folyamatban'), findsOneWidget);
         expect(tester.takeException(), isNull);
         await _capture(tester, '${screen.key}_${size.$1.toInt()}_${size.$3}');
       });
