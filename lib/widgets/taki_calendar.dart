@@ -256,10 +256,12 @@ Future<TimeOfDay?> showTakiTimePicker({
   required BuildContext context,
   required TimeOfDay initialTime,
   String? helpText,
+  TimePickerEntryMode initialEntryMode = TimePickerEntryMode.dial,
 }) => showTimePicker(
   context: context,
   initialTime: initialTime,
   helpText: helpText,
+  initialEntryMode: initialEntryMode,
   builder: (ctx, child) => Theme(
     data: Theme.of(ctx).copyWith(
       timePickerTheme: TimePickerThemeData(
