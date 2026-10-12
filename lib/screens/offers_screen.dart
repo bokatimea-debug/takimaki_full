@@ -128,9 +128,9 @@ class _OffersScreenState extends State<OffersScreen> {
                 ..._offers
                     .where((o) => o['status'] == 'pending')
                     .map(
-                      (offer) => Card(
+                      (offer) => TakiPanel(
                         color: takiCardMint,
-                        elevation: 0,
+                        padding: EdgeInsets.zero,
                         child: Padding(
                           padding: const EdgeInsets.all(18),
                           child: Column(
