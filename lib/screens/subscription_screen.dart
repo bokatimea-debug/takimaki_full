@@ -89,7 +89,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
             ),
             const SizedBox(height: 12),
             const TakiPanel(
-              color: takiMint,
+              color: takiCardMint,
               padding: EdgeInsets.all(12),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -132,7 +132,7 @@ class _SubscriptionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TakiPanel(
-      color: title == 'Szolgáltató' ? takiMint : takiYellowSoft,
+      color: title == 'Szolgáltató' ? takiCardMint : takiCardYellow,
       padding: const EdgeInsets.all(14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
