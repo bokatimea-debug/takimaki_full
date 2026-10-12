@@ -1,3 +1,9 @@
+import 'package:takimaki_full/screens/provider_requests_screen.dart';
+import 'package:takimaki_full/screens/provider_all_orders_screen.dart';
+import 'package:takimaki_full/screens/provider_offer_reply_screen.dart';
+import 'package:takimaki_full/screens/offers_screen.dart';
+import 'package:takimaki_full/screens/order_details_screen.dart';
+import 'package:takimaki_full/screens/problem_tickets_screen.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
@@ -155,6 +161,41 @@ void main() {
           await _capture(tester, '${screen.key}_${size.$1.toInt()}_${size.$3}');
         },
       );
+    }
+  }
+
+  final remainingScreens = <String, Widget Function()>{
+    'provider_requests': () => const ProviderRequestsScreen(),
+    'provider_jobs': () => const ProviderAllOrdersScreen(),
+    'offer_reply': () => const ProviderOfferReplyScreen(),
+    'offers': () => const OffersScreen(),
+    'order_details': () => const OrderDetailsScreen(),
+    'problem_tickets': () => const ProblemTicketsScreen(),
+  };
+  for (final screen in remainingScreens.entries) {
+    for (final size in _sizes) {
+      testWidgets('${screen.key} filled layout ${size.$1} scale ${size.$3}', (tester) async {
+        final day = DateTime.now().add(const Duration(days: 2)).toIso8601String().split('T').first;
+        final work = <String, dynamic>{
+          'id': 'layout-work', 'request_id': 'layout-work',
+          'service': 'Apartmantakarítás', 'address': 'Budapest, Váci utca 1.',
+          'date': day, 'time': '09:00', 'duration_minutes': 120,
+          'area_sqm': 50, 'price': 25000, 'status': 'Elfogadva',
+          'customer_name': 'Tímea', 'provider_name': 'Petra',
+          'service_options': ['Mosodai szolgáltatás'],
+          'view_role': 'customer',
+        };
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('customer_orders', jsonEncode([work]));
+        await prefs.setString('provider_orders', jsonEncode([work]));
+        await prefs.setString('customer_offers', jsonEncode([
+          {...work, 'id': 'layout-offer', 'status': 'pending', 'provider_name': 'Petra'},
+        ]));
+        await _show(tester, screen.value(), Size(size.$1, size.$2),
+          scale: size.$3, canPop: true, arguments: work);
+        expect(tester.takeException(), isNull);
+        await _capture(tester, '${screen.key}_${size.$1.toInt()}_${size.$3}');
+      });
     }
   }
 
