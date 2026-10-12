@@ -356,7 +356,7 @@ class _WorkCalendarScreenState extends State<WorkCalendarScreen> {
                       style: const TextStyle(fontWeight: FontWeight.w800),
                     ),
                     subtitle: Text(
-                      '${work['address']}\n${WorkSchedule.minutes(work)} perc • ${work['status']}',
+                      '${work['address'] ?? 'Helyszín nincs megadva'}\n${WorkSchedule.minutes(work)} perc • ${work['status']}',
                     ),
                     trailing: const Icon(Icons.chevron_right),
                     isThreeLine: true,
