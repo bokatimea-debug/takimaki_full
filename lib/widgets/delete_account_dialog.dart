@@ -1,3 +1,5 @@
+import 'taki_screen_header.dart';
+
 import 'package:flutter/material.dart';
 
 import '../screens/splash_login_screen.dart';
@@ -7,7 +9,10 @@ Future<void> showDeleteAccountDialog(BuildContext context) async {
   final confirmed = await showDialog<bool>(
     context: context,
     builder: (dialogContext) => AlertDialog(
-      title: const Text('Profil törlése'),
+      title: const TakiScreenHeader(
+        title: 'Profil törlése',
+        icon: Icons.info_outline_rounded,
+      ),
       content: const Text(
         'A törlés mindkét profilodat és a mentett adataidat érinti. '
         'Ezzel a telefonszámmal 3 hónapig nem regisztrálhatsz újra. '
