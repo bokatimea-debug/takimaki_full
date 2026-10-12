@@ -91,13 +91,16 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
         ),
       ],
     ),
-    bottomNavigationBar: SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
-        child: FilledButton.icon(
-          onPressed: _use,
-          icon: const Icon(Icons.check),
-          label: const Text('Cím használata'),
+    bottomNavigationBar: Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
+          child: FilledButton.icon(
+            onPressed: _use,
+            icon: const Icon(Icons.check),
+            label: const Text('Cím használata'),
+          ),
         ),
       ),
     ),
