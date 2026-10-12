@@ -43,6 +43,7 @@ class ProfileEditorCard extends StatelessWidget {
     required this.onPickCity,
     this.enabled = true,
     this.compact = false,
+    this.cityLabel = 'Működési terület',
   });
 
   final String firstName;
@@ -53,6 +54,7 @@ class ProfileEditorCard extends StatelessWidget {
   final VoidCallback onPickCity;
   final bool enabled;
   final bool compact;
+  final String cityLabel;
 
   @override
   Widget build(BuildContext context) => Container(
@@ -183,8 +185,8 @@ class ProfileEditorCard extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                'Működési terület',
+                              Text(
+                                cityLabel,
                                 style: TextStyle(
                                   color: takiMutedText,
                                   fontSize: 12,
