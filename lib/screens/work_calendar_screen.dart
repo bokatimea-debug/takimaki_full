@@ -151,9 +151,9 @@ class _WorkCalendarScreenState extends State<WorkCalendarScreen> {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: cells,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 7,
-              childAspectRatio: .92,
+              mainAxisExtent: (MediaQuery.textScalerOf(context).scale(16) * 1.5 + 16).clamp(48.0, 96.0).toDouble(),
               mainAxisSpacing: 4,
               crossAxisSpacing: 4,
             ),
