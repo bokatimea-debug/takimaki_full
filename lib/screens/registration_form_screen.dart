@@ -44,7 +44,6 @@ class _RegistrationFormScreenState extends State<RegistrationFormScreen> {
         child: ListView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Center(
               child: Stack(
