@@ -320,85 +320,55 @@ class _WorkCalendarScreenState extends State<WorkCalendarScreen> {
             ),
             const SizedBox(height: 10),
             if (items.isEmpty)
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 24,
-                  horizontal: 20,
-                ),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [takiYellowSoft, takiMint],
-                  ),
-                  borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: Colors.white, width: 2),
-                ),
-                child: Column(
-                  children: [
-                    Container(
-                      width: 64,
-                      height: 64,
-                      decoration: const BoxDecoration(
-                        color: takiOrange,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.event_available_outlined,
-                        size: 38,
-                        color: takiTealDark,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'Erre a napra nincs elfogadott munka.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: takiTealDark,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ],
-                ),
+              const TakiEmptyState(
+                icon: Icons.event_available_outlined,
+                title: 'Erre a napra nincs elfogadott munka.',
+                text: 'Válassz másik napot a naptárban.',
               ),
             for (final work in items)
-              Card(
-                margin: const EdgeInsets.only(bottom: 10),
-                child: ListTile(
-                  contentPadding: const EdgeInsets.all(14),
-                  leading: Container(
-                    width: 58,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    decoration: BoxDecoration(
-                      color: takiTealDark,
-                      borderRadius: BorderRadius.circular(17),
-                    ),
-                    child: Text(
-                      '${work['time']}',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w900,
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: TakiPanel(
+                  color: items.indexOf(work).isEven
+                      ? takiCardMint
+                      : takiCardYellow,
+                  padding: EdgeInsets.zero,
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.all(14),
+                    leading: Container(
+                      width: 58,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        color: takiTealDark,
+                        borderRadius: BorderRadius.circular(17),
+                      ),
+                      child: Text(
+                        '${work['time']}',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                        ),
                       ),
                     ),
+                    title: Text(
+                      '${work['service'] ?? work['title']}',
+                      style: const TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                    subtitle: Text(
+                      '${work['address']}\n${WorkSchedule.minutes(work)} perc • ${work['status']}',
+                    ),
+                    trailing: const Icon(Icons.chevron_right),
+                    isThreeLine: true,
+                    onTap: () async {
+                      await Navigator.pushNamed(
+                        context,
+                        '/order/details',
+                        arguments: {...work, 'view_role': _role},
+                      );
+                      await _load();
+                    },
                   ),
-                  title: Text(
-                    '${work['service'] ?? work['title']}',
-                    style: const TextStyle(fontWeight: FontWeight.w800),
-                  ),
-                  subtitle: Text(
-                    '${work['address']}\n${WorkSchedule.minutes(work)} perc • ${work['status']}',
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  isThreeLine: true,
-                  onTap: () async {
-                    await Navigator.pushNamed(
-                      context,
-                      '/order/details',
-                      arguments: {...work, 'view_role': _role},
-                    );
-                    await _load();
-                  },
                 ),
               ),
           ],
