@@ -1,3 +1,4 @@
+import '../widgets/taki_calendar.dart';
 import '../widgets/taki_screen_header.dart';
 
 import 'package:flutter/material.dart';
@@ -47,8 +48,8 @@ class _WorkCalendarScreenState extends State<WorkCalendarScreen> {
       .where((w) => DateUtils.isSameDay(WorkSchedule.start(w), day))
       .length;
   Color _dayColor(int weekday) {
-    if (weekday >= DateTime.saturday) return takiYellowSoft;
-    return weekday.isEven ? takiMint : takiCream;
+    if (weekday >= DateTime.saturday) return takiCardYellow;
+    return takiCardMint;
   }
 
   String _two(int value) => value.toString().padLeft(2, '0');
@@ -79,163 +80,33 @@ class _WorkCalendarScreenState extends State<WorkCalendarScreen> {
     );
   }
 
-  Widget _monthGrid() {
-    final first = DateTime(_day.year, _day.month, 1);
-    final days = DateTime(_day.year, _day.month + 1, 0).day;
-    final leading = first.weekday - 1;
-    final cells = ((leading + days + 6) ~/ 7) * 7;
-    return Container(
-      padding: const EdgeInsets.fromLTRB(10, 8, 10, 14),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Colors.white.withValues(alpha: .94), takiMint],
+  Widget _monthGrid() => TakiPanel(
+    padding: const EdgeInsets.all(10),
+    child: Column(
+      children: [
+        TakiMonthGrid(
+          month: _day,
+          selected: (d) => DateUtils.isSameDay(d, _day),
+          workCount: _count,
+          onSelect: (d) => setState(() => _day = d),
+          onMonthChanged: (d) =>
+              _changeMonth((d.year - _day.year) * 12 + d.month - _day.month),
         ),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: takiTealDark.withValues(alpha: .09),
-            blurRadius: 18,
-            offset: const Offset(0, 7),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              IconButton(
-                tooltip: 'Előző hónap',
-                onPressed: () => _changeMonth(-1),
-                icon: const Icon(Icons.chevron_left_rounded),
-              ),
-              Expanded(
-                child: Text(
-                  '${_day.year}. ${_monthName(_day.month)}',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: takiTealDark,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-              IconButton(
-                tooltip: 'Következő hónap',
-                onPressed: () => _changeMonth(1),
-                icon: const Icon(Icons.chevron_right_rounded),
-              ),
-            ],
-          ),
-          Row(
-            children: [
-              for (final name in const ['H', 'K', 'Sze', 'Cs', 'P', 'Szo', 'V'])
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 7),
-                    child: Text(
-                      name,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: takiMutedText,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: cells,
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 7,
-              mainAxisExtent: (MediaQuery.textScalerOf(context).scale(16) * 1.5 + 16).clamp(48.0, 96.0).toDouble(),
-              mainAxisSpacing: 4,
-              crossAxisSpacing: 4,
+        const SizedBox(height: 8),
+        const Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.work_outline_rounded, color: takiOrange, size: 16),
+            SizedBox(width: 6),
+            Text(
+              'Elfogadott munka',
+              style: TextStyle(color: takiMutedText, fontSize: 12),
             ),
-            itemBuilder: (context, index) {
-              final number = index - leading + 1;
-              if (number < 1 || number > days) return const SizedBox.shrink();
-              final date = DateTime(_day.year, _day.month, number);
-              final selected = DateUtils.isSameDay(date, _day);
-              final today = DateUtils.isSameDay(date, DateTime.now());
-              final count = _count(date);
-              return InkWell(
-                key: ValueKey('month-day-$number'),
-                borderRadius: BorderRadius.circular(15),
-                onTap: () => setState(() => _day = date),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 160),
-                  decoration: BoxDecoration(
-                    color: selected
-                        ? takiTeal
-                        : (today ? takiYellowSoft : _dayColor(date.weekday)),
-                    borderRadius: BorderRadius.circular(15),
-                    border: Border.all(
-                      color: selected
-                          ? takiTeal
-                          : (today ? takiOrange : Colors.white),
-                      width: today && !selected ? 2 : 1,
-                    ),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        '$number',
-                        style: TextStyle(
-                          color: selected ? Colors.white : takiTealDark,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 16,
-                        ),
-                      ),
-                      const SizedBox(height: 3),
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 160),
-                        width: count > 0 ? 20 : 5,
-                        height: 5,
-                        decoration: BoxDecoration(
-                          color: count > 0
-                              ? takiOrange
-                              : (selected
-                                    ? Colors.white54
-                                    : Colors.transparent),
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 22,
-                height: 6,
-                decoration: BoxDecoration(
-                  color: takiOrange,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-              ),
-              const SizedBox(width: 8),
-              const Text(
-                'Elfogadott munka',
-                style: TextStyle(color: takiMutedText, fontSize: 12),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+          ],
+        ),
+      ],
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
