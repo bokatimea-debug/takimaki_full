@@ -295,7 +295,7 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
               subtitle:
                   _wdFrom == null ? 'Nem' : '${_fmt(_wdFrom)} – ${_fmt(_wdTo)}',
               icon: Icons.work_outline_rounded,
-              color: takiMint,
+              color: takiCardMint,
               onTap:
                   _loading || _saving ? null : () => _pickRange(weekend: false),
               enabled: _wdFrom != null,
@@ -318,7 +318,7 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
               subtitle:
                   _weFrom == null ? 'Nem' : '${_fmt(_weFrom)} – ${_fmt(_weTo)}',
               icon: Icons.wb_sunny_outlined,
-              color: takiYellowSoft,
+              color: takiCardYellow,
               onTap:
                   _loading || _saving ? null : () => _pickRange(weekend: true),
               enabled: _weFrom != null,
@@ -342,7 +342,7 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
                   ? 'Nem'
                   : '${_fmt(_sunFrom)} – ${_fmt(_sunTo)}',
               icon: Icons.wb_sunny_outlined,
-              color: takiMint,
+              color: takiCardMint,
               onTap: _loading || _saving
                   ? null
                   : () => _pickRange(weekend: true, sunday: true),
@@ -367,7 +367,7 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
                   ? 'Nem'
                   : '${_fmt(_holidayFrom)} – ${_fmt(_holidayTo)}',
               icon: Icons.celebration_outlined,
-              color: takiYellowSoft,
+              color: takiCardYellow,
               onTap: _loading || _saving
                   ? null
                   : () => _pickRange(weekend: false, holiday: true),
