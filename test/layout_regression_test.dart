@@ -315,7 +315,7 @@ void main() {
       await tester.drag(find.byType(Scrollable).first, const Offset(0, -520));
       await tester.pumpAndSettle();
       expect(
-        find.widgetWithText(TextField, 'Megjegyzés (opcionális)'),
+        find.widgetWithText(TextField, 'Megjegyzés'),
         findsOneWidget,
       );
       await _capture(tester, 'order_form_107_${size.width.toInt()}');
