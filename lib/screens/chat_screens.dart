@@ -183,38 +183,17 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: TakiAppBar(
-        titleSpacing: 0,
-        title: Row(
-          children: [
-            ChatPeerAvatar(thread: _thread, radius: 18),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _thread.displayName,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const Text(
-                    'Beszélgetés',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: takiTeal,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
+      appBar: TakiAppBar(title: const Text('Beszélgetés')),
       body: BrandedBackground(
         child: Column(
           children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+              child: TakiScreenHeader(
+                title: _thread.displayName,
+                leading: ChatPeerAvatar(thread: _thread, radius: 18),
+              ),
+            ),
             Expanded(
               child: ListView.builder(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 18),
