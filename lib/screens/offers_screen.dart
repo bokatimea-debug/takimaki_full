@@ -1,3 +1,4 @@
+import '../widgets/taki_screen_header.dart';
 import '../utils/public_name.dart';
 import '../widgets/taki_app_bar.dart';
 
@@ -113,7 +114,11 @@ class _OffersScreenState extends State<OffersScreen> {
           : ListView(
               padding: const EdgeInsets.fromLTRB(18, 12, 18, 16),
               children: [
-                SectionBadge(icon: Icons.local_offer_outlined, text: _service),
+                TakiScreenHeader(
+                  icon: Icons.local_offer_outlined,
+                  title: _service,
+                  subtitle: 'Beérkezett ajánlatok',
+                ),
                 if (_offers.isNotEmpty) ...[
                   const SizedBox(height: 12),
                   TakiPanel(
@@ -144,6 +149,8 @@ class _OffersScreenState extends State<OffersScreen> {
                     .where((o) => o['status'] == 'pending')
                     .map(
                       (offer) => Card(
+                        color: takiMint,
+                        elevation: 0,
                         child: Padding(
                           padding: const EdgeInsets.all(18),
                           child: Column(
