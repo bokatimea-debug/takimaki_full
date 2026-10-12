@@ -1,4 +1,3 @@
-import '../widgets/taki_screen_header.dart';
 import '../widgets/delete_account_dialog.dart';
 import '../widgets/taki_app_bar.dart';
 
@@ -92,12 +91,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const TakiScreenHeader(
-                title: 'Beállítások',
-                subtitle: 'Értesítések és fiókkezelés',
-                icon: Icons.settings_outlined,
-              ),
-              const SizedBox(height: 12),
               TakiPanel(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 child: ListTile(
