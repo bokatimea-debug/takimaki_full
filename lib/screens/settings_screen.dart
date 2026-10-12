@@ -104,7 +104,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 8),
               TakiPanel(
                 padding: EdgeInsets.zero,
-                color: takiMint,
+                color: takiCardMint,
                 child: SwitchListTile(
                   value: push,
                   title: const Text('Push értesítések'),
@@ -114,7 +114,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 8),
               TakiPanel(
                 padding: EdgeInsets.zero,
-                color: takiYellowSoft,
+                color: takiCardYellow,
                 child: SwitchListTile(
                   value: email,
                   title: const Text('Email értesítések'),
@@ -138,7 +138,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 8),
               TakiPanel(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                color: takiYellowSoft,
+                color: takiCardYellow,
                 child: ListTile(
                   leading: const Icon(Icons.logout, color: takiTealDark),
                   title: const Text('Kijelentkezés'),
