@@ -1,3 +1,4 @@
+import '../widgets/taki_calendar.dart';
 import '../widgets/taki_screen_header.dart';
 import '../widgets/taki_app_bar.dart';
 
@@ -85,14 +86,14 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
   }
 
   Future<void> _editGeneralHours(String period) async {
-    final from = await showTimePicker(
+    final from = await showTakiTimePicker(
       context: context,
       initialTime:
           _parseTime(_generalHours['${period}_from']) ??
           const TimeOfDay(hour: 9, minute: 0),
     );
     if (from == null || !mounted) return;
-    final to = await showTimePicker(
+    final to = await showTakiTimePicker(
       context: context,
       initialTime:
           _parseTime(_generalHours['${period}_to']) ??
@@ -287,13 +288,13 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
       "${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}";
 
   Future<void> _pickDateHours(DateTime date) async {
-    final from = await showTimePicker(
+    final from = await showTakiTimePicker(
       context: context,
       initialTime: _dateFrom[date] ?? const TimeOfDay(hour: 9, minute: 0),
       helpText: "Kezdés időpontja",
     );
     if (from == null || !mounted) return;
-    final to = await showTimePicker(
+    final to = await showTakiTimePicker(
       context: context,
       initialTime: _dateTo[date] ?? const TimeOfDay(hour: 18, minute: 0),
       helpText: "Befejezés időpontja",
@@ -340,151 +341,29 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
                   const SizedBox(height: 6),
                   Text("${selected.length} nap kiválasztva"),
                   const SizedBox(height: 8),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        IconButton(
-                          onPressed:
-                              displayedMonth.year == now.year &&
-                                  displayedMonth.month == now.month
-                              ? null
-                              : () => setModalState(
-                                  () => displayedMonth = DateTime(
-                                    displayedMonth.year,
-                                    displayedMonth.month - 1,
-                                  ),
-                                ),
-                          icon: const Icon(Icons.chevron_left_rounded),
-                        ),
-                        Expanded(
-                          child: Text(
-                            '${displayedMonth.year}. ${const ['január', 'február', 'március', 'április', 'május', 'június', 'július', 'augusztus', 'szeptember', 'október', 'november', 'december'][displayedMonth.month - 1]}',
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: takiNavy,
-                              fontSize: 17,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ),
-                        IconButton(
-                          onPressed: () => setModalState(
-                            () => displayedMonth = DateTime(
-                              displayedMonth.year,
-                              displayedMonth.month + 1,
-                            ),
-                          ),
-                          icon: const Icon(Icons.chevron_right_rounded),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 18),
-                    child: Row(
-                      children: [
-                        for (final day in [
-                          'H',
-                          'K',
-                          'Sze',
-                          'Cs',
-                          'P',
-                          'Szo',
-                          'V',
-                        ])
-                          Expanded(
-                            child: Center(
-                              child: Text(
-                                day,
-                                style: const TextStyle(
-                                  color: takiMutedText,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 6),
                   Expanded(
-                    child: Padding(
+                    child: SingleChildScrollView(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: GridView.builder(
-                        physics: const ClampingScrollPhysics(),
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 7,
-                              mainAxisSpacing: 5,
-                              crossAxisSpacing: 5,
-                              childAspectRatio: .82,
-                            ),
-                        itemCount: 42,
-                        itemBuilder: (context, index) {
-                          final firstOffset =
-                              DateTime(
-                                displayedMonth.year,
-                                displayedMonth.month,
-                                1,
-                              ).weekday -
-                              1;
-                          final day = index - firstOffset + 1;
-                          final daysInMonth = DateTime(
-                            displayedMonth.year,
-                            displayedMonth.month + 1,
-                            0,
-                          ).day;
-                          if (day < 1 || day > daysInMonth) {
-                            return const SizedBox.shrink();
-                          }
-                          final date = DateTime(
-                            displayedMonth.year,
-                            displayedMonth.month,
-                            day,
-                          );
-                          final disabled =
-                              date.isBefore(
-                                DateTime(now.year, now.month, now.day),
-                              ) ||
-                              _dates.contains(date);
-                          final isSelected = selected.contains(date);
-                          final weekend = date.weekday >= DateTime.saturday;
-                          return Material(
-                            color: isSelected
-                                ? takiTeal
-                                : disabled
-                                ? const Color(0xFFE8ECEB)
-                                : weekend
-                                ? takiYellowSoft
-                                : takiMint,
-                            borderRadius: BorderRadius.circular(14),
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(14),
-                              onTap: disabled
-                                  ? null
-                                  : () => setModalState(() {
-                                      isSelected
-                                          ? selected.remove(date)
-                                          : selected.add(date);
-                                    }),
-                              child: Center(
-                                child: Text(
-                                  '$day',
-                                  style: TextStyle(
-                                    color: isSelected
-                                        ? Colors.white
-                                        : disabled
-                                        ? takiMutedText
-                                        : takiNavy,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          );
-                        },
+                      child: TakiMonthGrid(
+                        month: displayedMonth,
+                        previousEnabled: DateTime(
+                          displayedMonth.year,
+                          displayedMonth.month,
+                        ).isAfter(DateTime(now.year, now.month)),
+                        selected: selected.contains,
+                        enabled: (date) =>
+                            !date.isBefore(
+                              DateTime(now.year, now.month, now.day),
+                            ) &&
+                            !_dates.contains(date),
+                        onMonthChanged: (date) =>
+                            setModalState(() => displayedMonth = date),
+                        onSelect: (date) => setModalState(() {
+                          selected.contains(date)
+                              ? selected.remove(date)
+                              : selected.add(date);
+                        }),
+                        dayKeyPrefix: 'custom-day',
                       ),
                     ),
                   ),
@@ -509,13 +388,13 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
     );
     if (result != null && result.isNotEmpty && mounted) {
       final first = result.first;
-      final from = await showTimePicker(
+      final from = await showTakiTimePicker(
         context: context,
         initialTime: _dateFrom[first] ?? const TimeOfDay(hour: 9, minute: 0),
         helpText: 'Közös kezdési időpont',
       );
       if (from == null || !mounted) return;
-      final to = await showTimePicker(
+      final to = await showTakiTimePicker(
         context: context,
         initialTime: _dateTo[first] ?? const TimeOfDay(hour: 17, minute: 0),
         helpText: 'Közös befejezési időpont',
@@ -956,49 +835,56 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
                         ),
                         const SizedBox(height: 5),
                         Material(
-                          color: takiCardMint,
+                          color: Colors.transparent,
                           borderRadius: BorderRadius.circular(18),
-                          child: ListTile(
-                            key: const ValueKey('service-selector'),
-                            minTileHeight: 48,
-                            dense: true,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 0,
-                            ),
-                            shape: RoundedRectangleBorder(
+                          child: Ink(
+                            decoration: BoxDecoration(
+                              gradient: takiProfileGradient,
                               borderRadius: BorderRadius.circular(18),
-                              side: BorderSide(
-                                color: _serviceError == null
-                                    ? Colors.transparent
-                                    : Theme.of(context).colorScheme.error,
+                            ),
+                            child: ListTile(
+                              key: const ValueKey('service-selector'),
+                              minTileHeight: 48,
+                              dense: true,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 0,
                               ),
-                            ),
-                            leading: expandedText
-                                ? null
-                                : _service == null
-                                ? const Icon(
-                                    Icons.design_services_outlined,
-                                    color: takiNavy,
-                                  )
-                                : Image.asset(
-                                    serviceImage(_service!),
-                                    width: 42,
-                                    height: 42,
-                                    fit: BoxFit.contain,
-                                  ),
-                            title: Text(
-                              _service ?? 'Válassz szolgáltatást',
-                              style: const TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(18),
+                                side: BorderSide(
+                                  color: _serviceError == null
+                                      ? Colors.transparent
+                                      : Theme.of(context).colorScheme.error,
+                                ),
                               ),
+                              leading: expandedText
+                                  ? null
+                                  : _service == null
+                                  ? const Icon(
+                                      Icons.design_services_outlined,
+                                      color: Colors.white,
+                                    )
+                                  : Image.asset(
+                                      serviceImage(_service!),
+                                      width: 42,
+                                      height: 42,
+                                      fit: BoxFit.contain,
+                                    ),
+                              title: Text(
+                                _service ?? 'Válassz szolgáltatást',
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              trailing: const Icon(
+                                Icons.expand_more,
+                                color: Colors.white,
+                              ),
+                              onTap: _chooseService,
                             ),
-                            trailing: const Icon(
-                              Icons.expand_more,
-                              color: takiNavy,
-                            ),
-                            onTap: _chooseService,
                           ),
                         ),
                         if (_serviceError != null)
