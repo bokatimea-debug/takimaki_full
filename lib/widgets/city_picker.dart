@@ -1,3 +1,5 @@
+import 'taki_screen_header.dart';
+
 import 'package:flutter/material.dart';
 
 import '../data/hungarian_cities.dart';
@@ -6,17 +8,16 @@ import '../theme.dart';
 Future<String?> showCityPicker(
   BuildContext context, {
   required String selectedCity,
-}) =>
-    showModalBottomSheet<String>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      backgroundColor: takiCream,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (_) => _CityPicker(selectedCity: selectedCity),
-    );
+}) => showModalBottomSheet<String>(
+  context: context,
+  isScrollControlled: true,
+  useSafeArea: true,
+  backgroundColor: takiCream,
+  shape: const RoundedRectangleBorder(
+    borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+  ),
+  builder: (_) => _CityPicker(selectedCity: selectedCity),
+);
 
 class _CityPicker extends StatefulWidget {
   const _CityPicker({required this.selectedCity});
@@ -43,8 +44,8 @@ class _CityPickerState extends State<_CityPicker> {
   @override
   Widget build(BuildContext context) {
     final typedCity = _query.trim();
-    final canUseTypedCity = RegExp(r"^[A-Za-zÀ-ÖØ-öø-ÿŐőŰű .'-]+$")
-            .hasMatch(typedCity) &&
+    final canUseTypedCity =
+        RegExp(r"^[A-Za-zÀ-ÖØ-öø-ÿŐőŰű .'-]+$").hasMatch(typedCity) &&
         RegExp(r'[A-Za-zÀ-ÖØ-öø-ÿŐőŰű]').allMatches(typedCity).length >= 2 &&
         !hungarianCities.any(
           (city) => _searchable(city) == _searchable(typedCity),
@@ -68,13 +69,9 @@ class _CityPickerState extends State<_CityPicker> {
                 Row(
                   children: [
                     const Expanded(
-                      child: Text(
-                        'Válassz várost',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w800,
-                          color: takiNavy,
-                        ),
+                      child: TakiScreenHeader(
+                        title: 'Válassz várost',
+                        icon: Icons.location_on_outlined,
                       ),
                     ),
                     IconButton(
@@ -103,7 +100,8 @@ class _CityPickerState extends State<_CityPicker> {
                 Expanded(
                   child: choices.isEmpty && !canUseTypedCity
                       ? const Center(
-                          child: Text('Nincs ilyen város a listában.'))
+                          child: Text('Nincs ilyen város a listában.'),
+                        )
                       : ListView.builder(
                           keyboardDismissBehavior:
                               ScrollViewKeyboardDismissBehavior.onDrag,
@@ -141,8 +139,10 @@ class _CityPickerState extends State<_CityPicker> {
                               title: Text(city),
                               leading: const Icon(Icons.location_city_outlined),
                               trailing: selected
-                                  ? const Icon(Icons.check_circle_rounded,
-                                      color: takiTeal)
+                                  ? const Icon(
+                                      Icons.check_circle_rounded,
+                                      color: takiTeal,
+                                    )
                                   : null,
                               selected: selected,
                               selectedColor: takiNavy,
