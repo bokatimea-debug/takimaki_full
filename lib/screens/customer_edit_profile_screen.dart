@@ -123,6 +123,7 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
           description: 'Bemutatkozás és lakóhely.',
           children: [
             ProfileEditorCard(
+              cityLabel: 'Lakóhely',
               firstName: _firstName,
               photo: _photoImage,
               bio: _bio,
