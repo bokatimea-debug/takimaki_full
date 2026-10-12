@@ -59,7 +59,7 @@ class _ProviderRequestsScreenState extends State<ProviderRequestsScreen> {
                       ? ''
                       : '${end.hour.toString().padLeft(2, '0')}:${end.minute.toString().padLeft(2, '0')}';
                   return TakiPanel(
-                    color: itemIndex.isEven ? takiMint : takiYellowSoft,
+                    color: itemIndex.isEven ? takiCardMint : takiCardYellow,
                     padding: const EdgeInsets.all(16),
                     child: Padding(
                       padding: EdgeInsets.zero,
