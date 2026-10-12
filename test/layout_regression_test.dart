@@ -247,6 +247,25 @@ void main() {
         expect(find.text('Kész'), findsOneWidget);
         expect(tester.takeException(), isNull);
         await _capture(tester, 'custom_days_${size.width.toInt()}');
+        final now = DateTime.now();
+        final last = find.byKey(
+          ValueKey('custom-day-${DateTime(now.year, now.month + 1, 0).day}'),
+        );
+        await tester.ensureVisible(last);
+        await tester.pumpAndSettle();
+        expect(last.hitTestable(), findsOneWidget);
+        await tester.tap(last);
+        await tester.pumpAndSettle();
+        expect(find.text('1 nap kiválasztva'), findsOneWidget);
+        expect(_button('Kész').hitTestable(), findsOneWidget);
+        await tester.tap(_button('Kész'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('OK'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('OK'));
+        await tester.pumpAndSettle();
+        expect(find.byType(TakiMonthGrid), findsNothing);
+        expect(tester.takeException(), isNull);
       },
     );
     testWidgets('feedback dialog fits with keyboard ${size.width}', (
@@ -321,12 +340,17 @@ void main() {
         expect(tester.takeException(), isNull);
         await _capture(tester, 'customer_date_picker_${size.width.toInt()}');
         final now = DateTime.now();
-        await tester.tap(find.byKey(ValueKey('date-picker-day-${now.day}')));
+        final last = DateTime(now.year, now.month + 1, 0);
+        final day = find.byKey(ValueKey('date-picker-day-${last.day}'));
+        await tester.ensureVisible(day);
+        await tester.pumpAndSettle();
+        expect(day.hitTestable(), findsOneWidget);
+        await tester.tap(day);
         await tester.tap(_button('OK'));
         await tester.pumpAndSettle();
         expect(
           find.text(
-            '${now.year}.${now.month.toString().padLeft(2, '0')}.${now.day.toString().padLeft(2, '0')}.',
+            '${now.year}.${now.month.toString().padLeft(2, '0')}.${last.day.toString().padLeft(2, '0')}.',
           ),
           findsOneWidget,
         );
