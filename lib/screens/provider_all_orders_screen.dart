@@ -77,7 +77,7 @@ class _ProviderAllOrdersScreenState extends State<ProviderAllOrdersScreen> {
                     ? ''
                     : '${end.hour.toString().padLeft(2, '0')}:${end.minute.toString().padLeft(2, '0')}';
                 return Card(
-                  color: itemIndex.isEven ? takiMint : takiYellowSoft,
+                  color: itemIndex.isEven ? takiCardMint : takiCardYellow,
                   elevation: 0,
                   margin: EdgeInsets.zero,
                   shape: RoundedRectangleBorder(
