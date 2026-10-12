@@ -61,7 +61,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                   final t = threads[itemIndex];
                   final last = t.messages.isNotEmpty ? t.messages.last : null;
                   return Material(
-                    color: itemIndex.isEven ? takiMint : takiYellowSoft,
+                    color: itemIndex.isEven ? takiCardMint : takiCardYellow,
                     borderRadius: BorderRadius.circular(24),
                     elevation: 2,
                     shadowColor: takiTealDark.withOpacity(.10),
