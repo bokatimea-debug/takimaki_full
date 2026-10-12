@@ -1,3 +1,4 @@
+import '../widgets/taki_status_tabs.dart';
 import '../widgets/taki_screen_header.dart';
 import '../widgets/service_choice_grid.dart';
 import '../widgets/taki_app_bar.dart';
@@ -17,6 +18,7 @@ class CustomerOrdersScreen extends StatefulWidget {
 
 class _CustomerOrdersScreenState extends State<CustomerOrdersScreen> {
   List<Map<String, dynamic>> _orders = [];
+  int _selectedStatus = 0;
   @override
   void initState() {
     super.initState();
@@ -40,17 +42,43 @@ class _CustomerOrdersScreenState extends State<CustomerOrdersScreen> {
             )
           : ListView.separated(
               padding: const EdgeInsets.all(18),
-              itemCount: _orders.length + 1,
+              itemCount:
+                  _orders
+                      .where((r) => TakiStatusTabs.shows(r, _selectedStatus))
+                      .length +
+                  1,
               separatorBuilder: (_, __) => const SizedBox(height: 10),
               itemBuilder: (context, index) {
                 if (index == 0)
-                  return const TakiScreenHeader(
-                    title: 'Megrendelések',
-                    subtitle: 'Áttekintés és állapotok',
-                    icon: Icons.receipt_long_outlined,
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const TakiScreenHeader(
+                        title: 'Megrendelések',
+                        subtitle: 'Áttekintés és állapotok',
+                        icon: Icons.receipt_long_outlined,
+                      ),
+                      const SizedBox(height: 6),
+                      TakiStatusTabs(
+                        selected: _selectedStatus,
+                        onChanged: (value) =>
+                            setState(() => _selectedStatus = value),
+                      ),
+                      if (!_orders.any(
+                        (r) => TakiStatusTabs.shows(r, _selectedStatus),
+                      ))
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 24),
+                          child: Text(
+                            'Ebben az állapotban nincs megjeleníthető tétel.',
+                          ),
+                        ),
+                    ],
                   );
                 final itemIndex = index - 1;
-                final order = _orders[itemIndex];
+                final order = _orders
+                    .where((r) => TakiStatusTabs.shows(r, _selectedStatus))
+                    .elementAt(itemIndex);
                 final end = WorkSchedule.end(order);
                 final endText = end == null
                     ? ''
@@ -63,13 +91,13 @@ class _CustomerOrdersScreenState extends State<CustomerOrdersScreen> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: ListTile(
-                    contentPadding: const EdgeInsets.all(16),
+                    contentPadding: const EdgeInsets.all(12),
                     leading: Image.asset(
                       serviceImage(
                         (order['service'] ?? order['title'] ?? '').toString(),
                       ),
-                      width: 42,
-                      height: 42,
+                      width: 32,
+                      height: 32,
                       fit: BoxFit.contain,
                     ),
                     title: Text(
