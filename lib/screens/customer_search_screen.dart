@@ -566,43 +566,43 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            SafeArea(
-              top: false,
-              minimum: const EdgeInsets.fromLTRB(0, 4, 0, 12),
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(minHeight: 48),
-                  child: FilledButton(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: takiOrange,
-                      foregroundColor: takiTealDark,
-                      minimumSize: const Size.fromHeight(48),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 10,
-                      ),
-                    ),
-                    onPressed: _saving ? null : _search,
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Flexible(
-                          child: Text(
-                            "Ajánlatok kérése",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontWeight: FontWeight.w800),
-                          ),
-                        ),
-                        SizedBox(width: 8),
-                        Icon(Icons.arrow_forward_rounded),
-                      ],
-                    ),
-                  ),
+          ],
+        ),
+      ),
+      bottomNavigationBar: SafeArea(
+        top: false,
+        minimum: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 48),
+            child: FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: takiOrange,
+                foregroundColor: takiTealDark,
+                minimumSize: const Size.fromHeight(48),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
                 ),
               ),
+              onPressed: _saving ? null : _search,
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Flexible(
+                    child: Text(
+                      "Ajánlatok kérése",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                  ),
+                  SizedBox(width: 8),
+                  Icon(Icons.arrow_forward_rounded),
+                ],
+              ),
             ),
-          ],
+          ),
         ),
       ),
     );
