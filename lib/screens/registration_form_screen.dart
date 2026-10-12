@@ -39,9 +39,11 @@ class _RegistrationFormScreenState extends State<RegistrationFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Regisztráció')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
+      body: SafeArea(
+        top: false,
+        child: ListView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Center(
@@ -89,7 +91,7 @@ class _RegistrationFormScreenState extends State<RegistrationFormScreen> {
               decoration: const InputDecoration(labelText: 'Email *'),
               keyboardType: TextInputType.emailAddress,
             ),
-            const Spacer(),
+            const SizedBox(height: 16),
             ElevatedButton(
               onPressed: _register,
               style: ElevatedButton.styleFrom(
