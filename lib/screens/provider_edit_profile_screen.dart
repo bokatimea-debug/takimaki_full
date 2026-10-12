@@ -1,3 +1,4 @@
+import '../widgets/taki_calendar.dart';
 import '../widgets/taki_app_bar.dart';
 
 import 'dart:io';
@@ -144,13 +145,13 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
         : weekend
         ? (_weTo ?? const TimeOfDay(hour: 17, minute: 0))
         : (_wdTo ?? const TimeOfDay(hour: 17, minute: 0));
-    final from = await showTimePicker(
+    final from = await showTakiTimePicker(
       context: context,
       initialTime: fromInit,
       initialEntryMode: TimePickerEntryMode.dial,
     );
     if (from == null || !mounted) return false;
-    final to = await showTimePicker(
+    final to = await showTakiTimePicker(
       context: context,
       initialTime: toInit,
       initialEntryMode: TimePickerEntryMode.dial,
