@@ -1,4 +1,5 @@
 import '../widgets/taki_app_bar.dart';
+
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -38,12 +39,14 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
       final photo = await ProfilePhotoLoader.loadAny(role: 'customer');
       if (!mounted) return;
       setState(() {
-        _firstName = prefs.getString('customer_first_name') ??
+        _firstName =
+            prefs.getString('customer_first_name') ??
             prefs.getString('registration_first_name') ??
             prefs.getString('provider_first_name') ??
             '';
         _bio.text = prefs.getString('customer_bio') ?? '';
-        _city = prefs.getString('customer_city') ??
+        _city =
+            prefs.getString('customer_city') ??
             prefs.getString('profile_city') ??
             'Budapest';
         _photoImage = photo;
@@ -118,26 +121,23 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: TakiAppBar(title: const Text('Profil szerkesztése')),
-        body: ProfileEditorBody(
-          description: 'Bemutatkozás és lakóhely.',
-          children: [
-            ProfileEditorCard(
-              cityLabel: 'Lakóhely',
-              firstName: _firstName,
-              photo: _photoImage,
-              bio: _bio,
-              city: _city,
-              enabled: !_loading && !_saving,
-              onPickPhoto: _pickPhoto,
-              onPickCity: _pickCity,
-            ),
-            ProfileEditorActions(
-              enabled: !_loading,
-              busy: _saving,
-              onSave: _save,
-            ),
-          ],
+    appBar: TakiAppBar(title: const Text('Profil szerkesztése')),
+    body: ProfileEditorBody(
+      description: 'Bemutatkozás és lakóhely.',
+      children: [
+        ProfileEditorCard(
+          compact: true,
+          cityLabel: 'Lakóhely',
+          firstName: _firstName,
+          photo: _photoImage,
+          bio: _bio,
+          city: _city,
+          enabled: !_loading && !_saving,
+          onPickPhoto: _pickPhoto,
+          onPickCity: _pickCity,
         ),
-      );
+        ProfileEditorActions(enabled: !_loading, busy: _saving, onSave: _save),
+      ],
+    ),
+  );
 }
