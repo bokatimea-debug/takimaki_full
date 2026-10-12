@@ -73,9 +73,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     final dense = const OutlineInputBorder();
     return Scaffold(
       appBar: AppBar(title: const Text('Regisztráció')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
+      body: SafeArea(
+        top: false,
+        child: ListView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
           children: [
             // kisebb, egy képernyőre férő űrlap
             Row(
@@ -129,71 +131,27 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             const SizedBox(height: 10),
 
             // EMAIL verifikáció
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: emailCodeCtrl,
-                    decoration: InputDecoration(
-                      labelText: emailSent
-                          ? 'Email kód (demó: 123456)'
-                          : 'Email kód',
-                      isDense: true,
-                      border: dense,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 6),
-                OutlinedButton(
-                  onPressed: _sendEmailCode,
-                  child: const Text('Kód küldése'),
-                ),
-                const SizedBox(width: 6),
-                FilledButton(
-                  onPressed: _verifyEmail,
-                  child: const Text('Ellenőrzés'),
-                ),
-                const SizedBox(width: 6),
-                Icon(
-                  emailOk ? Icons.verified : Icons.cancel,
-                  color: emailOk ? Colors.green : Colors.red,
-                ),
-              ],
+            _VerificationRow(
+              controller: emailCodeCtrl,
+              label: emailSent ? 'Email kód (demó: 123456)' : 'Email kód',
+              border: dense,
+              verified: emailOk,
+              onSend: _sendEmailCode,
+              onVerify: _verifyEmail,
             ),
             const SizedBox(height: 8),
 
             // SMS verifikáció
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: smsCodeCtrl,
-                    decoration: InputDecoration(
-                      labelText: smsSent ? 'SMS kód (demó: 123456)' : 'SMS kód',
-                      isDense: true,
-                      border: dense,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 6),
-                OutlinedButton(
-                  onPressed: _sendSmsCode,
-                  child: const Text('Kód küldése'),
-                ),
-                const SizedBox(width: 6),
-                FilledButton(
-                  onPressed: _verifySms,
-                  child: const Text('Ellenőrzés'),
-                ),
-                const SizedBox(width: 6),
-                Icon(
-                  smsOk ? Icons.verified : Icons.cancel,
-                  color: smsOk ? Colors.green : Colors.red,
-                ),
-              ],
+            _VerificationRow(
+              controller: smsCodeCtrl,
+              label: smsSent ? 'SMS kód (demó: 123456)' : 'SMS kód',
+              border: dense,
+              verified: smsOk,
+              onSend: _sendSmsCode,
+              onVerify: _verifySms,
             ),
 
-            const Spacer(),
+            const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
               child: FilledButton(
@@ -206,4 +164,81 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       ),
     );
   }
+}
+
+class _VerificationRow extends StatelessWidget {
+  const _VerificationRow({
+    required this.controller,
+    required this.label,
+    required this.border,
+    required this.verified,
+    required this.onSend,
+    required this.onVerify,
+  });
+
+  final TextEditingController controller;
+  final String label;
+  final InputBorder border;
+  final bool verified;
+  final VoidCallback onSend;
+  final VoidCallback onVerify;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+        builder: (context, constraints) {
+          final actions = Wrap(
+            alignment: WrapAlignment.end,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(0, 44),
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                ),
+                onPressed: onSend,
+                child: const Text('Kód küldése'),
+              ),
+              FilledButton(
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size(0, 44),
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                ),
+                onPressed: onVerify,
+                child: const Text('Ellenőrzés'),
+              ),
+              Icon(
+                verified ? Icons.verified : Icons.cancel,
+                color: verified ? Colors.green : Colors.red,
+              ),
+            ],
+          );
+          final field = TextField(
+            controller: controller,
+            decoration: InputDecoration(
+              labelText: label,
+              isDense: true,
+              border: border,
+            ),
+          );
+          if (constraints.maxWidth < 520) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                field,
+                const SizedBox(height: 6),
+                Align(alignment: Alignment.centerRight, child: actions),
+              ],
+            );
+          }
+          return Row(
+            children: [
+              Expanded(child: field),
+              const SizedBox(width: 6),
+              actions,
+            ],
+          );
+        },
+      );
 }
