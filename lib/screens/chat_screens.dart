@@ -257,7 +257,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                         maxWidth: MediaQuery.sizeOf(context).width * .76,
                       ),
                       decoration: BoxDecoration(
-                        color: me ? takiYellowSoft : takiMint,
+                        color: me ? takiCardYellow : takiCardMint,
                         boxShadow: const [
                           BoxShadow(
                             color: Color(0x14083B46),
@@ -289,7 +289,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                                 dt(context, m.ts),
                                 style: TextStyle(
                                   fontSize: 11,
-                                  color: me ? Colors.white70 : Colors.black54,
+                                  color: takiMutedText,
                                 ),
                               ),
                               if (me) ...[
@@ -297,7 +297,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                                 const Icon(
                                   Icons.done_all_rounded,
                                   size: 15,
-                                  color: Colors.white70,
+                                  color: takiMutedText,
                                 ),
                               ],
                             ],
