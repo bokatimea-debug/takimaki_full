@@ -1,3 +1,4 @@
+import '../widgets/taki_screen_header.dart';
 import '../utils/public_name.dart';
 import '../widgets/taki_app_bar.dart';
 
@@ -53,13 +54,14 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   Future<void> _reschedule() async {
     final now = DateTime.now();
     final currentStart = WorkSchedule.start(_order) ?? now;
-    final currentEnd = WorkSchedule.end(_order) ??
-        currentStart.add(const Duration(hours: 1));
+    final currentEnd =
+        WorkSchedule.end(_order) ?? currentStart.add(const Duration(hours: 1));
     String hm(DateTime value) =>
         '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
     final proceed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
+        scrollable: true,
         title: const Text('Időpont módosítása'),
         content: Text(
           'Jelenlegi időpont:\n${_order['date']} • ${hm(currentStart)}–${hm(currentEnd)}\n\nA másik fél értesítést kap a változásról.',
@@ -121,6 +123,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     final yes = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
+        scrollable: true,
         title: const Text('Munka lemondása'),
         content: const Text(
           'A munka kikerül a naptárból, a megrendelő értesítést kap. A szolgáltatói lemondáshoz még nincs külön büntetés meghatározva. Biztosan lemondod?',
@@ -181,7 +184,8 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: const Text('Munka visszajelzése'),
+          scrollable: true,
+          title: const TakiScreenHeader(title: 'Értékelés', subtitle: 'Milyen volt a szolgáltatás?', icon: Icons.star_outline),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -193,8 +197,8 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               const Text(
                 '3 napod van értékelni. A másik értékelése addig rejtett, amíg mindketten nem értékeltetek, vagy le nem jár a határidő.',
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+              Wrap(
+                alignment: WrapAlignment.center,
                 children: List.generate(
                   5,
                   (index) => IconButton(
@@ -248,6 +252,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, change) => AlertDialog(
+          scrollable: true,
           title: const Text('Probléma jelentése'),
           content: SingleChildScrollView(
             child: Column(
@@ -328,6 +333,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     final yes = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
+        scrollable: true,
         title: const Text('Rendelés lemondása'),
         content: Text(
           late
@@ -423,10 +429,10 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
             children: [
-              Text(
-                _value('service', _value('title')),
-                style: Theme.of(context).textTheme.headlineSmall
-                    ?.copyWith(fontWeight: FontWeight.w700),
+              TakiScreenHeader(
+                title: _value('service', _value('title')),
+                subtitle: status,
+                icon: Icons.assignment_turned_in_outlined,
               ),
               const SizedBox(height: 10),
               _Detail(
@@ -586,7 +592,9 @@ class _Detail extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 6),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: takiFieldSurface,
+        color: label == 'Helyszín' || label == 'Kért szolgáltatások'
+            ? takiMint
+            : takiYellowSoft,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
