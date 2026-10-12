@@ -44,7 +44,10 @@ class _ProviderServicesScreenState extends State<ProviderServicesScreen> {
     final yes = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Szolgáltatás törlése'),
+        title: const TakiScreenHeader(
+          title: 'Szolgáltatás törlése',
+          icon: Icons.info_outline_rounded,
+        ),
         content: const Text('Biztosan eltávolítod ezt a szolgáltatást?'),
         actions: [
           TextButton(
@@ -153,8 +156,8 @@ class _ProviderServicesScreenState extends State<ProviderServicesScreen> {
               children: [
                 Image.asset(
                   serviceImage(name),
-                  width: 42,
-                  height: 42,
+                  width: 32,
+                  height: 32,
                   fit: BoxFit.contain,
                 ),
                 const SizedBox(width: 10),
@@ -162,7 +165,7 @@ class _ProviderServicesScreenState extends State<ProviderServicesScreen> {
                   child: Text(
                     name,
                     style: const TextStyle(
-                      fontSize: 17,
+                      fontSize: 16,
                       fontWeight: FontWeight.w800,
                       color: takiTealDark,
                     ),
@@ -189,7 +192,7 @@ class _ProviderServicesScreenState extends State<ProviderServicesScreen> {
                       Text(
                         rules == 0 ? 'Nincs ártétel' : '$rules ártétel',
                         style: const TextStyle(
-                          fontSize: 18,
+                          fontSize: 14,
                           fontWeight: FontWeight.w800,
                           color: takiTealDark,
                         ),
