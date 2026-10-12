@@ -1,3 +1,4 @@
+import '../widgets/taki_screen_header.dart';
 import '../widgets/service_choice_grid.dart';
 import '../utils/public_name.dart';
 import '../widgets/taki_app_bar.dart';
@@ -42,16 +43,23 @@ class _ProviderRequestsScreenState extends State<ProviderRequestsScreen> {
               )
             : ListView.separated(
                 padding: const EdgeInsets.all(18),
-                itemCount: _requests.length,
+                itemCount: _requests.length + 1,
                 separatorBuilder: (_, __) => const SizedBox(height: 10),
                 itemBuilder: (context, index) {
-                  final request = _requests[index];
+                  if (index == 0)
+                    return const TakiScreenHeader(
+                      title: 'Megkeresések',
+                      subtitle: 'Új ajánlatkérések',
+                      icon: Icons.notifications_none_rounded,
+                    );
+                  final itemIndex = index - 1;
+                  final request = _requests[itemIndex];
                   final end = WorkSchedule.end(request);
                   final endText = end == null
                       ? ''
                       : '${end.hour.toString().padLeft(2, '0')}:${end.minute.toString().padLeft(2, '0')}';
                   return TakiPanel(
-                    color: index.isEven ? takiFieldSurface : takiYellowSoft,
+                    color: itemIndex.isEven ? takiMint : takiYellowSoft,
                     padding: const EdgeInsets.all(16),
                     child: Padding(
                       padding: EdgeInsets.zero,
