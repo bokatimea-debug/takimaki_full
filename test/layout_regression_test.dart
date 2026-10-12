@@ -333,7 +333,7 @@ void main() {
       },
     );
     testWidgets(
-      'new order action follows fields without a viewport spacer ${size.width}',
+      'approved order action stays fixed above keyboard ${size.width}',
       (tester) async {
         await _show(
           tester,
@@ -343,20 +343,29 @@ void main() {
           canPop: true,
         );
         final action = _button('Ajánlatok kérése');
+        expect(
+          tester.getRect(action).bottom,
+          lessThanOrEqualTo(size.height - 48),
+        );
+        tester.view.viewInsets = const FakeViewPadding(bottom: 270);
+        tester.view.padding = const FakeViewPadding(top: 24);
+        await tester.pumpAndSettle();
+        final note = find.widgetWithText(TextField, 'Megjegyzés');
         await tester.scrollUntilVisible(
-          action,
+          note,
           120,
           scrollable: find.byType(Scrollable).first,
         );
+        await tester.enterText(note, 'A teljes feladat leírása.');
         await tester.pumpAndSettle();
-        final note = find.widgetWithText(TextField, 'Megjegyzés');
         expect(
-          tester.getRect(action).top - tester.getRect(note).bottom,
-          lessThan(40),
+          tester.getRect(action).bottom,
+          lessThanOrEqualTo(size.height - 270),
         );
         expect(action.hitTestable(), findsOneWidget);
+        expect(note.hitTestable(), findsOneWidget);
         expect(tester.takeException(), isNull);
-        await _capture(tester, 'compact_order_form_${size.width.toInt()}');
+        await _capture(tester, 'order_keyboard_${size.width.toInt()}');
       },
     );
   }
