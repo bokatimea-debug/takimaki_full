@@ -1,4 +1,6 @@
+import '../widgets/taki_screen_header.dart';
 import '../widgets/taki_app_bar.dart';
+
 import 'package:flutter/material.dart';
 
 import '../models/settings.dart';
@@ -24,13 +26,10 @@ class _SettingsNotificationsScreenState
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
         children: [
-          const TakiHeroHeader(
-            eyebrow: 'Maradj naprakész',
-            title: 'Te döntöd el,\nmiről szóljunk',
-            subtitle:
-                'Csak a valóban fontos ajánlatokról és változásokról küldünk értesítést.',
+          const TakiScreenHeader(
+            title: 'Értesítések',
+            subtitle: 'Push és email beállítások',
             icon: Icons.notifications_active_rounded,
-            accent: takiOrange,
           ),
           const SizedBox(height: 18),
           TakiPanel(
@@ -58,7 +57,7 @@ class _SettingsNotificationsScreenState
           ),
           const SizedBox(height: 16),
           const TakiPanel(
-            color: takiYellowSoft,
+            color: takiCardYellow,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
