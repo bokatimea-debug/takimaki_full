@@ -1,3 +1,5 @@
+import '../widgets/taki_screen_header.dart';
+
 import 'package:flutter/material.dart';
 
 import '../services/workflow_store.dart';
@@ -36,6 +38,7 @@ class _ProblemTicketsScreenState extends State<ProblemTicketsScreen> {
     final yes = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
+        scrollable: true,
         title: const Text('További információ'),
         content: TextField(controller: controller, maxLines: 4),
         actions: [
@@ -63,51 +66,57 @@ class _ProblemTicketsScreenState extends State<ProblemTicketsScreen> {
     appBar: TakiAppBar(title: const Text('Saját hibajegyek')),
     body: BrandedBackground(
       child: ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        const TakiPanel(
-          color: takiMint,
-          padding: EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Icon(Icons.lock_outline_rounded, color: takiTealDark),
-              SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  'A hibajegyek belső adatok, nem nyilvános értékelések.',
-                  style: TextStyle(fontWeight: FontWeight.w700),
-                ),
-              ),
-            ],
+        padding: const EdgeInsets.all(16),
+        children: [
+          const TakiScreenHeader(
+            title: 'Segítség és hibajegyek',
+            subtitle: 'Korábbi bejelentéseid',
+            icon: Icons.help_outline,
           ),
-        ),
-        if (_tickets.isEmpty)
-          const Padding(
-            padding: EdgeInsets.all(24),
-            child: Text('Még nincs hibajegyed.'),
-          ),
-        for (final t in _tickets)
-          TakiPanel(
-            color: takiYellowSoft,
-            padding: const EdgeInsets.all(16),
-            child: Padding(
-              padding: EdgeInsets.zero,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('${t['reason']} • ${t['status']}'),
-                  Text(t['description'].toString()),
-                  for (final u in t['updates'] as List? ?? [])
-                    Text(u['text'].toString()),
-                  TextButton(
-                    onPressed: () => _append(t),
-                    child: const Text('További információ hozzáadása'),
+          const SizedBox(height: 12),
+          const TakiPanel(
+            color: takiMint,
+            padding: EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Icon(Icons.lock_outline_rounded, color: takiTealDark),
+                SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'A hibajegyek belső adatok, nem nyilvános értékelések.',
+                    style: TextStyle(fontWeight: FontWeight.w700),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
-      ],
+          if (_tickets.isEmpty)
+            const Padding(
+              padding: EdgeInsets.all(24),
+              child: Text('Még nincs hibajegyed.'),
+            ),
+          for (final t in _tickets)
+            TakiPanel(
+              color: takiYellowSoft,
+              padding: const EdgeInsets.all(16),
+              child: Padding(
+                padding: EdgeInsets.zero,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('${t['reason']} • ${t['status']}'),
+                    Text(t['description'].toString()),
+                    for (final u in t['updates'] as List? ?? [])
+                      Text(u['text'].toString()),
+                    TextButton(
+                      onPressed: () => _append(t),
+                      child: const Text('További információ hozzáadása'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
       ),
     ),
   );
