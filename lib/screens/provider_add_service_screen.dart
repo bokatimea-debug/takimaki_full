@@ -1144,8 +1144,6 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
                                   children: [
                                     Text(
                                       dates.map(_fmtDate).join('  •  '),
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
                                       style: const TextStyle(
                                         color: takiNavy,
                                         fontSize: 12,
