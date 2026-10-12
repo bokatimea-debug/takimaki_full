@@ -143,7 +143,7 @@ class _SubscriptionCard extends StatelessWidget {
                 child: Text(
                   title,
                   style: const TextStyle(
-                    fontSize: 20,
+                    fontSize: 17,
                     fontWeight: FontWeight.w800,
                     color: takiTealDark,
                   ),
