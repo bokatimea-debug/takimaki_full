@@ -120,6 +120,7 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
   Widget build(BuildContext context) => Scaffold(
         appBar: TakiAppBar(title: const Text('Profil szerkesztése')),
         body: ProfileEditorBody(
+          description: 'Bemutatkozás és lakóhely.',
           children: [
             ProfileEditorCard(
               firstName: _firstName,
