@@ -67,27 +67,29 @@ class RoleSelectScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      SizedBox(
-                        height: constraints.maxHeight < 760 ? 190 : 208,
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: constraints.maxHeight < 760 ? 190 : 208,
+                        ),
                         child: _RoleCard(
                           color: takiTeal,
                           icon: Icons.cleaning_services_rounded,
                           title: 'Munkát keresek',
-                          subtitle:
-                              'Fogadj megkereséseket, küldj ajánlatot és építsd a hírneved.',
+                          subtitle: 'Fogadj megkereséseket, küldj ajánlatot és építsd a hírneved.',
                           action: 'Szolgáltatóként belépek',
                           onTap: () => _selectRole(context, 'provider'),
                         ),
                       ),
                       const SizedBox(height: 14),
-                      SizedBox(
-                        height: constraints.maxHeight < 760 ? 190 : 208,
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: constraints.maxHeight < 760 ? 190 : 208,
+                        ),
                         child: _RoleCard(
                           color: takiOrange,
                           icon: Icons.home_rounded,
                           title: 'Szakembert keresek',
-                          subtitle:
-                              'Találd meg a feladathoz illő, elérhető szolgáltatót.',
+                          subtitle: 'Találd meg a feladathoz illő, elérhető szolgáltatót.',
                           action: 'Megrendelőként belépek',
                           onTap: () => _selectRole(context, 'customer'),
                         ),
@@ -141,6 +143,7 @@ class _RoleCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
                   padding: const EdgeInsets.all(10),
@@ -150,7 +153,7 @@ class _RoleCard extends StatelessWidget {
                   ),
                   child: Icon(icon, color: Colors.white, size: 30),
                 ),
-                const Spacer(),
+                const SizedBox(height: 12),
                 Text(
                   title,
                   style: const TextStyle(
@@ -167,14 +170,16 @@ class _RoleCard extends StatelessWidget {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    Text(
-                      action,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w800,
+                    Expanded(
+                      child: Text(
+                        action,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
                     ),
-                    const Spacer(),
+                    const SizedBox(width: 8),
                     const Icon(
                       Icons.arrow_forward_rounded,
                       color: Colors.white,
