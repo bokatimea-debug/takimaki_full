@@ -423,6 +423,18 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
 
     return Scaffold(
       appBar: TakiAppBar(title: const Text('Rendelés részletei')),
+      bottomNavigationBar: WorkSchedule.active(_order)
+          ? SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                child: TextButton(
+                  onPressed: _busy ? null : () => _guard(isProvider ? _providerCancel : _customerCancel),
+                  child: const Text('Rendelés lemondása'),
+                ),
+              ),
+            )
+          : null,
       body: SafeArea(
         top: false,
         child: BrandedBackground(
@@ -550,14 +562,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                   icon: const Icon(Icons.edit_calendar),
                   label: const Text('Időpont módosítása'),
                 ),
-                TextButton(
-                  onPressed: _busy
-                      ? null
-                      : () => _guard(
-                          isProvider ? _providerCancel : _customerCancel,
-                        ),
-                  child: const Text('Rendelés lemondása'),
-                ),
+
               ],
               if (WorkSchedule.canReview(_order, _role, DateTime.now()))
                 FilledButton.icon(
@@ -593,8 +598,8 @@ class _Detail extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: label == 'Helyszín' || label == 'Kért szolgáltatások'
-            ? takiMint
-            : takiYellowSoft,
+            ? takiCardMint
+            : takiCardYellow,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
