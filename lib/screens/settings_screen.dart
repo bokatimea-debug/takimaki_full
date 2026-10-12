@@ -1,3 +1,4 @@
+import '../widgets/taki_screen_header.dart';
 import '../widgets/delete_account_dialog.dart';
 import '../widgets/taki_app_bar.dart';
 
@@ -87,86 +88,84 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: SafeArea(
         top: false,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+          padding: const EdgeInsets.fromLTRB(20, 4, 20, 10),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text(
-              'Értesítések, előfizetések és fiókkezelés.',
-              style: TextStyle(fontSize: 14, color: takiMutedText),
-            ),
+              const TakiScreenHeader(
+                title: 'Beállítások',
+                subtitle: 'Értesítések és fiókkezelés',
+                icon: Icons.settings_outlined,
+              ),
               const SizedBox(height: 12),
               TakiPanel(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                children: [
-                  ListTile(
-                    leading: const Icon(Icons.workspace_premium_outlined),
-                    title: const Text('Előfizetések'),
-                    subtitle: const Text('Megrendelői és szolgáltatói csomag'),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => Navigator.pushNamed(context, '/subscriptions'),
-                  ),
-                  const Divider(height: 1),
-                  SwitchListTile(
-                    value: push,
-                    title: const Text('Push értesítések'),
-                    onChanged: (v) => setState(() => push = v),
-                  ),
-                  SwitchListTile(
-                    value: email,
-                    title: const Text('Email értesítések'),
-                    onChanged: (v) => setState(() => email = v),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 14),
-                    child: FilledButton(
-                      onPressed: _save,
-                      child: const Text('Mentés'),
-                    ),
-                  ),
-                ],
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: ListTile(
+                  leading: const Icon(Icons.workspace_premium_outlined),
+                  title: const Text('Előfizetések'),
+                  subtitle: const Text('Megrendelői és szolgáltatói csomag'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => Navigator.pushNamed(context, '/subscriptions'),
+                ),
               ),
-            ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               TakiPanel(
-              child: ListTile(
-                leading: const Icon(Icons.calendar_month),
-                title: const Text('Saját naptár kapcsolata'),
-                subtitle: const Text(
-                  'Automatikus hozzáadás be- és kikapcsolása',
+                padding: EdgeInsets.zero,
+                color: takiMint,
+                child: SwitchListTile(
+                  value: push,
+                  title: const Text('Push értesítések'),
+                  onChanged: (v) => setState(() => push = v),
                 ),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () =>
-                    Navigator.pushNamed(context, '/calendar_connection'),
               ),
-            ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               TakiPanel(
-              padding: const EdgeInsets.all(12),
-              color: takiYellowSoft,
-              child: ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const CircleAvatar(
-                  backgroundColor: takiOrange,
-                  child: Icon(Icons.logout, color: Colors.white),
+                padding: EdgeInsets.zero,
+                color: takiYellowSoft,
+                child: SwitchListTile(
+                  value: email,
+                  title: const Text('Email értesítések'),
+                  onChanged: (v) => setState(() => email = v),
                 ),
-                title: const Text('Kijelentkezés'),
-                subtitle: const Text(
-                  'Az adataid megmaradnak ezen az eszközön.',
-                ),
-                onTap: _logout,
               ),
-            ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 8),
+              TakiPanel(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: ListTile(
+                  leading: const Icon(Icons.calendar_month),
+                  title: const Text('Saját naptár kapcsolata'),
+                  subtitle: const Text(
+                    'Automatikus hozzáadás be- és kikapcsolása',
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () =>
+                      Navigator.pushNamed(context, '/calendar_connection'),
+                ),
+              ),
+              const SizedBox(height: 8),
+              TakiPanel(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                color: takiYellowSoft,
+                child: ListTile(
+                  leading: const Icon(Icons.logout, color: takiTealDark),
+                  title: const Text('Kijelentkezés'),
+                  subtitle: const Text(
+                    'Az adataid megmaradnak ezen az eszközön.',
+                  ),
+                  onTap: _logout,
+                ),
+              ),
+              const SizedBox(height: 8),
               OutlinedButton.icon(
-              onPressed: () => showDeleteAccountDialog(context),
-              icon: const Icon(Icons.delete_outline),
-              label: const Text('Profil törlése'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.red.shade700,
+                onPressed: () => showDeleteAccountDialog(context),
+                icon: const Icon(Icons.delete_outline),
+                label: const Text('Profil törlése'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.red.shade700,
+                ),
               ),
-            ),
+              const SizedBox(height: 12),
+              FilledButton(onPressed: _save, child: const Text('Mentés')),
             ],
           ),
         ),
