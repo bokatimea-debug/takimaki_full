@@ -871,7 +871,7 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
           final custom = rule['unit'] == 'Egyedi árajánlat';
           final price = rule['price'] as int?;
           return Card(
-            color: entry.key.isEven ? takiMint : takiYellowSoft,
+            color: entry.key.isEven ? takiCardMint : takiCardYellow,
             margin: const EdgeInsets.only(top: 8),
             child: ListTile(
               dense: true,
@@ -950,7 +950,7 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
                         ),
                         const SizedBox(height: 5),
                         Material(
-                          color: takiMint,
+                          color: takiCardMint,
                           borderRadius: BorderRadius.circular(18),
                           child: ListTile(
                             key: const ValueKey('service-selector'),
@@ -1010,7 +1010,7 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
                     ),
                     const SizedBox(height: 6),
                     TakiPanel(
-                      color: takiMint,
+                      color: takiCardMint,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 14,
                         vertical: 5,
@@ -1050,7 +1050,7 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
                     const SizedBox(height: 6),
                     if (serviceNeedsPermitWarning(_service)) ...[
                       TakiPanel(
-                        color: takiYellowSoft,
+                        color: takiCardYellow,
                         padding: const EdgeInsets.all(12),
                         child: const Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1127,7 +1127,7 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
                           margin: const EdgeInsets.only(bottom: 5),
                           padding: const EdgeInsets.fromLTRB(12, 8, 6, 8),
                           decoration: BoxDecoration(
-                            color: entry.key.isEven ? takiMint : takiYellowSoft,
+                            color: entry.key.isEven ? takiCardMint : takiCardYellow,
                             borderRadius: BorderRadius.circular(14),
                           ),
                           child: Row(
