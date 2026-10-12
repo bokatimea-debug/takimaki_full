@@ -1,9 +1,16 @@
+import 'package:takimaki_full/screens/onboarding.dart';
+import 'package:takimaki_full/screens/map_picker_screen.dart';
+import 'package:takimaki_full/screens/calendar_connection_screen.dart';
+import 'package:takimaki_full/screens/settings_notifications_screen.dart';
+import 'package:takimaki_full/screens/work_notifications_screen.dart';
+import 'package:takimaki_full/screens/role_select_screen.dart';
 import 'package:takimaki_full/screens/provider_requests_screen.dart';
 import 'package:takimaki_full/screens/provider_all_orders_screen.dart';
 import 'package:takimaki_full/screens/provider_offer_reply_screen.dart';
 import 'package:takimaki_full/screens/offers_screen.dart';
 import 'package:takimaki_full/screens/order_details_screen.dart';
 import 'package:takimaki_full/screens/problem_tickets_screen.dart';
+
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
@@ -40,6 +47,12 @@ import 'package:takimaki_full/widgets/branded_background.dart';
 const _captureKey = ValueKey('layout-capture');
 const _sizes = [(360.0, 740.0, 1.0), (412.0, 892.0, 1.0), (320.0, 640.0, 1.3)];
 final _screens = <String, Widget Function()>{
+  'onboarding': () => const OnboardingScreen(),
+  'map_picker': () => const MapPickerScreen(),
+  'calendar_connection': () => const CalendarConnectionScreen(),
+  'settings_notifications': () => const SettingsNotificationsScreen(),
+  'work_notifications': () => const WorkNotificationsScreen(),
+  'role_select': () => const RoleSelectScreen(),
   'profile_info': () => const ProfileInfoScreen(),
   'phone': () => const PhoneNumberScreen(),
   'otp': () => const OtpVerifyScreen('+36302222023'),
@@ -63,7 +76,8 @@ final _screens = <String, Widget Function()>{
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(() async {
-    final sdk = Platform.environment['FLUTTER_ROOT'] ??
+    final sdk =
+        Platform.environment['FLUTTER_ROOT'] ??
         '${Directory.current.parent.path}/flutter_sdk';
     final loader = FontLoader('Roboto');
     for (final name in ['Regular', 'Medium', 'Bold', 'Black']) {
@@ -165,62 +179,116 @@ void main() {
   }
 
   for (final size in [const Size(320, 640), const Size(412, 892)]) {
-    testWidgets('price dialog keeps focused field and actions above keyboard ${size.width}', (tester) async {
-      await _show(tester, const ProviderAddServiceScreen(), size,
-        scale: size.width == 320 ? 1.3 : 1, canPop: true);
-      await _chooseService(tester, 'Apartmantakarítás');
-      final add = find.byKey(const ValueKey('add-price-rule'));
-      await _reachService(tester, add);
-      await tester.tap(add);
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey('price-item-Apartmantakarítás')));
-      await tester.pumpAndSettle();
-      final unit = find.byKey(const ValueKey('price-unit-Ft/m²-sáv'));
-      await tester.ensureVisible(unit);
-      await tester.pumpAndSettle();
-      await tester.tap(unit);
-      await tester.pumpAndSettle();
-      tester.view.viewInsets = const FakeViewPadding(bottom: 270);
-      tester.view.padding = const FakeViewPadding(top: 24);
-      await tester.pumpAndSettle();
-      final amount = find.byKey(const ValueKey('price-rule-amount'));
-      await tester.ensureVisible(amount);
-      await tester.pumpAndSettle();
-      await tester.enterText(amount, '15000');
-      await tester.pumpAndSettle();
-      expect(tester.getRect(amount).bottom, lessThanOrEqualTo(size.height - 270));
-      final submit = find.byKey(const ValueKey('price-rule-add'));
-      expect(submit.hitTestable(), findsOneWidget);
-      expect(tester.getRect(submit).bottom, lessThanOrEqualTo(size.height - 270));
-      expect(tester.takeException(), isNull);
-      await _capture(tester, 'price_dialog_keyboard_${size.width.toInt()}');
-    });
+    testWidgets(
+      'price dialog keeps focused field and actions above keyboard ${size.width}',
+      (tester) async {
+        await _show(
+          tester,
+          const ProviderAddServiceScreen(),
+          size,
+          scale: size.width == 320 ? 1.3 : 1,
+          canPop: true,
+        );
+        await _chooseService(tester, 'Apartmantakarítás');
+        final add = find.byKey(const ValueKey('add-price-rule'));
+        await _reachService(tester, add);
+        await tester.tap(add);
+        await tester.pumpAndSettle();
+        await tester.tap(
+          find.byKey(const ValueKey('price-item-Apartmantakarítás')),
+        );
+        await tester.pumpAndSettle();
+        final unit = find.byKey(const ValueKey('price-unit-Ft/m²-sáv'));
+        await tester.ensureVisible(unit);
+        await tester.pumpAndSettle();
+        await tester.tap(unit);
+        await tester.pumpAndSettle();
+        tester.view.viewInsets = const FakeViewPadding(bottom: 270);
+        tester.view.padding = const FakeViewPadding(top: 24);
+        await tester.pumpAndSettle();
+        final amount = find.byKey(const ValueKey('price-rule-amount'));
+        await tester.ensureVisible(amount);
+        await tester.pumpAndSettle();
+        await tester.enterText(amount, '15000');
+        await tester.pumpAndSettle();
+        expect(
+          tester.getRect(amount).bottom,
+          lessThanOrEqualTo(size.height - 270),
+        );
+        final submit = find.byKey(const ValueKey('price-rule-add'));
+        expect(submit.hitTestable(), findsOneWidget);
+        expect(
+          tester.getRect(submit).bottom,
+          lessThanOrEqualTo(size.height - 270),
+        );
+        expect(tester.takeException(), isNull);
+        await _capture(tester, 'price_dialog_keyboard_${size.width.toInt()}');
+      },
+    );
   }
   for (final size in [const Size(320, 640), const Size(412, 892)]) {
-    testWidgets('custom day picker fits and keeps selection visible ${size.width}', (tester) async {
-      await _show(tester, const ProviderAddServiceScreen(), size, scale: size.width == 320 ? 1.3 : 1, canPop: true);
-      final dates = find.byKey(const ValueKey('service-dates'));
-      await _reachService(tester, dates);
-      await tester.tap(dates);
-      await tester.pumpAndSettle();
-      expect(find.text('Egyedi napok'), findsOneWidget);
-      expect(find.text('Kész'), findsOneWidget);
-      expect(tester.takeException(), isNull);
-      await _capture(tester, 'custom_days_${size.width.toInt()}');
-    });
-    testWidgets('feedback dialog fits with keyboard ${size.width}', (tester) async {
-      final day = DateTime.now().subtract(const Duration(days: 1)).toIso8601String().split('T').first;
-      final work = <String, dynamic>{'id':'layout-review', 'request_id':'layout-review', 'service':'Apartmantakarítás', 'date':day, 'time':'09:00', 'duration_minutes':120, 'status':'Teljesítve', 'view_role':'customer'};
-      await _show(tester, const OrderDetailsScreen(), size, scale: size.width == 320 ? 1.3 : 1, canPop: true, arguments: work);
+    testWidgets(
+      'custom day picker fits and keeps selection visible ${size.width}',
+      (tester) async {
+        await _show(
+          tester,
+          const ProviderAddServiceScreen(),
+          size,
+          scale: size.width == 320 ? 1.3 : 1,
+          canPop: true,
+        );
+        final dates = find.byKey(const ValueKey('service-dates'));
+        await _reachService(tester, dates);
+        await tester.tap(dates);
+        await tester.pumpAndSettle();
+        expect(find.text('Egyedi napok'), findsOneWidget);
+        expect(find.text('Kész'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+        await _capture(tester, 'custom_days_${size.width.toInt()}');
+      },
+    );
+    testWidgets('feedback dialog fits with keyboard ${size.width}', (
+      tester,
+    ) async {
+      final day = DateTime.now()
+          .subtract(const Duration(days: 1))
+          .toIso8601String()
+          .split('T')
+          .first;
+      final work = <String, dynamic>{
+        'id': 'layout-review',
+        'request_id': 'layout-review',
+        'service': 'Apartmantakarítás',
+        'date': day,
+        'time': '09:00',
+        'duration_minutes': 120,
+        'status': 'Teljesítve',
+        'view_role': 'customer',
+      };
+      await _show(
+        tester,
+        const OrderDetailsScreen(),
+        size,
+        scale: size.width == 320 ? 1.3 : 1,
+        canPop: true,
+        arguments: work,
+      );
       final rate = _button('Teljesítés és értékelés');
-      await tester.scrollUntilVisible(rate, 200, scrollable: find.byType(Scrollable).first);
+      await tester.scrollUntilVisible(
+        rate,
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
       await tester.pumpAndSettle();
       await tester.tap(rate);
       await tester.pumpAndSettle();
       tester.view.viewInsets = const FakeViewPadding(bottom: 270);
       tester.view.padding = const FakeViewPadding(top: 24);
       await tester.pumpAndSettle();
-      final input = find.descendant(of: find.byType(AlertDialog), matching: find.byType(TextField));
+      final input = find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.byType(TextField),
+      );
       await tester.ensureVisible(input);
       await tester.pumpAndSettle();
       await tester.enterText(input, 'Pontos és alapos munka.');
@@ -235,13 +303,35 @@ void main() {
     testWidgets('$role calendar excludes pending requests', (tester) async {
       final day = DateTime.now().toIso8601String().split('T').first;
       final orders = [
-        {'id': 'confirmed', 'request_id': 'confirmed', 'service': 'Apartmantakarítás', 'date': day, 'time': '09:00', 'duration_minutes': 120, 'status': 'Elfogadva'},
-        {'id': 'pending', 'request_id': 'pending', 'service': 'Mosodai szolgáltatás', 'date': day, 'time': '12:00', 'duration_minutes': 60, 'status': 'Függőben'},
+        {
+          'id': 'confirmed',
+          'request_id': 'confirmed',
+          'service': 'Apartmantakarítás',
+          'date': day,
+          'time': '09:00',
+          'duration_minutes': 120,
+          'status': 'Elfogadva',
+        },
+        {
+          'id': 'pending',
+          'request_id': 'pending',
+          'service': 'Mosodai szolgáltatás',
+          'date': day,
+          'time': '12:00',
+          'duration_minutes': 60,
+          'status': 'Függőben',
+        },
       ];
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('customer_orders', jsonEncode(orders));
       await prefs.setString('provider_orders', jsonEncode(orders));
-      await _show(tester, const WorkCalendarScreen(), const Size(360, 740), canPop: true, arguments: role);
+      await _show(
+        tester,
+        const WorkCalendarScreen(),
+        const Size(360, 740),
+        canPop: true,
+        arguments: role,
+      );
       expect(find.text('Apartmantakarítás'), findsOneWidget);
       expect(find.text('Mosodai szolgáltatás'), findsNothing);
       expect(tester.takeException(), isNull);
@@ -266,25 +356,52 @@ void main() {
   };
   for (final screen in remainingScreens.entries) {
     for (final size in _sizes) {
-      testWidgets('${screen.key} filled layout ${size.$1} scale ${size.$3}', (tester) async {
-        final day = DateTime.now().add(const Duration(days: 2)).toIso8601String().split('T').first;
+      testWidgets('${screen.key} filled layout ${size.$1} scale ${size.$3}', (
+        tester,
+      ) async {
+        final day = DateTime.now()
+            .add(const Duration(days: 2))
+            .toIso8601String()
+            .split('T')
+            .first;
         final work = <String, dynamic>{
-          'id': 'layout-work', 'request_id': 'layout-work',
-          'service': 'Apartmantakarítás', 'address': 'Budapest, Váci utca 1.',
-          'date': day, 'time': '09:00', 'duration_minutes': 120,
-          'area_sqm': 50, 'price': 25000, 'status': 'Elfogadva',
-          'customer_name': 'Tímea', 'provider_name': 'Petra',
+          'id': 'layout-work',
+          'request_id': 'layout-work',
+          'service': 'Apartmantakarítás',
+          'address': 'Budapest, Váci utca 1.',
+          'date': day,
+          'time': '09:00',
+          'duration_minutes': 120,
+          'area_sqm': 50,
+          'price': 25000,
+          'status': 'Elfogadva',
+          'customer_name': 'Tímea',
+          'provider_name': 'Petra',
           'service_options': ['Mosodai szolgáltatás'],
           'view_role': 'customer',
         };
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('customer_orders', jsonEncode([work]));
         await prefs.setString('provider_orders', jsonEncode([work]));
-        await prefs.setString('customer_offers', jsonEncode([
-          {...work, 'id': 'layout-offer', 'status': 'pending', 'provider_name': 'Petra'},
-        ]));
-        await _show(tester, screen.value(), Size(size.$1, size.$2),
-          scale: size.$3, canPop: true, arguments: work);
+        await prefs.setString(
+          'customer_offers',
+          jsonEncode([
+            {
+              ...work,
+              'id': 'layout-offer',
+              'status': 'pending',
+              'provider_name': 'Petra',
+            },
+          ]),
+        );
+        await _show(
+          tester,
+          screen.value(),
+          Size(size.$1, size.$2),
+          scale: size.$3,
+          canPop: true,
+          arguments: work,
+        );
         expect(tester.takeException(), isNull);
         await _capture(tester, '${screen.key}_${size.$1.toInt()}_${size.$3}');
       });
@@ -296,9 +413,7 @@ void main() {
       tester,
     ) async {
       await _show(tester, const CustomerSearchScreen(), size, canPop: true);
-      await tester.tap(
-        find.byKey(const ValueKey('customer-service-selector')),
-      );
+      await tester.tap(find.byKey(const ValueKey('customer-service-selector')));
       await tester.pumpAndSettle();
       for (final item in serviceChoices) {
         final option = find.byKey(ValueKey('service-option-${item['name']}'));
@@ -320,10 +435,7 @@ void main() {
       );
       await tester.drag(find.byType(Scrollable).first, const Offset(0, -520));
       await tester.pumpAndSettle();
-      expect(
-        find.widgetWithText(TextField, 'Megjegyzés'),
-        findsOneWidget,
-      );
+      expect(find.widgetWithText(TextField, 'Megjegyzés'), findsOneWidget);
       await _capture(tester, 'order_form_107_${size.width.toInt()}');
     });
   }
@@ -578,8 +690,9 @@ void main() {
         lessThanOrEqualTo(340),
         reason: 'The complete city choice must stay above the 300dp keyboard.',
       );
-      final choicesViewport =
-          find.ancestor(of: choice, matching: find.byType(Scrollable)).first;
+      final choicesViewport = find
+          .ancestor(of: choice, matching: find.byType(Scrollable))
+          .first;
       expect(
         tester.getRect(choice).bottom,
         lessThanOrEqualTo(tester.getRect(choicesViewport).bottom),
@@ -754,8 +867,7 @@ void main() {
         expect(
           rect.height,
           greaterThanOrEqualTo(availableHeight * .90),
-          reason:
-              'No opaque footer or bottom padding may consume the form viewport.',
+          reason: 'No opaque footer or bottom padding may consume the form viewport.',
         );
         final priceBuilder = find.byKey(const ValueKey('add-price-rule'));
         await _reachService(tester, priceBuilder);
@@ -1112,9 +1224,9 @@ Future<void> _addPriceItem(
 }
 
 Finder _button(String text) => find.ancestor(
-      of: find.text(text),
-      matching: find.byWidgetPredicate((widget) => widget is ButtonStyleButton),
-    );
+  of: find.text(text),
+  matching: find.byWidgetPredicate((widget) => widget is ButtonStyleButton),
+);
 Finder _tile(String text) =>
     find.ancestor(of: find.text(text), matching: find.byType(InkWell)).first;
 
@@ -1183,18 +1295,18 @@ Future<void> _show(
             : const {},
         onGenerateInitialRoutes: canPop
             ? (_) => [
-                  MaterialPageRoute<dynamic>(
-                    settings: const RouteSettings(name: '/'),
-                    builder: (_) => const Scaffold(body: Text('Kezdőképernyő')),
+                MaterialPageRoute<dynamic>(
+                  settings: const RouteSettings(name: '/'),
+                  builder: (_) => const Scaffold(body: Text('Kezdőképernyő')),
+                ),
+                MaterialPageRoute<dynamic>(
+                  settings: RouteSettings(
+                    name: '/test-screen',
+                    arguments: arguments,
                   ),
-                  MaterialPageRoute<dynamic>(
-                    settings: RouteSettings(
-                      name: '/test-screen',
-                      arguments: arguments,
-                    ),
-                    builder: (_) => screen,
-                  ),
-                ]
+                  builder: (_) => screen,
+                ),
+              ]
             : null,
       ),
     ),
