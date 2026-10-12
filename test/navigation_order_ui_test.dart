@@ -187,7 +187,7 @@ void main() {
         find.byKey(const ValueKey('service-option-Általános takarítás')),
       );
       await tester.pumpAndSettle();
-      final address = find.widgetWithText(TextField, 'Cím kiválasztása');
+      final address = find.widgetWithText(TextField, 'Cím');
       await tester.scrollUntilVisible(
         address,
         300,
