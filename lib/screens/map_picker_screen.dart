@@ -1,4 +1,6 @@
+import '../widgets/taki_screen_header.dart';
 import '../widgets/taki_app_bar.dart';
+
 import 'package:flutter/material.dart';
 
 import '../theme.dart';
@@ -21,9 +23,8 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
   void _use() {
     final value = _address.text.trim();
     if (value.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Írd be a címet.')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Írd be a címet.')));
       return;
     }
     Navigator.pop(context, value);
@@ -35,12 +36,10 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
     body: ListView(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
       children: [
-        const TakiHeroHeader(
-          eyebrow: 'Budapest',
+        const TakiScreenHeader(
           icon: Icons.location_on_outlined,
-          title: 'Hol legyen a munka?',
-          subtitle:
-              'Add meg a pontos címet. A Google Maps címválasztó a következő verzióban kapcsolódik be.',
+          title: 'Helyszín megadása',
+          subtitle: 'Add meg a pontos címet. A Google Maps címválasztó a következő verzióban kapcsolódik be.',
         ),
         const SizedBox(height: 24),
         TakiPanel(
@@ -61,7 +60,7 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
               Container(
                 height: 190,
                 decoration: BoxDecoration(
-                  color: takiMint,
+                  color: takiCardMint,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Stack(
