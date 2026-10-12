@@ -196,6 +196,41 @@ void main() {
       await _capture(tester, 'price_dialog_keyboard_${size.width.toInt()}');
     });
   }
+  for (final size in [const Size(320, 640), const Size(412, 892)]) {
+    testWidgets('custom day picker fits and keeps selection visible ${size.width}', (tester) async {
+      await _show(tester, const ProviderAddServiceScreen(), size, scale: size.width == 320 ? 1.3 : 1, canPop: true);
+      final dates = find.byKey(const ValueKey('service-dates'));
+      await _reachService(tester, dates);
+      await tester.tap(dates);
+      await tester.pumpAndSettle();
+      expect(find.text('Egyedi napok'), findsOneWidget);
+      expect(find.text('Kész'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await _capture(tester, 'custom_days_${size.width.toInt()}');
+    });
+    testWidgets('feedback dialog fits with keyboard ${size.width}', (tester) async {
+      final day = DateTime.now().subtract(const Duration(days: 1)).toIso8601String().split('T').first;
+      final work = <String, dynamic>{'id':'layout-review', 'request_id':'layout-review', 'service':'Apartmantakarítás', 'date':day, 'time':'09:00', 'duration_minutes':120, 'status':'Teljesítve', 'view_role':'customer'};
+      await _show(tester, const OrderDetailsScreen(), size, scale: size.width == 320 ? 1.3 : 1, canPop: true, arguments: work);
+      final rate = _button('Teljesítés és értékelés');
+      await tester.ensureVisible(rate);
+      await tester.pumpAndSettle();
+      await tester.tap(rate);
+      await tester.pumpAndSettle();
+      tester.view.viewInsets = const FakeViewPadding(bottom: 270);
+      tester.view.padding = const FakeViewPadding(top: 24);
+      await tester.pumpAndSettle();
+      final input = find.descendant(of: find.byType(AlertDialog), matching: find.byType(TextField));
+      await tester.ensureVisible(input);
+      await tester.pumpAndSettle();
+      await tester.enterText(input, 'Pontos és alapos munka.');
+      await tester.pumpAndSettle();
+      expect(_button('Értékelés mentése').hitTestable(), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await _capture(tester, 'feedback_keyboard_${size.width.toInt()}');
+    });
+  }
+
   for (final role in ['customer', 'provider']) {
     testWidgets('$role calendar excludes pending requests', (tester) async {
       final day = DateTime.now().toIso8601String().split('T').first;
@@ -217,6 +252,7 @@ void main() {
   final remainingScreens = <String, Widget Function()>{
     'provider_requests': () => const ProviderRequestsScreen(),
     'provider_jobs': () => const ProviderAllOrdersScreen(),
+    'customer_orders_filled': () => const CustomerOrdersScreen(),
     'offer_reply': () => const ProviderOfferReplyScreen(),
     'offers': () => const OffersScreen(),
     'order_details': () => const OrderDetailsScreen(),
