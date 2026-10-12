@@ -1,3 +1,4 @@
+import '../widgets/taki_screen_header.dart';
 import '../widgets/delete_account_dialog.dart';
 import '../widgets/taki_app_bar.dart';
 
@@ -59,7 +60,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Kijelentkezés'),
+        title: const TakiScreenHeader(
+          title: 'Kijelentkezés',
+          icon: Icons.info_outline_rounded,
+        ),
         content: const Text('Biztosan ki szeretnél jelentkezni?'),
         actions: [
           TextButton(
