@@ -32,6 +32,10 @@ class TakiMonthGrid extends StatelessWidget {
     final first = DateTime(month.year, month.month);
     final days = DateTime(month.year, month.month + 1, 0).day;
     final leading = first.weekday - 1;
+    final rows = (leading + days + 6) ~/ 7;
+    final cellHeight = (MediaQuery.textScalerOf(context).scale(16) * 1.5 + 16)
+        .clamp(48.0, 96.0)
+        .toDouble();
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -83,71 +87,74 @@ class TakiMonthGrid extends StatelessWidget {
               ),
           ],
         ),
-        GridView.builder(
-          shrinkWrap: true,
-          primary: false,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: ((leading + days + 6) ~/ 7) * 7,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 7,
-            mainAxisExtent:
-                (MediaQuery.textScalerOf(context).scale(16) * 1.5 + 16)
-                    .clamp(48.0, 96.0)
-                    .toDouble(),
-            mainAxisSpacing: 4,
-            crossAxisSpacing: 4,
-          ),
-          itemBuilder: (context, index) {
-            final number = index - leading + 1;
-            if (number < 1 || number > days) return const SizedBox.shrink();
-            final date = DateTime(month.year, month.month, number);
-            final isSelected = selected(date),
-                available = enabled?.call(date) ?? true;
-            final count = workCount?.call(date) ?? 0;
-            return Material(
-              color: isSelected
-                  ? takiTeal
-                  : !available
-                  ? const Color(0xFFE8ECEB)
-                  : date.weekday >= DateTime.saturday
-                  ? takiCardYellow
-                  : takiCardMint,
-              borderRadius: BorderRadius.circular(14),
-              child: InkWell(
-                key: ValueKey('$dayKeyPrefix-$number'),
+        SizedBox(
+          height: rows * cellHeight + (rows - 1) * 4,
+          child: GridView.builder(
+            shrinkWrap: true,
+            primary: false,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: ((leading + days + 6) ~/ 7) * 7,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 7,
+              mainAxisExtent:
+                  (MediaQuery.textScalerOf(context).scale(16) * 1.5 + 16)
+                      .clamp(48.0, 96.0)
+                      .toDouble(),
+              mainAxisSpacing: 4,
+              crossAxisSpacing: 4,
+            ),
+            itemBuilder: (context, index) {
+              final number = index - leading + 1;
+              if (number < 1 || number > days) return const SizedBox.shrink();
+              final date = DateTime(month.year, month.month, number);
+              final isSelected = selected(date),
+                  available = enabled?.call(date) ?? true;
+              final count = workCount?.call(date) ?? 0;
+              return Material(
+                color: isSelected
+                    ? takiTeal
+                    : !available
+                    ? const Color(0xFFE8ECEB)
+                    : date.weekday >= DateTime.saturday
+                    ? takiCardYellow
+                    : takiCardMint,
                 borderRadius: BorderRadius.circular(14),
-                onTap: available ? () => onSelect(date) : null,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      '$number',
-                      style: TextStyle(
-                        color: isSelected
-                            ? Colors.white
-                            : available
-                            ? takiNavy
-                            : takiMutedText,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    if (workCount != null) ...[
-                      const SizedBox(height: 3),
-                      Container(
-                        width: count > 0 ? 20 : 5,
-                        height: 5,
-                        decoration: BoxDecoration(
-                          color: count > 0 ? takiOrange : Colors.transparent,
-                          borderRadius: BorderRadius.circular(5),
+                child: InkWell(
+                  key: ValueKey('$dayKeyPrefix-$number'),
+                  borderRadius: BorderRadius.circular(14),
+                  onTap: available ? () => onSelect(date) : null,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        '$number',
+                        style: TextStyle(
+                          color: isSelected
+                              ? Colors.white
+                              : available
+                              ? takiNavy
+                              : takiMutedText,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
+                      if (workCount != null) ...[
+                        const SizedBox(height: 3),
+                        Container(
+                          width: count > 0 ? 20 : 5,
+                          height: 5,
+                          decoration: BoxDecoration(
+                            color: count > 0 ? takiOrange : Colors.transparent,
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ],
     );
