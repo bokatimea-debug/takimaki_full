@@ -1,3 +1,4 @@
+import '../widgets/taki_screen_header.dart';
 import '../widgets/taki_app_bar.dart';
 
 import "package:flutter/material.dart";
@@ -55,6 +56,8 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
         'sat_to',
         'sun_from',
         'sun_to',
+        'holiday_from',
+        'holiday_to',
       ]) {
         final value =
             prefs.getString('provider_$key') ??
@@ -66,7 +69,14 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
                 : null);
         if (value != null) _generalHours[key] = value;
       }
-      _holidays = prefs.getBool('provider_holidays') ?? false;
+      _holidays =
+          (prefs.getBool('provider_holidays') ?? false) &&
+          _generalHours['holiday_from'] != null &&
+          _generalHours['holiday_to'] != null;
+      if (!_holidays) {
+        _generalHours.remove('holiday_from');
+        _generalHours.remove('holiday_to');
+      }
       _city =
           prefs.getString('provider_city') ??
           prefs.getString('profile_city') ??
@@ -106,11 +116,12 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
 
   Widget _generalHoursRow(String period, String label) {
     final enabled = _generalHours['${period}_from'] != null;
-    final isWeekday = period == 'wd';
     return Container(
       margin: const EdgeInsets.only(bottom: 4),
       decoration: BoxDecoration(
-        color: period == 'sat' ? takiYellowSoft : takiMint,
+        color: period == 'sat' || period == 'holiday'
+            ? takiYellowSoft
+            : takiMint,
         borderRadius: BorderRadius.circular(14),
       ),
       child: InkWell(
@@ -120,76 +131,79 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
         child: ConstrainedBox(
           constraints: const BoxConstraints(minHeight: 44),
           child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  label,
-                  style: const TextStyle(
-                    color: takiTealDark,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    label,
+                    style: const TextStyle(
+                      color: takiTealDark,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ),
-              ),
-              SizedBox(
-                width: 156,
-                child: enabled
-                ? InkWell(
-                  onTap: () => _editGeneralHours(period),
-                  borderRadius: BorderRadius.circular(10),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: Row(
-                      children: [
-                        Text(
-                          '${_generalHours['${period}_from']} – ${_generalHours['${period}_to']}',
-                          style: const TextStyle(
-                            color: takiTealDark,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
+                SizedBox(
+                  width: 156,
+                  child: enabled
+                      ? InkWell(
+                          onTap: () => _editGeneralHours(period),
+                          borderRadius: BorderRadius.circular(10),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            child: Row(
+                              children: [
+                                Text(
+                                  '${_generalHours['${period}_from']} – ${_generalHours['${period}_to']}',
+                                  style: const TextStyle(
+                                    color: takiTealDark,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                const Icon(
+                                  Icons.edit_outlined,
+                                  color: takiTealDark,
+                                  size: 17,
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      : Align(
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            'Nem',
+                            style: const TextStyle(
+                              color: takiMutedText,
+                              fontSize: 12,
+                            ),
                           ),
                         ),
-                        const SizedBox(width: 4),
-                        const Icon(Icons.edit_outlined, color: takiTealDark, size: 17),
-                      ],
-                    ),
-                  ),
-                )
-                : Align(
-                    alignment: Alignment.centerRight,
-                    child: Text(
-                      isWeekday ? 'Időpont megadása' : 'Nem',
-                      style: const TextStyle(color: takiMutedText, fontSize: 12),
-                    ),
-                  ),
-              ),
-              const SizedBox(width: 6),
-              if (isWeekday)
-                const SizedBox(
-                  width: 52,
-                  child: Align(
-                    alignment: Alignment.center,
-                    child: Icon(Icons.edit_outlined, color: takiTealDark, size: 20),
-                  ),
-                )
-              else
+                ),
+                const SizedBox(width: 6),
                 Switch.adaptive(
                   value: enabled,
                   onChanged: (value) async {
                     if (value) {
                       await _editGeneralHours(period);
+                      if (period == 'holiday' &&
+                          _generalHours['holiday_from'] != null) {
+                        setState(() => _holidays = true);
+                      }
                     } else {
                       setState(() {
                         _generalHours.remove('${period}_from');
                         _generalHours.remove('${period}_to');
                         _changedHours.add(period);
+                        if (period == 'holiday') _holidays = false;
                       });
                     }
                   },
                 ),
-            ],
+              ],
             ),
           ),
         ),
@@ -302,78 +316,170 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
 
   Future<void> _pickDate() async {
     final now = DateTime.now();
-    final initial = Set<DateTime>.from(_dates);
+    var displayedMonth = DateTime(now.year, now.month);
     final result = await showModalBottomSheet<Set<DateTime>>(
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
       builder: (context) {
-        final selected = Set<DateTime>.from(initial);
+        final selected = <DateTime>{};
         return StatefulBuilder(
           builder: (context, setModalState) => SafeArea(
             child: SizedBox(
-              height: MediaQuery.sizeOf(context).height * 0.72,
+              height: MediaQuery.sizeOf(context).height * 0.78,
               child: Column(
                 children: [
-                  const Text(
-                    "Egyedi napok",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: TakiScreenHeader(title: 'Egyedi napok', subtitle: 'Válaszd ki a munkanapokat', icon: Icons.calendar_month_outlined),
                   ),
                   const SizedBox(height: 6),
-                  Text("Kiválasztva: ${selected.length}/10"),
-                  const SizedBox(height: 12),
-                  Expanded(
-                      child: GridView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 4,
-                            mainAxisSpacing: 8,
-                            crossAxisSpacing: 8,
-                            childAspectRatio: 1.35,
-                          ),
-                      itemCount: 90,
-                      itemBuilder: (context, index) {
-                        final date = DateTime(
-                          now.year,
-                          now.month,
-                          now.day + index,
-                        );
-                        final isSelected = selected.contains(date);
-                        return FilterChip(
-                          selected: isSelected,
-                          showCheckmark: false,
-                          backgroundColor: date.day.isEven ? takiMint : takiYellowSoft,
-                          selectedColor: takiTeal,
-                          side: BorderSide(color: isSelected ? takiTeal : const Color(0xFF9ABDB8)),
-                          labelStyle: TextStyle(
-                            color: isSelected ? Colors.white : takiTealDark,
-                            fontWeight: FontWeight.w800,
-                            fontSize: 12,
-                          ),
-                          label: Text(
-                            "${date.month}.${date.day}.\n${const ['H', 'K', 'Sze', 'Cs', 'P', 'Szo', 'V'][date.weekday - 1]}",
-                            textAlign: TextAlign.center,
-                          ),
-                          onSelected: (value) {
-                            if (value && selected.length >= 10) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    "Legfeljebb 10 egyedi nap választható.",
+                  Text("${selected.length} nap kiválasztva"),
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                          onPressed:
+                              displayedMonth.year == now.year &&
+                                  displayedMonth.month == now.month
+                              ? null
+                              : () => setModalState(
+                                  () => displayedMonth = DateTime(
+                                    displayedMonth.year,
+                                    displayedMonth.month - 1,
                                   ),
                                 ),
-                              );
-                              return;
-                            }
-                            setModalState(() {
-                              value
-                                  ? selected.add(date)
-                                  : selected.remove(date);
-                            });
-                          },
-                        );
-                      },
+                          icon: const Icon(Icons.chevron_left_rounded),
+                        ),
+                        Expanded(child: Text(
+                          '${displayedMonth.year}. ${const ['január', 'február', 'március', 'április', 'május', 'június', 'július', 'augusztus', 'szeptember', 'október', 'november', 'december'][displayedMonth.month - 1]}',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: takiNavy,
+                            fontSize: 17,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        )),
+                        IconButton(
+                          onPressed: () => setModalState(
+                            () => displayedMonth = DateTime(
+                              displayedMonth.year,
+                              displayedMonth.month + 1,
+                            ),
+                          ),
+                          icon: const Icon(Icons.chevron_right_rounded),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 18),
+                    child: Row(
+                      children: [
+                        for (final day in [
+                          'H',
+                          'K',
+                          'Sze',
+                          'Cs',
+                          'P',
+                          'Szo',
+                          'V',
+                        ])
+                          Expanded(
+                            child: Center(
+                              child: Text(
+                                day,
+                                style: const TextStyle(
+                                  color: takiMutedText,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: GridView.builder(
+                        physics: const ClampingScrollPhysics(),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 7,
+                              mainAxisSpacing: 5,
+                              crossAxisSpacing: 5,
+                              childAspectRatio: .82,
+                            ),
+                        itemCount: 42,
+                        itemBuilder: (context, index) {
+                          final firstOffset =
+                              DateTime(
+                                displayedMonth.year,
+                                displayedMonth.month,
+                                1,
+                              ).weekday -
+                              1;
+                          final day = index - firstOffset + 1;
+                          final daysInMonth = DateTime(
+                            displayedMonth.year,
+                            displayedMonth.month + 1,
+                            0,
+                          ).day;
+                          if (day < 1 || day > daysInMonth) {
+                            return const SizedBox.shrink();
+                          }
+                          final date = DateTime(
+                            displayedMonth.year,
+                            displayedMonth.month,
+                            day,
+                          );
+                          final disabled =
+                              date.isBefore(
+                                DateTime(now.year, now.month, now.day),
+                              ) ||
+                              _dates.contains(date);
+                          final isSelected = selected.contains(date);
+                          final weekend = date.weekday >= DateTime.saturday;
+                          return Material(
+                            color: isSelected
+                                ? takiTeal
+                                : disabled
+                                ? const Color(0xFFE8ECEB)
+                                : weekend
+                                ? takiYellowSoft
+                                : takiMint,
+                            borderRadius: BorderRadius.circular(14),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(14),
+                              onTap: disabled
+                                  ? null
+                                  : () => setModalState(() {
+                                      isSelected
+                                          ? selected.remove(date)
+                                          : selected.add(date);
+                                    }),
+                              child: Center(
+                                child: Text(
+                                  '$day',
+                                  style: TextStyle(
+                                    color: isSelected
+                                        ? Colors.white
+                                        : disabled
+                                        ? takiMutedText
+                                        : takiNavy,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
                     ),
                   ),
                   Padding(
@@ -381,7 +487,9 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
                     child: SizedBox(
                       width: double.infinity,
                       child: FilledButton(
-                        onPressed: () => Navigator.pop(context, selected),
+                        onPressed: selected.isEmpty
+                            ? null
+                            : () => Navigator.pop(context, selected),
                         child: const Text("Kész"),
                       ),
                     ),
@@ -393,32 +501,77 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
         );
       },
     );
-    if (result != null && mounted) {
+    if (result != null && result.isNotEmpty && mounted) {
+      final first = result.first;
+      final from = await showTimePicker(
+        context: context,
+        initialTime: _dateFrom[first] ?? const TimeOfDay(hour: 9, minute: 0),
+        helpText: 'Közös kezdési időpont',
+      );
+      if (from == null || !mounted) return;
+      final to = await showTimePicker(
+        context: context,
+        initialTime: _dateTo[first] ?? const TimeOfDay(hour: 17, minute: 0),
+        helpText: 'Közös befejezési időpont',
+      );
+      if (to == null || !mounted) return;
+      if (to.hour * 60 + to.minute <= from.hour * 60 + from.minute) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('A befejezésnek később kell lennie a kezdésnél.'),
+          ),
+        );
+        return;
+      }
       setState(() {
-        _dates
-          ..clear()
-          ..addAll(result);
-        _dateFrom.removeWhere((date, _) => !_dates.contains(date));
-        _dateTo.removeWhere((date, _) => !_dates.contains(date));
-        for (final date in _dates) {
-          _dateFrom.putIfAbsent(
-            date,
-            () => const TimeOfDay(hour: 9, minute: 0),
-          );
-          _dateTo.putIfAbsent(date, () => const TimeOfDay(hour: 18, minute: 0));
+        _dates.addAll(result);
+        for (final date in result) {
+          _dateFrom[date] = from;
+          _dateTo[date] = to;
         }
       });
     }
   }
 
+  List<List<DateTime>> _dateGroups() {
+    final groups = <String, List<DateTime>>{};
+    for (final date in _dates) {
+      final key =
+          '${_timeValue(_dateFrom[date] ?? const TimeOfDay(hour: 9, minute: 0))}–${_timeValue(_dateTo[date] ?? const TimeOfDay(hour: 18, minute: 0))}';
+      groups.putIfAbsent(key, () => []).add(date);
+    }
+    for (final dates in groups.values) {
+      dates.sort((a, b) => a.compareTo(b));
+    }
+    return groups.values.toList()..sort((a, b) => a.first.compareTo(b.first));
+  }
+
+  Future<void> _editDateGroup(List<DateTime> dates) async {
+    final original = dates.first;
+    await _pickDateHours(original);
+    if (!mounted || !_dateFrom.containsKey(original)) return;
+    setState(() {
+      for (final date in dates.skip(1)) {
+        _dateFrom[date] = _dateFrom[original]!;
+        _dateTo[date] = _dateTo[original]!;
+      }
+    });
+  }
+
+  void _removeDateGroup(List<DateTime> dates) => setState(() {
+    for (final date in dates) {
+      _dates.remove(date);
+      _dateFrom.remove(date);
+      _dateTo.remove(date);
+    }
+  });
+
   Future<void> _addPriceRule() async {
     if (_service == null) return;
     final result = await showDialog<Map<String, dynamic>>(
       context: context,
-      builder: (_) => _PriceRuleDialog(
-        service: _service!,
-        unavailableItems: const {},
-      ),
+      builder: (_) =>
+          _PriceRuleDialog(service: _service!, unavailableItems: const {}),
     );
     if (result != null && mounted) {
       setState(() {
@@ -620,9 +773,7 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
         backgroundColor: takiYellowSoft,
         selectedColor: takiTeal,
         checkmarkColor: Colors.white,
-        side: BorderSide(
-          color: selected ? takiTeal : const Color(0xFFE4C56F),
-        ),
+        side: BorderSide(color: selected ? takiTeal : const Color(0xFFE4C56F)),
         labelStyle: TextStyle(
           color: selected ? Colors.white : takiTealDark,
           fontWeight: FontWeight.w800,
@@ -631,20 +782,19 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
         visualDensity: VisualDensity.compact,
         label: SizedBox(
           width: fill ? double.infinity : null,
-          child: Text(
-            option,
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
+          child: fill
+              ? FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(option, maxLines: 1),
+                )
+              : Text(option, textAlign: TextAlign.center, maxLines: 1),
         ),
         onSelected: (value) => setState(() {
-          value
-              ? _serviceOptions.add(option)
-              : _serviceOptions.remove(option);
+          value ? _serviceOptions.add(option) : _serviceOptions.remove(option);
         }),
       );
     }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -730,11 +880,13 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
                 rule['label']?.toString() ?? '',
                 style: const TextStyle(fontWeight: FontWeight.w800),
               ),
-              subtitle: Text(custom
-                  ? 'Egyedi árajánlat'
-                  : rule['unit'] == 'Ft/m²-sáv'
-                      ? '${rule['area_from']}–${rule['area_to']} m²: ${_fmtTh(price ?? 0)} Ft'
-                      : '${_fmtTh(price ?? 0)} ${rule['unit'] ?? ''}'),
+              subtitle: Text(
+                custom
+                    ? 'Egyedi árajánlat'
+                    : rule['unit'] == 'Ft/m²-sáv'
+                    ? '${rule['area_from']}–${rule['area_to']} m²: ${_fmtTh(price ?? 0)} Ft'
+                    : '${_fmtTh(price ?? 0)} ${rule['unit'] ?? ''}',
+              ),
               trailing: IconButton(
                 tooltip: 'Ártétel törlése',
                 onPressed: () =>
@@ -936,46 +1088,7 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
                     _generalHoursRow('wd', 'Hétköznap'),
                     _generalHoursRow('sat', 'Szombat'),
                     _generalHoursRow('sun', 'Vasárnap'),
-                    Container(
-                      margin: const EdgeInsets.only(bottom: 4),
-                      decoration: BoxDecoration(
-                        color: takiYellowSoft,
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      constraints: const BoxConstraints(minHeight: 44),
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Row(
-                        children: [
-                          const Expanded(
-                            child: Text(
-                              'Ünnepnap',
-                              style: TextStyle(
-                                color: takiTealDark,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                          ),
-                          SizedBox(
-                            width: 156,
-                            child: Text(
-                              _holidays ? 'Igen' : 'Nem',
-                              textAlign: TextAlign.right,
-                              style: const TextStyle(
-                                color: takiMutedText,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Switch.adaptive(
-                            value: _holidays,
-                            onChanged: (value) =>
-                                setState(() => _holidays = value),
-                          ),
-                        ],
-                      ),
-                    ),
+                    _generalHoursRow('holiday', 'Ünnepnap'),
                     const SizedBox(height: 6),
                     OutlinedButton.icon(
                       key: const ValueKey('service-dates'),
@@ -995,24 +1108,86 @@ class _ProviderAddServiceScreenState extends State<ProviderAddServiceScreen> {
                       label: Text(
                         _dates.isEmpty
                             ? 'Egyedi napok kiválasztása'
-                            : 'Kiválasztott napok: ${_dates.length}/10',
+                            : '${_dates.length} nap kiválasztva • további napok',
                       ),
                     ),
                     if (_dates.isNotEmpty) ...[
                       const SizedBox(height: 8),
-                      ...((_dates.toList()..sort((a, b) => a.compareTo(b))).map(
-                        (date) => Card(
-                          margin: const EdgeInsets.only(bottom: 6),
-                          child: ListTile(
-                            title: Text(_fmtDate(date)),
-                            subtitle: Text(
-                              "${_timeValue(_dateFrom[date] ?? const TimeOfDay(hour: 9, minute: 0))}–${_timeValue(_dateTo[date] ?? const TimeOfDay(hour: 18, minute: 0))}",
-                            ),
-                            trailing: const Icon(Icons.schedule),
-                            onTap: () => _pickDateHours(date),
+                      ..._dateGroups().asMap().entries.map((entry) {
+                        final dates = entry.value;
+                        final from = _timeValue(
+                          _dateFrom[dates.first] ??
+                              const TimeOfDay(hour: 9, minute: 0),
+                        );
+                        final to = _timeValue(
+                          _dateTo[dates.first] ??
+                              const TimeOfDay(hour: 18, minute: 0),
+                        );
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 5),
+                          padding: const EdgeInsets.fromLTRB(12, 8, 6, 8),
+                          decoration: BoxDecoration(
+                            color: entry.key.isEven ? takiMint : takiYellowSoft,
+                            borderRadius: BorderRadius.circular(14),
                           ),
-                        ),
-                      )),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.event_available_outlined,
+                                color: takiNavy,
+                                size: 21,
+                              ),
+                              const SizedBox(width: 9),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      dates.map(_fmtDate).join('  •  '),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        color: takiNavy,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      '$from – $to',
+                                      style: const TextStyle(
+                                        color: takiMutedText,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              IconButton(
+                                tooltip: 'Időpont szerkesztése',
+                                visualDensity: VisualDensity.compact,
+                                onPressed: () => _editDateGroup(dates),
+                                icon: const Icon(
+                                  Icons.edit_outlined,
+                                  color: takiNavy,
+                                  size: 20,
+                                ),
+                              ),
+                              IconButton(
+                                tooltip: 'Napok törlése',
+                                visualDensity: VisualDensity.compact,
+                                onPressed: () => _removeDateGroup(dates),
+                                icon: const Icon(
+                                  Icons.delete_outline_rounded,
+                                  color: Colors.redAccent,
+                                  size: 21,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
                     ],
                     const SizedBox(height: 6),
                     if (_saveError != null) ...[
@@ -1084,13 +1259,16 @@ class _PriceRuleDialogState extends State<_PriceRuleDialog> {
         _unit == null ||
         (!custom && (price == null || price <= 0)) ||
         (areaBand &&
-            (areaFrom == null || areaTo == null || areaFrom < 0 || areaTo <= areaFrom))) {
+            (areaFrom == null ||
+                areaTo == null ||
+                areaFrom < 0 ||
+                areaTo <= areaFrom))) {
       setState(
         () => _error = areaBand
             ? 'Adj meg érvényes kezdő és befejező m²-értéket, valamint árat.'
             : custom
-                ? 'Válassz tételt és elszámolást.'
-                : 'Válassz tételt, elszámolást és adj meg érvényes árat.',
+            ? 'Válassz tételt és elszámolást.'
+            : 'Válassz tételt, elszámolást és adj meg érvényes árat.',
       );
       return;
     }
@@ -1112,140 +1290,144 @@ class _PriceRuleDialogState extends State<_PriceRuleDialog> {
       titlePadding: const EdgeInsets.fromLTRB(20, 16, 20, 6),
       contentPadding: const EdgeInsets.fromLTRB(20, 6, 20, 4),
       actionsPadding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
-      title: const Text('Ár hozzáadása'),
+      title: const TakiScreenHeader(
+        title: 'Ár hozzáadása',
+        subtitle: 'Válaszd ki az árazás típusát',
+        icon: Icons.payments_outlined,
+      ),
       content: SizedBox(
         width: 360,
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Válassz tételt',
+              style: TextStyle(fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 7,
+              runSpacing: 7,
+              children: (servicePriceItems[widget.service] ?? const <String>[])
+                  .where((item) => !widget.unavailableItems.contains(item))
+                  .map(
+                    (item) => ChoiceChip(
+                      key: ValueKey('price-item-$item'),
+                      selected: _item == item,
+                      backgroundColor: takiYellowSoft,
+                      selectedColor: takiTeal,
+                      side: BorderSide(
+                        color: _item == item
+                            ? takiTeal
+                            : const Color(0xFFE4C56F),
+                      ),
+                      labelStyle: TextStyle(
+                        color: _item == item ? Colors.white : takiTealDark,
+                        fontWeight: FontWeight.w800,
+                      ),
+                      label: Text(item),
+                      onSelected: (_) => setState(() {
+                        _item = item;
+                        _unit = null;
+                        _priceCtrl.clear();
+                        _areaFromCtrl.clear();
+                        _areaToCtrl.clear();
+                      }),
+                    ),
+                  )
+                  .toList(),
+            ),
+            if (_item != null) ...[
+              const SizedBox(height: 14),
               const Text(
-                'Válassz tételt',
+                'Elszámolás',
                 style: TextStyle(fontWeight: FontWeight.w800),
               ),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 7,
                 runSpacing: 7,
-                children:
-                    (servicePriceItems[widget.service] ?? const <String>[])
-                        .where(
-                          (item) => !widget.unavailableItems.contains(item),
-                        )
-                        .map(
-                          (item) => ChoiceChip(
-                            key: ValueKey('price-item-$item'),
-                            selected: _item == item,
-                            backgroundColor: takiYellowSoft,
-                            selectedColor: takiTeal,
-                            side: BorderSide(
-                              color: _item == item
-                                  ? takiTeal
-                                  : const Color(0xFFE4C56F),
-                            ),
-                            labelStyle: TextStyle(
-                              color: _item == item
-                                  ? Colors.white
-                                  : takiTealDark,
-                              fontWeight: FontWeight.w800,
-                            ),
-                            label: Text(item),
-                            onSelected: (_) => setState(() {
-                              _item = item;
-                              _unit = null;
-                              _priceCtrl.clear();
-                              _areaFromCtrl.clear();
-                              _areaToCtrl.clear();
-                            }),
-                          ),
-                        )
-                        .toList(),
+                children: pricingUnitsFor(widget.service, _item!)
+                    .map(
+                      (unit) => ChoiceChip(
+                        key: ValueKey('price-unit-$unit'),
+                        selected: _unit == unit,
+                        backgroundColor: takiMint,
+                        selectedColor: takiTeal,
+                        side: BorderSide(
+                          color: _unit == unit
+                              ? takiTeal
+                              : const Color(0xFF9ACCC6),
+                        ),
+                        labelStyle: TextStyle(
+                          color: _unit == unit ? Colors.white : takiTealDark,
+                          fontWeight: FontWeight.w800,
+                        ),
+                        label: Text(unit),
+                        onSelected: (_) => setState(() {
+                          _unit = unit;
+                          if (unit == 'Egyedi árajánlat') _priceCtrl.clear();
+                        }),
+                      ),
+                    )
+                    .toList(),
               ),
-              if (_item != null) ...[
-                const SizedBox(height: 14),
-                const Text(
-                  'Elszámolás',
-                  style: TextStyle(fontWeight: FontWeight.w800),
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 7,
-                  runSpacing: 7,
-                  children: pricingUnitsFor(widget.service, _item!)
-                      .map(
-                        (unit) => ChoiceChip(
-                          key: ValueKey('price-unit-$unit'),
-                          selected: _unit == unit,
-                          backgroundColor: takiMint,
-                          selectedColor: takiTeal,
-                          side: BorderSide(
-                            color: _unit == unit
-                                ? takiTeal
-                                : const Color(0xFF9ACCC6),
-                          ),
-                          labelStyle: TextStyle(
-                            color: _unit == unit ? Colors.white : takiTealDark,
-                            fontWeight: FontWeight.w800,
-                          ),
-                          label: Text(unit),
-                          onSelected: (_) => setState(() {
-                            _unit = unit;
-                            if (unit == 'Egyedi árajánlat') _priceCtrl.clear();
-                          }),
-                        ),
-                      )
-                      .toList(),
-                ),
-              ],
-              if (_unit != null && _unit != 'Egyedi árajánlat') ...[
-                const SizedBox(height: 14),
-                if (_unit == 'Ft/m²-sáv') ...[
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          key: const ValueKey('price-area-from'),
-                          controller: _areaFromCtrl,
-                          keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(labelText: 'Ettől (m²)'),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: TextField(
-                          key: const ValueKey('price-area-to'),
-                          controller: _areaToCtrl,
-                          keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(labelText: 'Eddig (m²)'),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                ],
-                TextField(
-                  key: const ValueKey('price-rule-amount'),
-                  controller: _priceCtrl,
-                  keyboardType: TextInputType.number,
-                  autofocus: _unit != 'Ft/m²-sáv',
-                  decoration: InputDecoration(
-                    labelText: _unit == '%' ? 'Mérték (%)' : 'Összeg (Ft)',
-                  ),
-                ),
-              ],
-              if (_error != null) ...[
-                const SizedBox(height: 10),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    _error!,
-                    style: const TextStyle(color: Colors.red),
-                  ),
-                ),
-              ],
             ],
-          ),
+            if (_unit != null && _unit != 'Egyedi árajánlat') ...[
+              const SizedBox(height: 14),
+              if (_unit == 'Ft/m²-sáv') ...[
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        key: const ValueKey('price-area-from'),
+                  scrollPadding: const EdgeInsets.only(bottom: 100),
+                  textInputAction: TextInputAction.next,
+                        controller: _areaFromCtrl,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Ettől (m²)',
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: TextField(
+                        key: const ValueKey('price-area-to'),
+                  scrollPadding: const EdgeInsets.only(bottom: 100),
+                  textInputAction: TextInputAction.next,
+                        controller: _areaToCtrl,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Eddig (m²)',
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+              ],
+              TextField(
+                key: const ValueKey('price-rule-amount'),
+                  scrollPadding: const EdgeInsets.only(bottom: 100),
+                  textInputAction: TextInputAction.next,
+                controller: _priceCtrl,
+                keyboardType: TextInputType.number,
+                autofocus: _unit != 'Ft/m²-sáv',
+                decoration: InputDecoration(
+                  labelText: _unit == '%' ? 'Mérték (%)' : 'Összeg (Ft)',
+                ),
+              ),
+            ],
+            if (_error != null) ...[
+              const SizedBox(height: 10),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(_error!, style: const TextStyle(color: Colors.red)),
+              ),
+            ],
+          ],
         ),
       ),
       actions: [
