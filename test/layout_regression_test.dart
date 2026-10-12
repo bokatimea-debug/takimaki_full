@@ -1,3 +1,5 @@
+import 'package:takimaki_full/widgets/taki_calendar.dart';
+import 'package:takimaki_full/widgets/taki_status_tabs.dart';
 import 'package:takimaki_full/screens/onboarding.dart';
 import 'package:takimaki_full/screens/map_picker_screen.dart';
 import 'package:takimaki_full/screens/calendar_connection_screen.dart';
@@ -298,6 +300,118 @@ void main() {
       await _capture(tester, 'feedback_keyboard_${size.width.toInt()}');
     });
   }
+
+  for (final size in [const Size(320, 640), const Size(412, 892)]) {
+    testWidgets(
+      'new order date selection uses approved shared month grid ${size.width}',
+      (tester) async {
+        await _show(
+          tester,
+          const CustomerSearchScreen(),
+          size,
+          scale: size.width == 320 ? 1.3 : 1,
+          canPop: true,
+        );
+        await tester.tap(find.text('Válassz dátumot'));
+        await tester.pumpAndSettle();
+        expect(find.byType(TakiMonthGrid), findsOneWidget);
+        expect(find.byType(CalendarDatePicker), findsNothing);
+        expect(find.text('Dátum kiválasztása'), findsOneWidget);
+        expect(_button('OK').hitTestable(), findsOneWidget);
+        expect(tester.takeException(), isNull);
+        await _capture(tester, 'customer_date_picker_${size.width.toInt()}');
+        final now = DateTime.now();
+        await tester.tap(find.byKey(ValueKey('date-picker-day-${now.day}')));
+        await tester.tap(_button('OK'));
+        await tester.pumpAndSettle();
+        expect(
+          find.text(
+            '${now.year}.${now.month.toString().padLeft(2, '0')}.${now.day.toString().padLeft(2, '0')}.',
+          ),
+          findsOneWidget,
+        );
+      },
+    );
+    testWidgets(
+      'new order action follows fields without a viewport spacer ${size.width}',
+      (tester) async {
+        await _show(
+          tester,
+          const CustomerSearchScreen(),
+          size,
+          scale: size.width == 320 ? 1.3 : 1,
+          canPop: true,
+        );
+        final action = _button('Ajánlatok kérése');
+        await tester.scrollUntilVisible(
+          action,
+          120,
+          scrollable: find.byType(Scrollable).first,
+        );
+        await tester.pumpAndSettle();
+        final note = find.widgetWithText(TextField, 'Megjegyzés');
+        expect(
+          tester.getRect(action).top - tester.getRect(note).bottom,
+          lessThan(40),
+        );
+        expect(action.hitTestable(), findsOneWidget);
+        expect(tester.takeException(), isNull);
+        await _capture(tester, 'compact_order_form_${size.width.toInt()}');
+      },
+    );
+  }
+  testWidgets('manual date entry remains available and validates limits', (
+    tester,
+  ) async {
+    await _show(tester, const CustomerSearchScreen(), const Size(360, 740));
+    await tester.tap(find.text('Válassz dátumot'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Dátum beírása'));
+    await tester.pumpAndSettle();
+    expect(find.byType(InputDatePickerFormField), findsOneWidget);
+    await tester.enterText(find.byType(TextFormField), 'nincs ilyen dátum');
+    await tester.tap(_button('OK'));
+    await tester.pumpAndSettle();
+    expect(find.byType(InputDatePickerFormField), findsOneWidget);
+    await tester.tap(find.text('Mégse'));
+    await tester.pumpAndSettle();
+    expect(find.text('Válassz dátumot'), findsOneWidget);
+  });
+  testWidgets(
+    'closed orders remain accessible through the approved status tabs',
+    (tester) async {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+        'customer_orders',
+        jsonEncode([
+          {
+            'id': 'closed-ui',
+            'service': 'Nagytakarítás',
+            'date': '2026-10-01',
+            'time': '09:00',
+            'duration_minutes': 120,
+            'status': 'Teljesítve',
+          },
+          {
+            'id': 'active-ui',
+            'service': 'Apartmantakarítás',
+            'date': '2026-10-20',
+            'time': '09:00',
+            'duration_minutes': 120,
+            'status': 'Elfogadva',
+          },
+        ]),
+      );
+      await _show(tester, const CustomerOrdersScreen(), const Size(360, 740));
+      expect(find.byType(TakiStatusTabs), findsOneWidget);
+      expect(find.text('Apartmantakarítás'), findsOneWidget);
+      await tester.tap(find.text('Lezárt'));
+      await tester.pumpAndSettle();
+      expect(find.text('Nagytakarítás'), findsOneWidget);
+      expect(find.text('Apartmantakarítás'), findsNothing);
+      expect(jsonDecode(prefs.getString('customer_orders')!).length, 2);
+    },
+  );
 
   for (final role in ['customer', 'provider']) {
     testWidgets('$role calendar excludes pending requests', (tester) async {
