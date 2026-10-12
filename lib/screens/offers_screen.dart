@@ -163,8 +163,13 @@ class _OffersScreenState extends State<OffersScreen> {
                                             fontWeight: FontWeight.w800,
                                           ),
                                         ),
-                                        Text(
-                                          '★ ${offer['provider_rating'] ?? 'Új'}  •  ${offer['provider_success_count'] ?? 0} sikeres munka',
+                                        Row(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            const Icon(Icons.star_rounded, size: 18, color: takiOrange),
+                                            const SizedBox(width: 4),
+                                            Expanded(child: Text('${offer['provider_rating'] ?? 'Új'}  •  ${offer['provider_success_count'] ?? 0} sikeres munka')),
+                                          ],
                                         ),
                                       ],
                                     ),
