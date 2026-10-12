@@ -1,3 +1,4 @@
+import '../widgets/taki_screen_header.dart';
 import '../widgets/service_choice_grid.dart';
 import '../widgets/taki_app_bar.dart';
 
@@ -60,15 +61,28 @@ class _ProviderAllOrdersScreenState extends State<ProviderAllOrdersScreen> {
             )
           : ListView.separated(
               padding: const EdgeInsets.fromLTRB(18, 8, 18, 16),
-              itemCount: _orders.length,
+              itemCount: _orders.length + 1,
               separatorBuilder: (_, __) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
-                final order = _orders[index];
+                if (index == 0)
+                  return const TakiScreenHeader(
+                    title: 'Munkák',
+                    subtitle: 'Elfogadott munkák és értékelések',
+                    icon: Icons.assignment_outlined,
+                  );
+                final itemIndex = index - 1;
+                final order = _orders[itemIndex];
                 final end = WorkSchedule.end(order);
                 final endText = end == null
                     ? ''
                     : '${end.hour.toString().padLeft(2, '0')}:${end.minute.toString().padLeft(2, '0')}';
                 return Card(
+                  color: itemIndex.isEven ? takiMint : takiYellowSoft,
+                  elevation: 0,
+                  margin: EdgeInsets.zero,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
                   child: ListTile(
                     contentPadding: const EdgeInsets.all(16),
                     leading: Image.asset(
