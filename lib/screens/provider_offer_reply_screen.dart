@@ -1,5 +1,7 @@
+import '../widgets/taki_screen_header.dart';
 import '../utils/public_name.dart';
 import '../widgets/taki_app_bar.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -69,9 +71,8 @@ class _ProviderOfferReplyScreenState extends State<ProviderOfferReplyScreen> {
       Navigator.pop(context, true);
     } on StateError catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(error.message)));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(error.message)));
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -92,23 +93,23 @@ class _ProviderOfferReplyScreenState extends State<ProviderOfferReplyScreen> {
         ? '–'
         : '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
     return Scaffold(
-    appBar: TakiAppBar(
-      title: Text(_isEditing ? 'Ajánlat módosítása' : 'Ajánlat küldése'),
-    ),
-    body: SafeArea(
-      top: false,
-      child: BrandedBackground(
-        child: ListView(
-          padding: const EdgeInsets.all(20),
-          children: [
-            SectionBadge(
-              icon: Icons.request_quote,
-              text: _request['service']?.toString() ?? 'Ajánlatkérés',
-            ),
-            const SizedBox(height: 18),
-            TakiPanel(
-              color: takiFieldSurface,
-              padding: const EdgeInsets.all(18),
+      appBar: TakiAppBar(
+        title: Text(_isEditing ? 'Ajánlat módosítása' : 'Ajánlat küldése'),
+      ),
+      body: SafeArea(
+        top: false,
+        child: BrandedBackground(
+          child: ListView(
+            padding: const EdgeInsets.all(20),
+            children: [
+              TakiScreenHeader(
+                icon: Icons.request_quote,
+                title: _request['service']?.toString() ?? 'Ajánlatkérés',
+              ),
+              const SizedBox(height: 18),
+              TakiPanel(
+                color: takiFieldSurface,
+                padding: const EdgeInsets.all(18),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -132,7 +133,8 @@ class _ProviderOfferReplyScreenState extends State<ProviderOfferReplyScreen> {
                         icon: Icons.square_foot_rounded,
                         text: '${_request['area_sqm']} m²',
                       ),
-                    if ((_request['service_options'] as List?)?.isNotEmpty == true)
+                    if ((_request['service_options'] as List?)?.isNotEmpty ==
+                        true)
                       _InfoLine(
                         icon: Icons.checklist_rounded,
                         text: (_request['service_options'] as List).join(' • '),
@@ -144,43 +146,43 @@ class _ProviderOfferReplyScreenState extends State<ProviderOfferReplyScreen> {
                       ),
                   ],
                 ),
-            ),
-            const SizedBox(height: 18),
-            TextField(
-              controller: _price,
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              decoration: const InputDecoration(
-                labelText: 'Ajánlott ár (Ft)',
-                prefixIcon: Icon(Icons.payments_outlined),
               ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _note,
-              minLines: 3,
-              maxLines: 5,
-              decoration: const InputDecoration(
-                labelText: 'Üzenet a megrendelőnek (opcionális)',
-                prefixIcon: Icon(Icons.chat_bubble_outline),
+              const SizedBox(height: 18),
+              TextField(
+                controller: _price,
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                decoration: const InputDecoration(
+                  labelText: 'Ajánlott ár (Ft)',
+                  prefixIcon: Icon(Icons.payments_outlined),
+                ),
               ),
-            ),
-            const SizedBox(height: 24),
-            FilledButton(
-              onPressed: _sending ? null : _send,
-              child: Text(
-                _sending
-                    ? 'Mentés…'
-                    : (_isEditing
-                          ? 'Módosítás mentése'
-                          : 'Ajánlat elküldése'),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _note,
+                minLines: 3,
+                maxLines: 5,
+                decoration: const InputDecoration(
+                  labelText: 'Üzenet a megrendelőnek (opcionális)',
+                  prefixIcon: Icon(Icons.chat_bubble_outline),
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 24),
+              FilledButton(
+                onPressed: _sending ? null : _send,
+                child: Text(
+                  _sending
+                      ? 'Mentés…'
+                      : (_isEditing
+                            ? 'Módosítás mentése'
+                            : 'Ajánlat elküldése'),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
-    ),
-  );
+    );
   }
 }
 
