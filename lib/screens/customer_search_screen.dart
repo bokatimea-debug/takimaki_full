@@ -312,7 +312,8 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
                 ),
                 child: ListTile(
                   key: const ValueKey('customer-service-selector'),
-                  minTileHeight: 56,
+                  minTileHeight: 48,
+                  dense: true,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 14),
                   leading: _service == null
                       ? const Icon(
@@ -364,6 +365,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
                               : const Color(0xFFE4C56F),
                         ),
                         labelStyle: TextStyle(
+                          fontSize: 12,
                           color: _requestedOptions.contains(option)
                               ? Colors.white
                               : takiTealDark,
@@ -393,6 +395,8 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
                     .map(
                       (item) => FilterChip(
                         key: ValueKey('customer-item-$item'),
+                        visualDensity: VisualDensity.compact,
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         label: Text(item),
                         selected: _requestedOptions.contains(item),
                         backgroundColor: takiCardMint,
@@ -404,6 +408,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
                               : const Color(0xFF9ACCC6),
                         ),
                         labelStyle: TextStyle(
+                          fontSize: 12,
                           color: _requestedOptions.contains(item)
                               ? Colors.white
                               : takiTealDark,
@@ -423,6 +428,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
             TextField(
               key: _addressKey,
               controller: _addressController,
+              style: const TextStyle(fontSize: 14),
               textCapitalization: TextCapitalization.words,
               decoration: InputDecoration(
                 errorText: _errors['address'],
@@ -430,7 +436,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
                 isDense: true,
                 contentPadding: EdgeInsets.symmetric(
                   horizontal: 12,
-                  vertical: 12,
+                  vertical: 10,
                 ),
                 hintText: "Budapest, utca és házszám",
                 prefixIcon: Icon(Icons.location_on_outlined),
@@ -442,6 +448,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
               TextField(
                 key: _areaKey,
                 controller: _areaController,
+                style: const TextStyle(fontSize: 14),
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   errorText: _errors['area'],
@@ -450,6 +457,10 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
                   isDense: true,
                   prefixIcon: Icon(Icons.square_foot_rounded),
                   suffixText: 'm²',
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
                 ),
               ),
             ],
@@ -535,6 +546,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
             const SizedBox(height: 8),
             TextField(
               controller: _noteController,
+              style: const TextStyle(fontSize: 14),
               minLines: 2,
               maxLines: 4,
               textCapitalization: TextCapitalization.sentences,
@@ -543,8 +555,8 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
                 hintText: "Írd le a feladat fontos részleteit…",
                 alignLabelWithHint: true,
                 contentPadding: EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 14,
+                  horizontal: 12,
+                  vertical: 10,
                 ),
                 suffixIcon: Padding(
                   padding: EdgeInsets.only(bottom: 28),
