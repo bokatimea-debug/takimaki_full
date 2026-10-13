@@ -308,3 +308,10 @@ GitHubon a codex/takimaki-108 ágban teljes forráscheckpoint és specifikáció
 - A 18 elfogadott látványterv szerint a belső képernyők kompakt türkiz átmenetes fejléceket, menta–sárga kártyákat és narancs főgombokat használnak.
 - A két szerep munkanaptára közös komponens marad; csak a hozzá tartozó adatok különböznek.
 - A módosításokhoz még szükséges a Flutter widgetteszt, képernyőrenderelés, kis/nagy kijelző és billentyűzetes ellenőrzés, majd az új APK buildje és aláírása. Ez a mentés nem kész kiadás.
+
+29. 1.0.26+27 UI TESZTKIADÁS — 2026. OKTÓBER 13.
+- Közös naptárrács, dátumválasztó és azonos szerepprofil-kártyák; eredeti funkciók és arculat megőrizve.
+- Billentyűzet fölé kerülő megrendelési/címválasztási főgombok és görgethető beviteli felületek.
+- GitHub build 38275811486 sikeres: 199 teszt, elemzés és release APK. Három képernyőszélesség, nagyított szöveg és szimulált billentyűzet ellenőrizve.
+- 18 jóváhagyott belső felület renderelt képe átnézve. Részletek: verification/UI_WORK_20261012.md.
+- Fizikai Android-készüléken/emulátoron nem történt ellenőrzés; teljes készüléken igazolt készültség nem állítható.
