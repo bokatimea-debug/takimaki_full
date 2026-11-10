@@ -526,10 +526,22 @@ void main() {
         canPop: true,
         arguments: role,
       );
+      // Six-week months place the work cards below the initial viewport.
+      final calendarScroll = find.byType(Scrollable).first;
+      await tester.scrollUntilVisible(
+        find.text('Apartmantakarítás'),
+        120,
+        scrollable: calendarScroll,
+      );
       expect(find.text('Apartmantakarítás'), findsOneWidget);
       expect(find.text('Mosodai szolgáltatás'), findsNothing);
       expect(tester.takeException(), isNull);
       await _capture(tester, '${role}_calendar_confirmed_only');
+      await tester.scrollUntilVisible(
+        find.text('Heti nézet'),
+        -120,
+        scrollable: calendarScroll,
+      );
       await tester.tap(find.text('Heti nézet'));
       await tester.pumpAndSettle();
       expect(find.text('Apartmantakarítás'), findsWidgets);
@@ -1090,7 +1102,8 @@ void main() {
         expect(
           rect.height,
           greaterThanOrEqualTo(availableHeight * .90),
-          reason: 'No opaque footer or bottom padding may consume the form viewport.',
+          reason:
+              'No opaque footer or bottom padding may consume the form viewport.',
         );
         final priceBuilder = find.byKey(const ValueKey('add-price-rule'));
         await _reachService(tester, priceBuilder);
@@ -1508,8 +1521,9 @@ Future<void> _show(
         supportedLocales: const [Locale('hu')],
         locale: const Locale('hu'),
         builder: (context, child) => MediaQuery(
-          data: MediaQuery.of(context)
-              .copyWith(textScaler: TextScaler.linear(scale)),
+          data: MediaQuery.of(
+            context,
+          ).copyWith(textScaler: TextScaler.linear(scale)),
           child: BrandedBackground(child: child!),
         ),
         home: canPop ? null : screen,
