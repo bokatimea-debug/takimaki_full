@@ -315,3 +315,11 @@ GitHubon a codex/takimaki-108 ágban teljes forráscheckpoint és specifikáció
 - GitHub build 38275811486 sikeres: 199 teszt, elemzés és release APK. Három képernyőszélesség, nagyított szöveg és szimulált billentyűzet ellenőrizve.
 - 18 jóváhagyott belső felület renderelt képe átnézve. Részletek: verification/UI_WORK_20261012.md.
 - Fizikai Android-készüléken/emulátoron nem történt ellenőrzés; teljes készüléken igazolt készültség nem állítható.
+
+30. SZÁLLÁSNAPTÁR IMPORT — 1.0.27+28
+- A megrendelő Naptár oldaláról több szállás címéhez menthető Airbnb és Booking.com iCal exportlink. A link az Android helyi alkalmazásadataiban marad; nem küldjük a Takimaki szerverére.
+- Egyirányú frissítés a szállásnaptár megnyitásakor, visszatéréskor és 15 percenként, amíg az oldal előtérben van; kézzel is frissíthető. A lezárt alkalmazásban nincs háttérszinkron.
+- Az Airbnb „Reserved” eseményeinek záró dátuma a kijelentkezés napja. A nem elérhető, törölt és nem értelmezhető Airbnb eseményekből nem készül javaslat.
+- A Booking.com export elérhetősége a szállás beállításaitól függ. A „CLOSED” jelölés nem bizonyít foglalást; rendelésvázlat csak külön szállásadói megerősítés után nyitható.
+- Azonos címhez és távozási naphoz egy kártya látszik. Frissítéskor a megszűnt esemény eltűnik; sikertelen forrásból nem nyitható régi vázlat.
+- A Takarítás előkészítése az apartmantakarítás rendelési űrlapját nyitja kitöltött címmel és nappal. A többi adatot a megrendelő tölti ki; csak saját jóváhagyással kér ajánlatot. A meglévő rendelések és visszaigazolt munkák nem módosulnak szinkronkor.

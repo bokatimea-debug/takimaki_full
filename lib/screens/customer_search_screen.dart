@@ -5,13 +5,15 @@ import "package:flutter/material.dart";
 
 import "../data/service_pricing_catalog.dart";
 import "../services/local_marketplace_store.dart";
+import "../services/rental_calendar.dart";
 import "../services/sanctions_store.dart";
 import "../theme.dart";
 import "../widgets/branded_background.dart";
 import "../widgets/service_choice_grid.dart";
 
 class CustomerSearchScreen extends StatefulWidget {
-  const CustomerSearchScreen({super.key});
+  const CustomerSearchScreen({super.key, this.rentalDraft});
+  final RentalCleaningDraft? rentalDraft;
   @override
   State<CustomerSearchScreen> createState() => _CustomerSearchScreenState();
 }
@@ -44,6 +46,16 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
   final _areaController = TextEditingController();
   final _noteController = TextEditingController();
   final Set<String> _requestedOptions = {};
+
+  @override
+  void initState() {
+    super.initState();
+    final draft = widget.rentalDraft;
+    if (draft == null) return;
+    _service = 'Apartmantakarítás';
+    _date = draft.checkout;
+    _addressController.text = draft.address;
+  }
 
   Future<void> _chooseService() async {
     final selected = await showModalBottomSheet<String>(

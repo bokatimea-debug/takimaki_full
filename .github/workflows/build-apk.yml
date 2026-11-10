@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - work/ui-completion-20261012
+      - work/rental-calendar-sync
   workflow_dispatch:
 
 concurrency:

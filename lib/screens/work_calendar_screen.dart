@@ -8,6 +8,7 @@ import '../services/local_marketplace_store.dart';
 import '../theme.dart';
 import '../utils/work_schedule.dart';
 import '../widgets/taki_app_bar.dart';
+import 'rental_calendar_screen.dart';
 
 class WorkCalendarScreen extends StatefulWidget {
   const WorkCalendarScreen({super.key});
@@ -133,6 +134,19 @@ class _WorkCalendarScreenState extends State<WorkCalendarScreen> {
               icon: Icons.calendar_month_outlined,
             ),
             const SizedBox(height: 12),
+            if (_role == 'customer') ...[
+              OutlinedButton.icon(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute<void>(
+                    builder: (_) => const RentalCalendarScreen(),
+                  ),
+                ),
+                icon: const Icon(Icons.sync),
+                label: const Text('Airbnb és Booking.com naptárak'),
+              ),
+              const SizedBox(height: 12),
+            ],
             SegmentedButton<bool>(
               style: ButtonStyle(
                 backgroundColor: WidgetStateProperty.resolveWith(
