@@ -71,6 +71,12 @@ void main() {
           .host,
       'admin.booking.com',
     );
+    expect(
+      RentalSource.booking
+          .validate('https://ical.booking.com/v1/export?t=secret')
+          .host,
+      'ical.booking.com',
+    );
     for (final url in [
       'https://www.airbnb.com.evil.example$path',
       'http://www.airbnb.com$path',

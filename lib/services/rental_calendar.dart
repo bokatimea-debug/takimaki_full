@@ -19,17 +19,23 @@ enum RentalSource {
         'www.airbnb.co.uk',
         'www.airbnb.de',
       }.contains(uri.host),
-      RentalSource.booking => uri.host == 'admin.booking.com',
+      RentalSource.booking => const {
+        'admin.booking.com',
+        'ical.booking.com',
+      }.contains(uri.host),
     };
+    final validPath =
+        (uri.path.contains('ical') && uri.path.endsWith('.ics')) ||
+        (this == RentalSource.booking &&
+            ((uri.host == 'admin.booking.com' &&
+                    uri.path == '/hotel/hoteladmin/ical.html') ||
+                (uri.host == 'ical.booking.com' && uri.path == '/v1/export')));
     if (!validHost ||
         uri.scheme != 'https' ||
         uri.userInfo.isNotEmpty ||
         uri.port != 443 ||
         uri.hasFragment ||
-        !uri.path.contains('ical') ||
-        !(uri.path.endsWith('.ics') ||
-            (this == RentalSource.booking &&
-                uri.path.endsWith('/ical.html')))) {
+        !validPath) {
       throw const FormatException(
         'Másold be a szálláshely HTTPS naptárexport-linkjét.',
       );
