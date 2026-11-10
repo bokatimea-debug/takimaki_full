@@ -33,6 +33,11 @@ jobs:
       - run: flutter test
         env:
           TAKIMAKI_CAPTURE: verification/rendered-ui
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - run: flutter config --jdk-dir "$JAVA_HOME"
       - name: Build Takimaki Test APK
         env:
           ORG_GRADLE_PROJECT_takimakiTest: "true"
