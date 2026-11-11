@@ -221,7 +221,9 @@ class LocalMarketplaceStore {
     };
     // Bringing supplies is a condition shown on the request, not a
     // capability configured in the provider's service catalog.
-    return available.containsAll(requested.difference(apartmentBringOptions.toSet()));
+    return available.containsAll(
+      requested.difference(cleaningBringOptions.toSet()),
+    );
   }
 
   static DateTime _easterSunday(int year) {

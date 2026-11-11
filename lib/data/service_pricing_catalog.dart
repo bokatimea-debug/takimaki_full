@@ -1,4 +1,4 @@
-const apartmentBringOptions = <String>[
+const cleaningBringOptions = <String>[
   'A takarító hozza az eszközöket',
   'A takarító hozza a tisztítószereket',
 ];

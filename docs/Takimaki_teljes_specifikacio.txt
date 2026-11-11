@@ -324,5 +324,5 @@ GitHubon a codex/takimaki-108 ágban teljes forráscheckpoint és specifikáció
 - Azonos címhez és távozási naphoz egy kártya látszik. Frissítéskor a megszűnt esemény eltűnik; sikertelen forrásból nem nyitható régi vázlat.
 - A Takarítás előkészítése az apartmantakarítás rendelési űrlapját nyitja kitöltött címmel és nappal. A többi adatot a megrendelő tölti ki; csak saját jóváhagyással kér ajánlatot. A meglévő rendelések és visszaigazolt munkák nem módosulnak szinkronkor.
 
-31. APARTMANTAKARÍTÁS — ESZKÖZÖK ÉS TISZTÍTÓSZEREK
-- Két külön, alapból üres jelölőnégyzet adja meg, hogy a takarító hozza-e az eszközöket és a tisztítószereket. A kiválasztás az ajánlatkérésben és a rendelés részleteiben is megjelenik.
+31. ESZKÖZÖK ÉS TISZTÍTÓSZEREK TAKARÍTÁSHOZ
+- Apartmantakarításnál, általános takarításnál és nagytakarításnál két külön, alapból üres jelölőnégyzet adja meg, hogy a takarító hozza-e az eszközöket és a tisztítószereket. A kiválasztás az ajánlatkérésben és a rendelés részleteiben is megjelenik.

@@ -152,7 +152,7 @@ void main() {
       note: '',
       laundryAndIroning: true,
       serviceOptions: const [
-        'Mosodai szolgáltatás', 'Mosás', 'Vasalás', ...apartmentBringOptions,
+        'Mosodai szolgáltatás', 'Mosás', 'Vasalás', ...cleaningBringOptions,
       ],
     );
     await LocalMarketplaceStore.createRequest(

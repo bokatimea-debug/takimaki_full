@@ -437,8 +437,12 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
                     .toList(),
               ),
             ],
-            if (_service == 'Apartmantakarítás')
-              for (final option in apartmentBringOptions)
+            if (const {
+              'Apartmantakarítás',
+              'Általános takarítás',
+              'Nagytakarítás',
+            }.contains(_service))
+              for (final option in cleaningBringOptions)
                 CheckboxListTile(
                   key: ValueKey('customer-bring-$option'),
                   contentPadding: EdgeInsets.zero,
