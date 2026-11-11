@@ -437,6 +437,23 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
                     .toList(),
               ),
             ],
+            if (_service == 'Apartmantakarítás')
+              for (final option in apartmentBringOptions)
+                CheckboxListTile(
+                  key: ValueKey('customer-bring-$option'),
+                  contentPadding: EdgeInsets.zero,
+                  controlAffinity: ListTileControlAffinity.leading,
+                  dense: true,
+                  title: Text(option),
+                  value: _requestedOptions.contains(option),
+                  onChanged: (checked) => setState(() {
+                    if (checked == true) {
+                      _requestedOptions.add(option);
+                    } else {
+                      _requestedOptions.remove(option);
+                    }
+                  }),
+                ),
             const SizedBox(height: 12),
             TextField(
               key: _addressKey,

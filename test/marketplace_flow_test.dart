@@ -1,3 +1,4 @@
+import 'package:takimaki_full/data/service_pricing_catalog.dart';
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -150,7 +151,9 @@ void main() {
       dateTime: DateTime.now().add(const Duration(days: 2)),
       note: '',
       laundryAndIroning: true,
-      serviceOptions: const ['Mosodai szolgáltatás', 'Mosás', 'Vasalás'],
+      serviceOptions: const [
+        'Mosodai szolgáltatás', 'Mosás', 'Vasalás', ...apartmentBringOptions,
+      ],
     );
     await LocalMarketplaceStore.createRequest(
       service: 'Apartmantakarítás',

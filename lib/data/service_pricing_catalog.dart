@@ -1,3 +1,8 @@
+const apartmentBringOptions = <String>[
+  'A takarító hozza az eszközöket',
+  'A takarító hozza a tisztítószereket',
+];
+
 const serviceOptionLabels = <String, List<String>>{
   'Apartmantakarítás': ['Mosodai szolgáltatás', 'Helyszíni mosás'],
   'Mosodai szolgáltatás': [

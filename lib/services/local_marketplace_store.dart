@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../data/service_pricing_catalog.dart';
 import 'sanctions_store.dart';
 import 'workflow_store.dart';
 
@@ -218,7 +219,9 @@ class LocalMarketplaceStore {
       ...offered,
       ...prices.whereType<Map>().map((rule) => rule['label'].toString()),
     };
-    return available.containsAll(requested);
+    // Bringing supplies is a condition shown on the request, not a
+    // capability configured in the provider's service catalog.
+    return available.containsAll(requested.difference(apartmentBringOptions.toSet()));
   }
 
   static DateTime _easterSunday(int year) {
