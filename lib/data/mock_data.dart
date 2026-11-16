@@ -26,6 +26,7 @@ class MockMessage {
   final String from;
   final String text;
   final DateTime ts;
+  final String? photo;
 
   MockMessage({
     required this.id,
@@ -33,6 +34,7 @@ class MockMessage {
     required this.from,
     required this.text,
     required this.ts,
+    this.photo,
   });
 
   factory MockMessage.fromJson(Map<String, dynamic> json) => MockMessage(
@@ -40,6 +42,7 @@ class MockMessage {
     threadId: json['threadId'] as String,
     from: json['from'] as String,
     text: json['text'] as String,
+    photo: json['photo'] as String?,
     ts: DateTime.parse(json['ts'] as String),
   );
 
@@ -48,6 +51,7 @@ class MockMessage {
     'threadId': threadId,
     'from': from,
     'text': text,
+    if (photo != null) 'photo': photo,
     'ts': ts.toIso8601String(),
   };
 }

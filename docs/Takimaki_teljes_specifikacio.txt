@@ -326,3 +326,8 @@ GitHubon a codex/takimaki-108 ágban teljes forráscheckpoint és specifikáció
 
 31. ESZKÖZÖK ÉS TISZTÍTÓSZEREK TAKARÍTÁSHOZ
 - Apartmantakarításnál, általános takarításnál és nagytakarításnál két külön, alapból üres jelölőnégyzet adja meg, hogy a takarító hozza-e az eszközöket és a tisztítószereket. A kiválasztás az ajánlatkérésben és a rendelés részleteiben is megjelenik.
+
+32. APARTMANTAKARÍTÁSI MINŐSÉGELLENŐRZÉS — HELYI MUNKAMENTÉS
+- 42 feladatos helyiségenkénti sablon, cím alapján szerkeszthető lista, rendeléshez rögzített pillanatkép, referenciafotók és kötelező kamerafotók.
+- A helyi lezárási útvonal ellenőrzi a checklistet és a kötelező fotók meglétét. A chat kamerából és galériából fogad kicsinyített képet (max. 1280 képpont és 500 KiB).
+- Ez az ág helyi adattárolást használ. A Firebase szinkron, privát szerveres képtárolás és ellenőrzés, hibajelentés és javítási kör még nincs bekötve. Androidos elfogadási teszt hátravan.

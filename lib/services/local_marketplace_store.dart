@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/service_pricing_catalog.dart';
 import 'sanctions_store.dart';
+import 'cleaning_checklist.dart';
 import 'workflow_store.dart';
 
 class LocalMarketplaceStore {
@@ -105,6 +106,8 @@ class LocalMarketplaceStore {
       'note': note,
       'laundry_and_ironing': laundryAndIroning,
       'service_options': serviceOptions,
+      if (service == 'Apartmantakarítás')
+        'cleaning_checklist': await CleaningChecklist.template(address),
       'status': 'pending',
       'created_at': DateTime.now().toIso8601String(),
     };
@@ -582,7 +585,29 @@ class LocalMarketplaceStore {
   static Future<List<Map<String, dynamic>>> providerOrders() =>
       _read(providerOrdersKey);
 
+  static Future<void> saveChecklist(String requestId, List<Map<String, dynamic>> tasks) async {
+    for (final key in [customerOrdersKey, providerOrdersKey]) {
+      final orders = await _read(key);
+      for (final order in orders) {
+        if ((order['request_id'] ?? order['id']).toString() == requestId &&
+            order['status'] == 'Folyamatban') {
+          order['cleaning_checklist'] = tasks;
+        }
+      }
+      await _write(key, orders);
+    }
+  }
+
   static Future<void> updateOrderStatus(String requestId, String status) async {
+    if (status == 'Teljesítve') {
+      final orders = await providerOrders();
+      final order = orders.where((o) =>
+          (o['request_id'] ?? o['id']).toString() == requestId).firstOrNull;
+      if (!CleaningChecklist.canComplete(
+          CleaningChecklist.tasks(order?['cleaning_checklist']))) {
+        throw StateError('A lezáráshoz töltsd ki a checklistet és készítsd el a kötelező fotókat.');
+      }
+    }
     for (final key in [customerOrdersKey, providerOrdersKey]) {
       final orders = await _read(key);
       final index = orders.indexWhere(

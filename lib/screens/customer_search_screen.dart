@@ -1,3 +1,5 @@
+import '../services/cleaning_checklist.dart';
+import 'cleaning_checklist_screen.dart';
 import '../widgets/taki_calendar.dart';
 import '../widgets/taki_app_bar.dart';
 
@@ -396,6 +398,34 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
               ),
             ],
             if (_service == 'Apartmantakarítás') ...[
+              OutlinedButton(
+                onPressed: () async {
+                  final address = _addressController.text.trim();
+                  if (address.isEmpty) {
+                    _reveal(_addressKey);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Először add meg az apartman címét.')),
+                    );
+                    return;
+                  }
+                  final template = await CleaningChecklist.template(address);
+                  if (!mounted) return;
+                  final updated = await Navigator.push<List<Map<String, dynamic>>>(
+                    context, MaterialPageRoute(builder: (_) =>
+                      CleaningChecklistScreen(tasks: template, template: true)),
+                  );
+                  if (updated == null) return;
+                  try {
+                    await CleaningChecklist.saveTemplate(address, updated);
+                  } on StateError catch (error) {
+                    if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(error.message.toString())),
+                    );
+                  }
+                },
+                child: const Text('Apartman checklistje'),
+              ),
+
               const SizedBox(height: 8),
               const Text(
                 'Kért tételek',

@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:image_picker/image_picker.dart';
 import '../widgets/taki_screen_header.dart';
 import '../widgets/taki_app_bar.dart';
 
@@ -160,6 +162,46 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
     super.dispose();
   }
 
+  bool _picking = false;
+
+  Future<void> _attach() async {
+    if (_picking) return;
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (context) => SafeArea(child: Wrap(children: [
+        ListTile(title: const Text('Kamera'),
+          onTap: () => Navigator.pop(context, ImageSource.camera)),
+        ListTile(title: const Text('Galéria'),
+          onTap: () => Navigator.pop(context, ImageSource.gallery)),
+      ])),
+    );
+    if (source == null || !mounted || _picking) return;
+    setState(() => _picking = true);
+    MockMessage? pending;
+    try {
+      final picked = await ImagePicker().pickImage(source: source,
+          maxWidth: 1280, maxHeight: 1280, imageQuality: 65,
+          requestFullMetadata: false);
+      if (picked == null || !mounted) return;
+      final bytes = await picked.readAsBytes();
+      if (bytes.isEmpty || bytes.length > 500 * 1024) throw StateError('image size');
+      if (!mounted) return;
+      final now = DateTime.now();
+      final message = MockMessage(id: now.microsecondsSinceEpoch.toString(),
+        threadId: _thread.id, from: 'Én', text: 'Fotó', ts: now,
+        photo: base64Encode(bytes));
+      pending = message;
+      setState(() => _thread.messages.add(message));
+      await LocalChatStore.save();
+    } catch (_) {
+      if (pending != null) _thread.messages.remove(pending);
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('A kép nem menthető. Próbálj kisebb képet.')));
+    } finally {
+      if (mounted) setState(() => _picking = false);
+    }
+  }
+
   Future<void> _send() async {
     final text = _input.text.trim();
     if (text.isEmpty) return;
@@ -254,7 +296,19 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                             ? CrossAxisAlignment.end
                             : CrossAxisAlignment.start,
                         children: [
-                          Text(
+                          if (m.photo != null)
+                            InkWell(
+                              onTap: () => showDialog<void>(
+                                context: context,
+                                builder: (_) => Dialog(child: InteractiveViewer(
+                                  child: Image.memory(base64Decode(m.photo!)),
+                                )),
+                              ),
+                              child: Image.memory(base64Decode(m.photo!),
+                                height: 120, cacheWidth: 360,
+                                semanticLabel: 'Csatolt fotó'),
+                            )
+                          else Text(
                             m.text,
                             style: TextStyle(color: takiTealDark, height: 1.35),
                           ),
@@ -304,6 +358,9 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                 ),
                 child: Row(
                   children: [
+                    IconButton(tooltip: "Fotó csatolása",
+                      onPressed: _picking ? null : _attach,
+                      icon: const Icon(Icons.add_a_photo_outlined)),
                     Expanded(
                       child: TextField(
                         controller: _input,

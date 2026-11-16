@@ -1,3 +1,5 @@
+import '../services/cleaning_checklist.dart';
+import 'cleaning_checklist_screen.dart';
 import '../widgets/taki_calendar.dart';
 import '../widgets/taki_screen_header.dart';
 import '../utils/public_name.dart';
@@ -567,6 +569,21 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                   icon: const Icon(Icons.chat_bubble_outline),
                   label: const Text('Kapcsolódó chat'),
                 ),
+              if (_order['cleaning_checklist'] is List)
+                OutlinedButton(
+                  onPressed: _busy ? null : () async {
+                    final updated = await Navigator.push<List<Map<String, dynamic>>>(
+                      context, MaterialPageRoute(builder: (_) => CleaningChecklistScreen(
+                        tasks: CleaningChecklist.tasks(_order['cleaning_checklist']),
+                        cleaner: isProvider && status == 'Folyamatban',
+                      )),
+                    );
+                    if (mounted && updated != null) {
+                      await _guard(() => LocalMarketplaceStore.saveChecklist(_requestId, updated));
+                    }
+                  },
+                  child: const Text('Takarítási checklist'),
+                ),
               if (isProvider && status == 'Elfogadva') ...[
                 const SizedBox(height: 8),
                 FilledButton(
@@ -577,7 +594,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               if (isProvider && status == 'Folyamatban') ...[
                 const SizedBox(height: 8),
                 FilledButton(
-                  onPressed: () => _setStatus('Teljesítve'),
+                  onPressed: _busy ? null : () => _guard(() => _setStatus('Teljesítve')),
                   child: const Text('Munka teljesítve'),
                 ),
               ],
