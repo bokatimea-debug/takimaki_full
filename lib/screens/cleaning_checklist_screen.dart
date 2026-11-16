@@ -5,6 +5,9 @@ import 'package:image_picker/image_picker.dart';
 
 import '../services/cleaning_checklist.dart';
 import '../widgets/taki_app_bar.dart';
+import '../widgets/taki_screen_header.dart';
+import '../widgets/branded_background.dart';
+import '../theme.dart';
 
 class CleaningChecklistScreen extends StatefulWidget {
   const CleaningChecklistScreen({
@@ -181,14 +184,22 @@ class _ChecklistState extends State<CleaningChecklistScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: TakiAppBar(title: const Text('Takarítási checklist')),
-    body: SafeArea(child: ListView(padding: const EdgeInsets.all(16), children: [
+    body: BrandedBackground(child: SafeArea(child: ListView(padding: const EdgeInsets.all(16), children: [
+      const TakiScreenHeader(
+        title: 'Takarítási checklist',
+        icon: Icons.checklist_rounded,
+      ),
+      const SizedBox(height: 12),
       Text('${tasks.where((task) => task['done'] == true).length}/${tasks.length} kész'),
       for (final room in rooms.keys) ...[
         ExpansionTile(
           title: Text(room),
           children: [
             for (final task in tasks.where((task) => task['room'] == room))
-              Card(child: Column(children: [
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: TakiPanel(color: takiCardMint, padding: const EdgeInsets.all(8),
+                  child: Column(children: [
                 if (widget.template)
                   ListTile(
                     title: Text('${task['label']}'),
@@ -228,7 +239,7 @@ class _ChecklistState extends State<CleaningChecklistScreen> {
                     icon: const Icon(Icons.camera_alt_outlined),
                     label: Text(widget.template ? 'Referenciafotó' : 'Ellenőrzőfotó készítése'),
                   ),
-              ])),
+              ]))),
             if (widget.template)
               TextButton(onPressed: busy ? null : () => edit(room),
                 child: const Text('Feladat hozzáadása')),
@@ -239,12 +250,14 @@ class _ChecklistState extends State<CleaningChecklistScreen> {
         OutlinedButton(onPressed: busy ? null : _report,
           child: const Text('Hiba jelentése')),
       for (final record in [...widget.issues, ...widget.history])
-        Card(child: Column(children: [
+        Padding(padding: const EdgeInsets.only(bottom: 8),
+          child: TakiPanel(color: takiCardYellow, padding: const EdgeInsets.all(8),
+            child: Column(children: [
           ListTile(title: Text('${record['action']}'),
             subtitle: Text([record['note'], record['at']].whereType<String>().join(' • '))),
           if (record['photo'] is String)
             image('Csatolt fotó', record['photo'] as String),
-        ])),
+        ]))),
       if (widget.onReview != null)
         FilledButton(
           onPressed: busy ? null : () => _run(() => widget.onReview!(null, ''), close: true),
@@ -255,6 +268,6 @@ class _ChecklistState extends State<CleaningChecklistScreen> {
           onPressed: busy || tasks.isEmpty ? null : () => Navigator.pop(context, tasks),
           child: const Text('Mentés'),
         ),
-    ])),
+    ]))),
   );
 }
