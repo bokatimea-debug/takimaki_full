@@ -331,3 +331,8 @@ GitHubon a codex/takimaki-108 ágban teljes forráscheckpoint és specifikáció
 - 42 feladatos helyiségenkénti sablon, cím alapján szerkeszthető lista, rendeléshez rögzített pillanatkép, referenciafotók és kötelező kamerafotók.
 - A helyi lezárási útvonal ellenőrzi a checklistet és a kötelező fotók meglétét. A chat kamerából és galériából fogad kicsinyített képet (max. 1280 képpont és 500 KiB).
 - Ez az ág helyi adattárolást használ. A Firebase szinkron, privát szerveres képtárolás és ellenőrzés, hibajelentés és javítási kör még nincs bekötve. Androidos elfogadási teszt hátravan.
+
+33. HELYI MINŐSÉGELLENŐRZÉS ÉS JAVÍTÁS
+- A hibajelentés kategóriát, leírást és tömörített kamerafotót tartalmaz. A rendelésben megjelenik a megrendelői nézetben.
+- A teljesítés és a minőségi jóváhagyás külön állapot. Konkrét feladat visszaküldésekor a korábbi kép és indok az előzményekbe kerül; az újraellenőrzéshez új kamerafotó szükséges.
+- Ez továbbra is helyi prototípus; valódi eszközök közötti Firebase-szinkron, privát szerveres tárolás, ellenőrzés és értesítés nincs bekötve.

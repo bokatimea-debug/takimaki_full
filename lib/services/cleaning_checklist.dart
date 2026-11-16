@@ -45,6 +45,6 @@ class CleaningChecklist {
 
   static bool canComplete(List<Map<String, dynamic>> list) =>
       list.every((task) => task['done'] == true &&
-        (task['photoRequired'] != true ||
+        ((task['photoRequired'] != true && task['correction'] == null) ||
           (task['photo'] is String && (task['photo'] as String).isNotEmpty)));
 }

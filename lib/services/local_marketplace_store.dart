@@ -585,18 +585,101 @@ class LocalMarketplaceStore {
   static Future<List<Map<String, dynamic>>> providerOrders() =>
       _read(providerOrdersKey);
 
-  static Future<void> saveChecklist(String requestId, List<Map<String, dynamic>> tasks) async {
-    for (final key in [customerOrdersKey, providerOrdersKey]) {
-      final orders = await _read(key);
-      for (final order in orders) {
-        if ((order['request_id'] ?? order['id']).toString() == requestId &&
-            order['status'] == 'Folyamatban') {
-          order['cleaning_checklist'] = tasks;
-        }
+  static Future<void> _editCleaningOrder(
+    String requestId,
+    Map<String, dynamic> Function(Map<String, dynamic>) edit,
+  ) async {
+    final customers = await customerOrders();
+    final providers = await providerOrders();
+    bool matches(Map<String, dynamic> item) =>
+        (item['request_id'] ?? item['id']).toString() == requestId;
+    final order = customers.where(matches).firstOrNull ??
+        providers.where(matches).firstOrNull;
+    if (order == null || order['cleaning_checklist'] is! List) {
+      throw StateError('A takarítási munkalap nem található.');
+    }
+    final changes = edit(order);
+    for (final entry in {
+      customerOrdersKey: customers,
+      providerOrdersKey: providers,
+    }.entries) {
+      for (final item in entry.value.where(matches)) {
+        item.addAll(changes);
       }
-      await _write(key, orders);
+      await _write(entry.key, entry.value);
     }
   }
+
+  static Future<void> saveChecklist(
+    String requestId,
+    List<Map<String, dynamic>> tasks,
+  ) => _editCleaningOrder(requestId, (order) {
+    final correcting = order['cleaning_quality'] == 'Javítás szükséges';
+    if (order['status'] != 'Folyamatban' && !correcting) {
+      throw StateError('Ez a munkalap már nem szerkeszthető.');
+    }
+    if (correcting && !CleaningChecklist.canComplete(tasks)) {
+      throw StateError('Készíts új fotót a visszaküldött feladatról.');
+    }
+    return {
+      'cleaning_checklist': tasks,
+      if (correcting) 'cleaning_quality': 'Újraellenőrzésre vár',
+      if (correcting) 'cleaning_history': [
+        ...CleaningChecklist.tasks(order['cleaning_history']),
+        {'action': 'Javítás beadva', 'at': DateTime.now().toIso8601String()},
+      ],
+    };
+  });
+
+  static Future<void> reviewCleaning(
+    String requestId, {
+    int? correctionIndex,
+    String note = '',
+  }) => _editCleaningOrder(requestId, (order) {
+    if (order['status'] != 'Teljesítve' ||
+        order['cleaning_quality'] == 'Elfogadva' ||
+        order['cleaning_quality'] == 'Javítás szükséges') {
+      throw StateError('A munka most nem ellenőrizhető.');
+    }
+    final tasks = CleaningChecklist.tasks(order['cleaning_checklist']);
+    final history = CleaningChecklist.tasks(order['cleaning_history']);
+    if (correctionIndex != null) {
+      if (correctionIndex < 0 || correctionIndex >= tasks.length ||
+          note.trim().isEmpty) {
+        throw StateError('Válassz feladatot és add meg a javítás okát.');
+      }
+      final task = tasks[correctionIndex];
+      history.add({
+        'action': 'Javítás kérve: ${task['label']}',
+        'note': note.trim(),
+        'at': DateTime.now().toIso8601String(),
+        if (task['photo'] != null) 'photo': task['photo'],
+      });
+      task
+        ..remove('photo')
+        ..addAll({'done': false, 'correction': note.trim()});
+    } else {
+      history.add({'action': 'Elfogadva', 'at': DateTime.now().toIso8601String()});
+    }
+    return {
+      'cleaning_quality': correctionIndex == null ? 'Elfogadva' : 'Javítás szükséges',
+      'cleaning_checklist': tasks,
+      'cleaning_history': history,
+    };
+  });
+
+  static Future<void> reportCleaningIssue(
+    String requestId, String category, String note, String photo,
+  ) => _editCleaningOrder(requestId, (order) {
+    if (order['status'] != 'Folyamatban' && order['cleaning_quality'] != 'Javítás szükséges') {
+      throw StateError('A hibajelentés aktív munkához adható hozzá.');
+    }
+    return {'cleaning_issues': [
+      ...CleaningChecklist.tasks(order['cleaning_issues']),
+      {'action': category, 'note': note.trim(), 'photo': photo,
+        'at': DateTime.now().toIso8601String()},
+    ]};
+  });
 
   static Future<void> updateOrderStatus(String requestId, String status) async {
     if (status == 'Teljesítve') {

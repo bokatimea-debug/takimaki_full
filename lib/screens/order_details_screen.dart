@@ -569,17 +569,35 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                   icon: const Icon(Icons.chat_bubble_outline),
                   label: const Text('Kapcsolódó chat'),
                 ),
+              if (_order['cleaning_checklist'] is List &&
+                  _order['status'] == 'Teljesítve')
+                Text('Minőségellenőrzés: ${_order['cleaning_quality'] ?? 'Ellenőrzésre vár'}'),
               if (_order['cleaning_checklist'] is List)
                 OutlinedButton(
                   onPressed: _busy ? null : () async {
                     final updated = await Navigator.push<List<Map<String, dynamic>>>(
                       context, MaterialPageRoute(builder: (_) => CleaningChecklistScreen(
                         tasks: CleaningChecklist.tasks(_order['cleaning_checklist']),
-                        cleaner: isProvider && status == 'Folyamatban',
+                        cleaner: isProvider && (status == 'Folyamatban' ||
+                          _order['cleaning_quality'] == 'Javítás szükséges'),
+                        correcting: _order['cleaning_quality'] == 'Javítás szükséges',
+                        issues: CleaningChecklist.tasks(_order['cleaning_issues']),
+                        history: CleaningChecklist.tasks(_order['cleaning_history']),
+                        onIssue: isProvider && (status == 'Folyamatban' ||
+                          _order['cleaning_quality'] == 'Javítás szükséges')
+                          ? (category, note, photo) => LocalMarketplaceStore.reportCleaningIssue(
+                            _requestId, category, note, photo) : null,
+                        onReview: !isProvider && status == 'Teljesítve' &&
+                          _order['cleaning_quality'] != 'Elfogadva' &&
+                          _order['cleaning_quality'] != 'Javítás szükséges'
+                          ? (index, note) => LocalMarketplaceStore.reviewCleaning(
+                            _requestId, correctionIndex: index, note: note) : null,
                       )),
                     );
                     if (mounted && updated != null) {
                       await _guard(() => LocalMarketplaceStore.saveChecklist(_requestId, updated));
+                    } else if (mounted) {
+                      await _reload();
                     }
                   },
                   child: const Text('Takarítási checklist'),
