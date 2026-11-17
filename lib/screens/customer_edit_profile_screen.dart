@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../utils/profile_photo_loader.dart';
+import '../services/firebase_backend.dart';
 import '../widgets/city_picker.dart';
 import '../widgets/profile_editor_components.dart';
 
@@ -95,6 +96,12 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
       }
       await _write(prefs, 'customer_bio', _bio.text.trim());
       await _write(prefs, 'customer_city', _city);
+      await FirebaseBackend.instance.saveProfile({
+        'role': 'customer',
+        'first_name': _firstName,
+        'bio': _bio.text.trim(),
+        'city': _city,
+      });
       if (!mounted) return;
       Navigator.pop(context, true);
     } catch (_) {
