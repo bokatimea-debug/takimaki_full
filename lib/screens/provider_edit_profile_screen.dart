@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../theme.dart';
+import '../services/firebase_backend.dart';
 import '../utils/profile_photo_loader.dart';
 import '../widgets/city_picker.dart';
 import '../widgets/profile_editor_components.dart';
@@ -212,6 +213,16 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
         await prefs.setBool('provider_${entry.key}_configured', true);
       }
       await prefs.setBool('provider_holidays', _holidays);
+      await FirebaseBackend.instance.saveProfile({
+        'role': 'provider',
+        'first_name': _firstName,
+        'bio': _bio.text.trim(),
+        'city': _city,
+        'weekday_from': _fmt(_wdFrom),
+        'weekday_to': _fmt(_wdTo),
+        'weekend_from': _fmt(_weFrom),
+        'weekend_to': _fmt(_weTo),
+      });
       if (!mounted) return;
       Navigator.pop(context, true);
     } catch (_) {
