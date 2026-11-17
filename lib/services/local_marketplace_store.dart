@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'sanctions_store.dart';
 import 'workflow_store.dart';
+import 'firebase_backend.dart';
 
 class LocalMarketplaceStore {
   static const requestsKey = 'provider_requests';
@@ -114,6 +115,7 @@ class LocalMarketplaceStore {
     final orders = await _read(customerOrdersKey);
     orders.insert(0, {...request, 'title': service, 'status': 'Függőben'});
     await _write(customerOrdersKey, orders);
+    await FirebaseBackend.instance.createRequest(request);
     return id;
   }
 
@@ -400,7 +402,7 @@ class LocalMarketplaceStore {
           item['provider_name'] == resolvedProviderName &&
           item['status'] == 'pending',
     );
-    offers.insert(0, {
+    final newOffer = <String, dynamic>{
       'id': 'O${DateTime.now().millisecondsSinceEpoch}',
       'request_id': requestId,
       'service': request['service'],
@@ -432,8 +434,10 @@ class LocalMarketplaceStore {
       'note': note,
       'status': 'pending',
       'created_at': DateTime.now().toIso8601String(),
-    });
+    };
+    offers.insert(0, newOffer);
     await _write(offersKey, offers);
+    await FirebaseBackend.instance.saveOffer(newOffer);
     await updateRequestStatus(requestId, 'offered');
     await WorkflowStore.enqueue(
       requestId,
@@ -529,6 +533,7 @@ class LocalMarketplaceStore {
     );
     providerOrders.insert(0, acceptedOrder);
     await _write(providerOrdersKey, providerOrders);
+    await FirebaseBackend.instance.saveOrder(acceptedOrder);
     await updateRequestStatus(requestId, 'accepted');
     await WorkflowStore.reconcileReminders(acceptedOrder);
     await WorkflowStore.enqueue(
@@ -592,6 +597,7 @@ class LocalMarketplaceStore {
         .where((w) => (w['request_id'] ?? w['id']).toString() == requestId)
         .firstOrNull;
     if (updated != null) await WorkflowStore.reconcileReminders(updated);
+    if (updated != null) await FirebaseBackend.instance.saveOrder(updated);
     if (status == 'Lemondva') await updateRequestStatus(requestId, 'cancelled');
     if (status == 'Teljesítve') {
       final prefs = await SharedPreferences.getInstance();
