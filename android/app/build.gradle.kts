@@ -3,9 +3,12 @@ import java.util.Properties
 plugins {
     id("com.android.application")
     id("kotlin-android")
-    id("com.google.gms.google-services")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
+    id("com.google.gms.google-services") apply false
     id("dev.flutter.flutter-gradle-plugin")
+}
+
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
 }
 
 val isTestPackage = providers.gradleProperty("takimakiTest").orNull == "true"
@@ -27,11 +30,8 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = if (isTestPackage) "hu.takimaki.test" else "hu.takimaki.app"
         manifestPlaceholders["appLabel"] = if (isTestPackage) "Takimaki Teszt" else "Takimaki"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
@@ -50,7 +50,7 @@ android {
     }
     buildTypes {
         release {
-            signingConfig = if (signingStore != null || localSigningStore != null) signingConfigs.getByName("persistentRelease") else null
+            signingConfig = if (signingStore != null || localSigningStore != null) signingConfigs.getByName("persistentRelease") else signingConfigs.getByName("debug")
         }
     }
 }
