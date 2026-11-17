@@ -1,0 +1,19 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+
+    match /users/{userId} {
+      allow read, create, update, delete: if signedIn() && request.auth.uid == userId;
+    }
+
+    // These are the shared Takimaki marketplace collections. Every client is
+    // authenticated anonymously at minimum; tighter role and participant
+    // restrictions are applied together with the remaining migration.
+    match /requests/{id} { allow read, write: if signedIn(); }
+    match /offers/{id} { allow read, write: if signedIn(); }
+    match /orders/{id} { allow read, write: if signedIn(); }
+    match /chats/{id} { allow read, write: if signedIn(); }
+  }
+}
