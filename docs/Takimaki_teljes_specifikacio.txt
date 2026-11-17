@@ -203,6 +203,15 @@ A teljes specifikáció külön letölthető példánya és a forráscsomagban l
 
 Kiadási zárás: az 1.0.7+8 APK sikeresen elkészült. Csomagazonosító, verzió, meglévő tesztaláírás és 16 KB igazítás ellenőrizve. SHA-256: c000440190e49eb15c0adadf09b262ff1a8d17dd37daee045fdcf949c4d3c9af. Fizikai telefonos teszt nem történt.
 
+20.1 FIREBASE HÁTTÉRRENDSZER — 2026. NOVEMBER 17.
+
+- Firebase projekt: Takimaki (projektazonosító: takimaki), Firestore régió: Frankfurt (europe-west3).
+- Android tesztalkalmazás: Takimaki Teszt, csomagazonosító: hu.takimaki.test. A Firebase Android-konfigurációs fájl nem kerül verziókezelésbe.
+- Bekötött szolgáltatások: Firebase Authentication anonim azonosítással és Cloud Firestore. Új megkeresések, ajánlatok és elfogadott munkák felíródnak a Firestore-ba; a profil szerkesztésekor a név, város és bemutatkozás is szinkronizálódik.
+- A Firestore biztonsági szabályai hitelesített hozzáférést követelnek. A forrásban lévő firebase/firestore.rules a Firebase Console-ba kiadott szabályok másolata.
+- A meglévő helyi tárolás átmeneti visszaesési mód marad: korábbi tesztadat és hálózat nélküli használat nem vész el. Több telefon közötti teljes olvasási/szinkronizációs folyamat, fájltárolás, FCM-push és éles SMS továbbra is külön elkészítendő és telefonon ellenőrizendő tétel.
+- A Firebase Blaze számlázási csomag aktiválva van. Költési limitet később külön kell beállítani a Firebase/Google Cloud költségkeret oldalán.
+
 
 18. JÓVÁHAGYOTT BŐVÍTÉSEK — 2026. OKTÓBER 5.
 A jelen fejezet felülírja az ellentmondó korábbi működést. Követelmény, nem készrejelentés.
