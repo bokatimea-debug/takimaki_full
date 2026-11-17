@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'services/device_workflow.dart';
 import 'services/local_marketplace_store.dart';
+import 'services/firebase_backend.dart';
 import 'utils/work_schedule.dart';
 import 'screens/calendar_connection_screen.dart';
 import 'screens/work_calendar_screen.dart';
@@ -43,7 +44,9 @@ import 'screens/subscription_screen.dart';
 import 'theme.dart';
 import 'widgets/branded_background.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await FirebaseBackend.instance.initialize();
   runApp(const TakimakiApp());
 }
 
