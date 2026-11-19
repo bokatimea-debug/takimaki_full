@@ -32,8 +32,8 @@ subprojects {
             "androidx.savedstate:savedstate-ktx:1.2.1",
         )
     }
-    plugins.withId("com.android.library") {
-        extensions.configure<LibraryExtension> {
+    afterEvaluate {
+        extensions.findByType<LibraryExtension>()?.apply {
             compileSdk = 36
         }
     }
