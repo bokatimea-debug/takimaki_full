@@ -1,4 +1,5 @@
 import java.util.Properties
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("com.android.application")
@@ -28,9 +29,6 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions {
-        jvmTarget = "17"
-    }
 
     defaultConfig {
         applicationId = if (isTestPackage) "hu.takimaki.test" else "hu.takimaki.app"
@@ -55,6 +53,12 @@ android {
         release {
             signingConfig = if (signingStore != null || localSigningStore != null) signingConfigs.getByName("persistentRelease") else signingConfigs.getByName("debug")
         }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
     }
 }
 
