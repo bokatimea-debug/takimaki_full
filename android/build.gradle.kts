@@ -1,3 +1,5 @@
+import com.android.build.api.dsl.LibraryExtension
+
 allprojects {
     repositories {
         google()
@@ -28,9 +30,15 @@ subprojects {
             "androidx.lifecycle:lifecycle-livedata-core:2.7.0",
             "androidx.savedstate:savedstate:1.2.1",
             "androidx.savedstate:savedstate-ktx:1.2.1",
-            )
+        )
+    }
+    plugins.withId("com.android.library") {
+        extensions.configure<LibraryExtension> {
+            compileSdk = 36
+        }
     }
 }
+
 subprojects {
     project.evaluationDependsOn(":app")
 }
