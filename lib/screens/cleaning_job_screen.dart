@@ -30,6 +30,7 @@ class _CleaningJobScreenState extends State<CleaningJobScreen> {
   String _ownerNote = '';
   Set<String> _checked = <String>{};
   Map<String, List<String>> _evidence = <String, List<String>>{};
+  Map<String, String> _referencePhotos = <String, String>{};
 
   @override
   void didChangeDependencies() {
@@ -59,6 +60,10 @@ class _CleaningJobScreenState extends State<CleaningJobScreen> {
               (value as List? ?? const []).map((entry) => entry.toString()).toList(),
             ));
       }
+      final rawReferences = data['reference_photos'];
+      if (rawReferences is Map) {
+        _referencePhotos = rawReferences.map((key, value) => MapEntry(key.toString(), value.toString()));
+      }
     });
   }
 
@@ -69,6 +74,7 @@ class _CleaningJobScreenState extends State<CleaningJobScreen> {
         'owner_approved': _ownerApproved,
         'owner_note': _ownerNote,
         'evidence': _evidence,
+        'reference_photos': _referencePhotos,
       });
 
   int get _total => _standard.values.fold(0, (sum, items) => sum + items.length);
@@ -110,6 +116,21 @@ class _CleaningJobScreenState extends State<CleaningJobScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('A fotó feltöltése nem sikerült. Próbáld újra internetkapcsolattal.')));
       }
+    }
+  }
+
+  Future<void> _addReference(String room) async {
+    try {
+      final url = await RemoteMediaStore.pickAndUpload(
+        folder: 'cleaning_evidence/$_orderId/reference/${room.hashCode}',
+      );
+      if (url == null || !mounted) return;
+      setState(() => _referencePhotos = {..._referencePhotos, room: url});
+      await _save();
+    } on StateError catch (error) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.message.toString())));
+    } catch (_) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('A referenciafotó feltöltése nem sikerült.')));
     }
   }
 
@@ -186,11 +207,14 @@ class _CleaningJobScreenState extends State<CleaningJobScreen> {
                     checked: _checked,
                     evidence: _evidence,
                     evidenceRequired: true,
+                    referencePhoto: _referencePhotos[room.key],
+                    canSetReference: _isOwner,
                     onChanged: (id, value) async {
                       setState(() => value ? _checked.add(id) : _checked.remove(id));
                       await _save();
                     },
                     onAddEvidence: _addEvidence,
+                    onAddReference: () => _addReference(room.key),
                   ),
                   const SizedBox(height: 10),
                 ],
@@ -220,20 +244,30 @@ class _CleaningJobScreenState extends State<CleaningJobScreen> {
 }
 
 class _RoomChecklist extends StatelessWidget {
-  const _RoomChecklist({required this.room, required this.items, required this.checked, required this.evidence, required this.evidenceRequired, required this.onChanged, required this.onAddEvidence});
+  const _RoomChecklist({required this.room, required this.items, required this.checked, required this.evidence, required this.evidenceRequired, required this.referencePhoto, required this.canSetReference, required this.onChanged, required this.onAddEvidence, required this.onAddReference});
   final String room;
   final List<String> items;
   final Set<String> checked;
   final Map<String, List<String>> evidence;
   final bool evidenceRequired;
+  final String? referencePhoto;
+  final bool canSetReference;
   final Future<void> Function(String, bool) onChanged;
   final Future<void> Function(String) onAddEvidence;
+  final Future<void> Function() onAddReference;
 
   @override
   Widget build(BuildContext context) => TakiPanel(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Padding(padding: const EdgeInsets.fromLTRB(6, 4, 6, 3), child: Text(room, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: takiNavy))),
+          if (referencePhoto != null || canSetReference)
+            Padding(padding: const EdgeInsets.only(left: 6, right: 6, bottom: 3), child: Row(children: [
+              if (referencePhoto != null) ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.network(referencePhoto!, width: 52, height: 40, fit: BoxFit.cover)),
+              if (referencePhoto != null) const SizedBox(width: 8),
+              Expanded(child: Text(referencePhoto == null ? 'Nincs referenciafotó' : 'Referenciafotó beállítva', style: const TextStyle(fontSize: 12, color: takiMutedText))),
+              if (canSetReference) TextButton.icon(onPressed: onAddReference, icon: const Icon(Icons.add_a_photo_outlined, size: 18), label: const Text('Referencia')),
+            ])),
           for (final item in items) Builder(builder: (context) {
             final id = '$room:$item';
             final hasPhoto = (evidence[id] ?? const []).isNotEmpty;
