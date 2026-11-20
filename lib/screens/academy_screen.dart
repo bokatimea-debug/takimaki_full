@@ -129,14 +129,43 @@ class _ModuleArt extends StatelessWidget {
   Widget build(BuildContext context) {
     final image = 'assets/service_icons/service_${((module.id - 1) % 9).toString().padLeft(2, '0')}.png';
     return Container(
-      width: compact ? 58 : double.infinity, height: compact ? 58 : 138,
-      decoration: BoxDecoration(color: takiMint, borderRadius: BorderRadius.circular(compact ? 17 : 24)),
+      width: compact ? 58 : double.infinity, height: compact ? 58 : 176,
+      decoration: BoxDecoration(
+        color: takiMint,
+        borderRadius: BorderRadius.circular(compact ? 17 : 26),
+      ),
       clipBehavior: Clip.antiAlias,
       child: compact
           ? Icon(module.icon, color: takiTealDark, size: 31)
           : Stack(fit: StackFit.expand, children: [
-              Opacity(opacity: .26, child: Image.asset(image, fit: BoxFit.cover)),
-              Center(child: Icon(module.icon, color: takiTealDark, size: 62)),
+              // A lesson always opens with a real decorative illustration,
+              // not merely a faded background icon.
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Colors.white, takiMint.withValues(alpha: .72)],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(30, 8, 30, 0),
+                child: Image.asset(image, fit: BoxFit.contain),
+              ),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: .92),
+                    shape: BoxShape.circle,
+                    boxShadow: const [BoxShadow(color: Color(0x24004D4A), blurRadius: 10, offset: Offset(0, 3))],
+                  ),
+                  child: Icon(module.icon, color: takiTealDark, size: 30),
+                ),
+              ),
             ]),
     );
   }
@@ -160,12 +189,30 @@ class _AcademyLessonScreenState extends State<AcademyLessonScreen> {
     setState(() => _done = true);
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Lecke teljesítve.')));
   }
+
+  Future<void> _openPractice() async {
+    final completedPractice = await Navigator.of(context).push<bool>(MaterialPageRoute(
+      builder: (_) => AcademyPracticeScreen(module: widget.module),
+    ));
+    if (completedPractice != true || !mounted) return;
+    await _finish();
+    if (!mounted) return;
+    final nextIndex = academyModules.indexWhere((m) => m.id == widget.module.id) + 1;
+    if (nextIndex < academyModules.length) {
+      Navigator.of(context).pushReplacement(MaterialPageRoute(
+        builder: (_) => AcademyLessonScreen(module: academyModules[nextIndex], completed: false),
+      ));
+    } else {
+      Navigator.of(context).pop();
+    }
+  }
   @override
   Widget build(BuildContext context) {
     final m = widget.module;
     return Scaffold(
       appBar: AppBar(title: Text('${m.id}. modul: ${m.title}')),
-      body: ListView(padding: const EdgeInsets.fromLTRB(16, 4, 16, 28), children: [
+      backgroundColor: const Color(0xFFF1FBFA),
+      body: ListView(padding: const EdgeInsets.fromLTRB(16, 4, 16, 152), children: [
         _ModuleArt(module: m), const SizedBox(height: 12),
         Text(m.title, style: Theme.of(context).textTheme.headlineMedium),
         const SizedBox(height: 6), Text(m.introduction, style: const TextStyle(fontSize: 16, height: 1.45)),
@@ -174,14 +221,27 @@ class _AcademyLessonScreenState extends State<AcademyLessonScreen> {
         _BulletSection(title: 'Tipikus hibák', icon: Icons.error_outline_rounded, items: m.mistakes, color: const Color(0xFFC86B55)),
         _BulletSection(title: 'Biztonság', icon: Icons.health_and_safety_outlined, items: m.safety, color: takiOrange),
         _BulletSection(title: 'Rövid ellenőrzőlista', icon: Icons.checklist_rounded, items: m.checklist, color: const Color(0xFF3A9B54)),
-        const SizedBox(height: 8),
-        FilledButton.icon(onPressed: _done ? null : _finish, icon: Icon(_done ? Icons.check : Icons.task_alt_rounded), label: Text(_done ? 'Lecke teljesítve' : 'Lecke befejezése')),
-        const SizedBox(height: 8),
-        FilledButton.tonalIcon(
-          onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => AcademyPracticeScreen(module: m))),
-          icon: const Icon(Icons.quiz_outlined), label: const Text('Ellenőrző kérdések (3)'),
-        ),
       ]),
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: Container(
+          color: Colors.white,
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
+          child: Row(children: [
+            Expanded(child: OutlinedButton.icon(
+              onPressed: _done ? null : _finish,
+              icon: Icon(_done ? Icons.check : Icons.task_alt_rounded),
+              label: Text(_done ? 'Teljesítve' : 'Befejezése'),
+            )),
+            const SizedBox(width: 10),
+            Expanded(flex: 2, child: FilledButton.icon(
+              onPressed: _openPractice,
+              icon: const Icon(Icons.quiz_outlined),
+              label: const Text('Ellenőrző kérdések'),
+            )),
+          ]),
+        ),
+      ),
     );
   }
 }
@@ -191,13 +251,13 @@ class _BulletSection extends StatelessWidget {
   final String title; final IconData icon; final List<String> items; final Color color; final bool numbered;
   @override
   Widget build(BuildContext context) => Card(
-    margin: const EdgeInsets.only(top: 14),
-    child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    margin: const EdgeInsets.only(top: 10),
+    child: Padding(padding: const EdgeInsets.all(14), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(children: [Icon(icon, color: color), const SizedBox(width: 8), Text(title, style: Theme.of(context).textTheme.titleLarge)]),
-      const SizedBox(height: 10),
-      for (var i = 0; i < items.length; i++) Padding(padding: const EdgeInsets.only(bottom: 8), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      const SizedBox(height: 7),
+      for (var i = 0; i < items.length; i++) Padding(padding: const EdgeInsets.only(bottom: 5), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(numbered ? '${i + 1}. ' : '• ', style: TextStyle(fontWeight: FontWeight.w900, color: color)),
-        Expanded(child: Text(items[i], style: const TextStyle(height: 1.36))),
+        Expanded(child: Text(items[i], style: const TextStyle(fontSize: 15, height: 1.28))),
       ])),
     ])),
   );
@@ -216,15 +276,30 @@ class _AcademyPracticeScreenState extends State<AcademyPracticeScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text('Ellenőrző kérdések')),
-    body: Padding(padding: const EdgeInsets.all(18), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    backgroundColor: const Color(0xFFF1FBFA),
+    body: SafeArea(top: false, child: ListView(padding: const EdgeInsets.fromLTRB(18, 16, 18, 8), children: [
       Text('${_index + 1} / ${widget.module.questions.length} kérdés', style: const TextStyle(fontWeight: FontWeight.w800, color: takiTeal)),
       const SizedBox(height: 8), LinearProgressIndicator(value: (_index + 1) / widget.module.questions.length, color: takiTeal),
       const SizedBox(height: 26), Text(_question.question, style: Theme.of(context).textTheme.headlineSmall), const SizedBox(height: 18),
       for (var i = 0; i < _question.options.length; i++) _AnswerTile(index: i, label: _question.options[i], selected: _selected, correct: _question.correctIndex, reveal: _selected != null, onTap: () => setState(() => _selected ??= i)),
       if (_selected != null) Card(color: _selected == _question.correctIndex ? const Color(0xFFE2F4E6) : const Color(0xFFFFE8E4), child: Padding(padding: const EdgeInsets.all(14), child: Text(_question.explanation))),
-      const Spacer(),
-      FilledButton(onPressed: _selected == null ? null : () { if (_index + 1 == widget.module.questions.length) Navigator.pop(context); else setState(() { _index++; _selected = null; }); }, child: Text(_index + 1 == widget.module.questions.length ? 'Vissza a leckéhez' : 'Következő kérdés')),
     ])),
+    bottomNavigationBar: SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(18, 8, 18, 12),
+        child: SizedBox(height: 52, child: FilledButton(
+          onPressed: _selected == null ? null : () {
+            if (_index + 1 == widget.module.questions.length) {
+              Navigator.pop(context, true);
+            } else {
+              setState(() { _index++; _selected = null; });
+            }
+          },
+          child: Text(_index + 1 == widget.module.questions.length ? 'Következő modul' : 'Következő kérdés'),
+        )),
+      ),
+    ),
   );
 }
 
@@ -268,17 +343,25 @@ class _AcademyExamScreenState extends State<AcademyExamScreen> {
     final question = _questions[_index];
     return Scaffold(
       appBar: AppBar(title: const Text('Záróvizsga')),
-      body: Padding(padding: const EdgeInsets.all(18), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      backgroundColor: const Color(0xFFF1FBFA),
+      body: SafeArea(top: false, child: ListView(padding: const EdgeInsets.fromLTRB(18, 16, 18, 8), children: [
         Text('${_index + 1} / 20 kérdés', style: const TextStyle(fontWeight: FontWeight.w800, color: takiTeal)),
         const SizedBox(height: 8), LinearProgressIndicator(value: (_index + 1) / 20, minHeight: 7, color: takiTeal),
         const SizedBox(height: 28), Text(question.question, style: Theme.of(context).textTheme.headlineSmall), const SizedBox(height: 18),
         for (var i = 0; i < question.options.length; i++) _ExamAnswer(index: i, label: question.options[i], selected: _answers[_index] == i, onTap: () => setState(() => _answers[_index] = i)),
-        const Spacer(),
-        Row(children: [
-          Expanded(child: OutlinedButton(onPressed: _index == 0 ? null : () => setState(() => _index--), child: const Text('Vissza'))), const SizedBox(width: 12),
-          Expanded(child: FilledButton(onPressed: _answers[_index] == null ? null : () { if (_index == 19) _finish(); else setState(() => _index++); }, child: Text(_index == 19 ? 'Eredmény' : 'Következő'))),
-        ]),
       ])),
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: Container(
+          color: Colors.white,
+          padding: const EdgeInsets.fromLTRB(18, 8, 18, 12),
+          child: Row(children: [
+            Expanded(child: OutlinedButton(onPressed: _index == 0 ? null : () => setState(() => _index--), child: const Text('Vissza'))),
+            const SizedBox(width: 12),
+            Expanded(flex: 2, child: SizedBox(height: 52, child: FilledButton(onPressed: _answers[_index] == null ? null : () { if (_index == 19) _finish(); else setState(() => _index++); }, child: Text(_index == 19 ? 'Eredmény' : 'Következő')))),
+          ]),
+        ),
+      ),
     );
   }
 }
