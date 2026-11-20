@@ -87,7 +87,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: SafeArea(
         top: false,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -95,32 +95,44 @@ class _SettingsScreenState extends State<SettingsScreen> {
               'Értesítések, előfizetések és fiókkezelés.',
               style: TextStyle(fontSize: 14, color: takiMutedText),
             ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 6),
               TakiPanel(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               child: Column(
                 children: [
                   ListTile(
+                    dense: true,
+                    visualDensity: VisualDensity.compact,
                     leading: const Icon(Icons.workspace_premium_outlined),
                     title: const Text('Előfizetések'),
-                    subtitle: const Text('Megrendelői és szolgáltatói csomag'),
+                    subtitle: const Text('Csomagok és állapot'),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () => Navigator.pushNamed(context, '/subscriptions'),
                   ),
                   const Divider(height: 1),
                   SwitchListTile(
+                    dense: true,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 6),
+                    visualDensity: VisualDensity.compact,
                     value: push,
                     title: const Text('Push értesítések'),
                     onChanged: (v) => setState(() => push = v),
                   ),
                   SwitchListTile(
+                    dense: true,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 6),
+                    visualDensity: VisualDensity.compact,
                     value: email,
                     title: const Text('Email értesítések'),
                     onChanged: (v) => setState(() => email = v),
                   ),
                   Padding(
-                    padding: const EdgeInsets.only(top: 14),
+                    padding: const EdgeInsets.only(top: 4, bottom: 2),
                     child: FilledButton(
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size.fromHeight(42),
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                      ),
                       onPressed: _save,
                       child: const Text('Mentés'),
                     ),
@@ -128,43 +140,45 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ],
               ),
             ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               TakiPanel(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
               child: ListTile(
+                dense: true,
+                visualDensity: VisualDensity.compact,
                 leading: const Icon(Icons.calendar_month),
                 title: const Text('Saját naptár kapcsolata'),
-                subtitle: const Text(
-                  'Automatikus hozzáadás be- és kikapcsolása',
-                ),
+                subtitle: const Text('Automatikus hozzáadás'),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () =>
                     Navigator.pushNamed(context, '/calendar_connection'),
               ),
             ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               TakiPanel(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               color: takiYellowSoft,
               child: ListTile(
                 contentPadding: EdgeInsets.zero,
+                dense: true,
+                visualDensity: VisualDensity.compact,
                 leading: const CircleAvatar(
                   backgroundColor: takiOrange,
                   child: Icon(Icons.logout, color: Colors.white),
                 ),
                 title: const Text('Kijelentkezés'),
-                subtitle: const Text(
-                  'Az adataid megmaradnak ezen az eszközön.',
-                ),
                 onTap: _logout,
               ),
             ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 8),
               OutlinedButton.icon(
               onPressed: () => showDeleteAccountDialog(context),
               icon: const Icon(Icons.delete_outline),
               label: const Text('Profil törlése'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: Colors.red.shade700,
+                minimumSize: const Size.fromHeight(42),
+                padding: const EdgeInsets.symmetric(vertical: 8),
               ),
             ),
             ],
