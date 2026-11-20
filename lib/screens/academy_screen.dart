@@ -396,7 +396,7 @@ class AcademyResultScreen extends StatelessWidget {
           const SizedBox(height: 12), Text(passed ? 'Gratulálunk! Sikeresen teljesítetted a Takimaki Takarító Akadémia vizsgáját. Most ingyenesen regisztrálhatsz takarítóként és munkát kereshetsz.' : 'Érdemes még gyakorolnod! Ismételd át az alábbi hibás témákat, majd próbáld meg újra.', textAlign: TextAlign.center, style: const TextStyle(height: 1.4)),
         ]))),
         const SizedBox(height: 12),
-        if (passed) FilledButton.icon(onPressed: () => Navigator.pushNamedAndRemoveUntil(context, '/role_select', (route) => false), icon: const Icon(Icons.person_add_alt_1_rounded), label: const Text('Ingyenes regisztráció és munkakeresés')),
+        if (passed) FilledButton.icon(onPressed: () => Navigator.pushNamedAndRemoveUntil(context, '/role_select', (route) => false), icon: const Icon(Icons.person_add_alt_1_rounded), label: const Text('Regisztrálj apartmantakarítónak')),
         if (!passed) FilledButton.icon(onPressed: () => Navigator.pushNamedAndRemoveUntil(context, '/academy', (route) => false), icon: const Icon(Icons.menu_book_rounded), label: const Text('Tananyag ismétlése')),
         OutlinedButton.icon(onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const AcademyExamScreen())), icon: const Icon(Icons.refresh_rounded), label: const Text('Vizsga újra')),
         const SizedBox(height: 8), Text('Hibás válaszok és megoldások', style: Theme.of(context).textTheme.titleLarge),
