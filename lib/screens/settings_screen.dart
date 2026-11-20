@@ -139,6 +139,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ],
               ),
+            ),
               const SizedBox(height: 8),
               TakiPanel(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
@@ -152,7 +153,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   onTap: () => Navigator.pushNamed(context, '/rental_calendar_sync'),
                 ),
               ),
-            ),
               const SizedBox(height: 8),
               TakiPanel(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
