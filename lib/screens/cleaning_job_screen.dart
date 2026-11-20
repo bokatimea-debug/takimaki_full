@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../services/cleaning_job_store.dart';
+import '../services/remote_media_store.dart';
 import '../theme.dart';
 import '../widgets/branded_background.dart';
 import '../widgets/taki_app_bar.dart';
@@ -28,6 +29,7 @@ class _CleaningJobScreenState extends State<CleaningJobScreen> {
   bool _ownerApproved = false;
   String _ownerNote = '';
   Set<String> _checked = <String>{};
+  Map<String, List<String>> _evidence = <String, List<String>>{};
 
   @override
   void didChangeDependencies() {
@@ -50,6 +52,13 @@ class _CleaningJobScreenState extends State<CleaningJobScreen> {
       _ownerApproved = data['owner_approved'] as bool? ?? false;
       _ownerNote = data['owner_note']?.toString() ?? '';
       _checked = (data['checked'] as List? ?? const []).map((e) => e.toString()).toSet();
+      final rawEvidence = data['evidence'];
+      if (rawEvidence is Map) {
+        _evidence = rawEvidence.map((key, value) => MapEntry(
+              key.toString(),
+              (value as List? ?? const []).map((entry) => entry.toString()).toList(),
+            ));
+      }
     });
   }
 
@@ -59,15 +68,19 @@ class _CleaningJobScreenState extends State<CleaningJobScreen> {
         'checked': _checked.toList(),
         'owner_approved': _ownerApproved,
         'owner_note': _ownerNote,
+        'evidence': _evidence,
       });
 
   int get _total => _standard.values.fold(0, (sum, items) => sum + items.length);
   int get _done => _checked.length;
 
   Future<void> _complete() async {
-    if (_done != _total) {
+    final missingPhoto = _checked.where((id) => (_evidence[id] ?? const []).isEmpty).length;
+    if (_done != _total || missingPhoto > 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Még ${_total - _done} checklistpont hiányzik.')),
+        SnackBar(content: Text(_done != _total
+            ? 'Még ${_total - _done} checklistpont hiányzik.'
+            : 'Még $missingPhoto kötelező ellenőrzőfotó hiányzik.')),
       );
       return;
     }
@@ -76,6 +89,28 @@ class _CleaningJobScreenState extends State<CleaningJobScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('A munkalap készen áll tulajdonosi ellenőrzésre.')),
     );
+  }
+
+  Future<void> _addEvidence(String id) async {
+    try {
+      final url = await RemoteMediaStore.pickAndUpload(
+        folder: 'cleaning_evidence/$_orderId/${id.hashCode}',
+      );
+      if (url == null || !mounted) return;
+      setState(() => _evidence = {
+            ..._evidence,
+            id: [...(_evidence[id] ?? const []), url],
+          });
+      await _save();
+    } on StateError catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.message.toString())));
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('A fotó feltöltése nem sikerült. Próbáld újra internetkapcsolattal.')));
+      }
+    }
   }
 
   Future<void> _ownerDecision(bool approved) async {
@@ -149,10 +184,13 @@ class _CleaningJobScreenState extends State<CleaningJobScreen> {
                     room: room.key,
                     items: room.value,
                     checked: _checked,
+                    evidence: _evidence,
+                    evidenceRequired: true,
                     onChanged: (id, value) async {
                       setState(() => value ? _checked.add(id) : _checked.remove(id));
                       await _save();
                     },
+                    onAddEvidence: _addEvidence,
                   ),
                   const SizedBox(height: 10),
                 ],
@@ -182,26 +220,42 @@ class _CleaningJobScreenState extends State<CleaningJobScreen> {
 }
 
 class _RoomChecklist extends StatelessWidget {
-  const _RoomChecklist({required this.room, required this.items, required this.checked, required this.onChanged});
+  const _RoomChecklist({required this.room, required this.items, required this.checked, required this.evidence, required this.evidenceRequired, required this.onChanged, required this.onAddEvidence});
   final String room;
   final List<String> items;
   final Set<String> checked;
+  final Map<String, List<String>> evidence;
+  final bool evidenceRequired;
   final Future<void> Function(String, bool) onChanged;
+  final Future<void> Function(String) onAddEvidence;
 
   @override
   Widget build(BuildContext context) => TakiPanel(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Padding(padding: const EdgeInsets.fromLTRB(6, 4, 6, 3), child: Text(room, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: takiNavy))),
-          for (final item in items)
-            CheckboxListTile(
-              dense: true,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 2),
-              controlAffinity: ListTileControlAffinity.leading,
-              value: checked.contains('$room:$item'),
-              title: Text(item, style: const TextStyle(fontSize: 14)),
-              onChanged: (value) => onChanged('$room:$item', value ?? false),
-            ),
+          for (final item in items) Builder(builder: (context) {
+            final id = '$room:$item';
+            final hasPhoto = (evidence[id] ?? const []).isNotEmpty;
+            return Column(children: [
+              CheckboxListTile(
+                dense: true,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 2),
+                controlAffinity: ListTileControlAffinity.leading,
+                value: checked.contains(id),
+                title: Text(item, style: const TextStyle(fontSize: 14)),
+                subtitle: evidenceRequired ? Text(hasPhoto ? 'Ellenőrzőfotó feltöltve' : 'Ellenőrzőfotó kötelező', style: TextStyle(fontSize: 12, color: hasPhoto ? Colors.green.shade700 : takiMutedText)) : null,
+                secondary: IconButton(
+                  tooltip: 'Ellenőrzőfotó készítése',
+                  icon: Icon(hasPhoto ? Icons.photo_camera_rounded : Icons.add_a_photo_outlined, color: hasPhoto ? Colors.green.shade700 : takiTeal),
+                  onPressed: () => onAddEvidence(id),
+                ),
+                onChanged: (value) => onChanged(id, value ?? false),
+              ),
+              if (hasPhoto)
+                Align(alignment: Alignment.centerLeft, child: Padding(padding: const EdgeInsets.only(left: 54, bottom: 6), child: Text('${evidence[id]!.length} feltöltött kép', style: const TextStyle(fontSize: 12, color: takiMutedText)))),
+            ]);
+          }),
         ]),
       );
 }
