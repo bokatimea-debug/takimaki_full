@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'services/device_workflow.dart';
 import 'services/local_marketplace_store.dart';
 import 'services/firebase_backend.dart';
+import 'services/push_notifications.dart';
 import 'utils/work_schedule.dart';
 import 'screens/calendar_connection_screen.dart';
 import 'screens/work_calendar_screen.dart';
@@ -21,6 +22,7 @@ import 'screens/splash_login_screen.dart';
 import 'screens/role_select_screen.dart';
 import 'screens/academy_screen.dart';
 import 'screens/cleaning_job_screen.dart';
+import 'screens/rental_calendar_sync_screen.dart';
 
 import 'screens/customer_profile_screen.dart';
 import 'screens/customer_edit_profile_screen.dart';
@@ -49,6 +51,7 @@ import 'widgets/branded_background.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await FirebaseBackend.instance.initialize();
+  await PushNotifications.initialize();
   runApp(const TakimakiApp());
 }
 
@@ -139,6 +142,7 @@ class _TakimakiAppState extends State<TakimakiApp> with WidgetsBindingObserver {
         '/role': (_) => const RoleSelectScreen(),
         '/academy': (_) => const AcademyScreen(),
         '/cleaning_job': (_) => const CleaningJobScreen(),
+        '/rental_calendar_sync': (_) => const RentalCalendarSyncScreen(),
         '/provider/setup': (_) => const OnboardingScreen(),
         '/provider/edit': (_) => const ProviderEditProfileScreen(),
         '/provider/offer_reply': (_) => const ProviderOfferReplyScreen(),
