@@ -197,14 +197,7 @@ class _AcademyLessonScreenState extends State<AcademyLessonScreen> {
     if (completedPractice != true || !mounted) return;
     await _finish();
     if (!mounted) return;
-    final nextIndex = academyModules.indexWhere((m) => m.id == widget.module.id) + 1;
-    if (nextIndex < academyModules.length) {
-      Navigator.of(context).pushReplacement(MaterialPageRoute(
-        builder: (_) => AcademyLessonScreen(module: academyModules[nextIndex], completed: false),
-      ));
-    } else {
-      Navigator.of(context).pop();
-    }
+    Navigator.of(context).pop();
   }
   @override
   Widget build(BuildContext context) {
@@ -227,19 +220,15 @@ class _AcademyLessonScreenState extends State<AcademyLessonScreen> {
         child: Container(
           color: Colors.white,
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
-          child: Row(children: [
-            Expanded(child: OutlinedButton.icon(
-              onPressed: _done ? null : _finish,
-              icon: Icon(_done ? Icons.check : Icons.task_alt_rounded),
-              label: Text(_done ? 'Teljesítve' : 'Befejezése'),
-            )),
-            const SizedBox(width: 10),
-            Expanded(flex: 2, child: FilledButton.icon(
+          child: SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: FilledButton.icon(
               onPressed: _openPractice,
-              icon: const Icon(Icons.quiz_outlined),
-              label: const Text('Ellenőrző kérdések'),
-            )),
-          ]),
+              icon: Icon(_done ? Icons.check_circle_rounded : Icons.quiz_outlined),
+              label: Text(_done ? 'Lecke teljesítve' : 'Ellenőrző kérdések (3)'),
+            ),
+          ),
         ),
       ),
     );
@@ -271,7 +260,10 @@ class AcademyPracticeScreen extends StatefulWidget {
 }
 
 class _AcademyPracticeScreenState extends State<AcademyPracticeScreen> {
-  int _index = 0; int? _selected;
+  int _index = 0;
+  int? _selected;
+  int _correct = 0;
+  bool _retry = false;
   AcademyQuestion get _question => widget.module.questions[_index];
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -281,22 +273,33 @@ class _AcademyPracticeScreenState extends State<AcademyPracticeScreen> {
       Text('${_index + 1} / ${widget.module.questions.length} kérdés', style: const TextStyle(fontWeight: FontWeight.w800, color: takiTeal)),
       const SizedBox(height: 8), LinearProgressIndicator(value: (_index + 1) / widget.module.questions.length, color: takiTeal),
       const SizedBox(height: 26), Text(_question.question, style: Theme.of(context).textTheme.headlineSmall), const SizedBox(height: 18),
-      for (var i = 0; i < _question.options.length; i++) _AnswerTile(index: i, label: _question.options[i], selected: _selected, correct: _question.correctIndex, reveal: _selected != null, onTap: () => setState(() => _selected ??= i)),
+      for (var i = 0; i < _question.options.length; i++) _AnswerTile(index: i, label: _question.options[i], selected: _selected, correct: _question.correctIndex, reveal: _selected != null, onTap: () {
+        if (_selected != null) return;
+        setState(() {
+          _selected = i;
+          if (i == _question.correctIndex) _correct++;
+        });
+      }),
       if (_selected != null) Card(color: _selected == _question.correctIndex ? const Color(0xFFE2F4E6) : const Color(0xFFFFE8E4), child: Padding(padding: const EdgeInsets.all(14), child: Text(_question.explanation))),
+      if (_retry) Card(color: const Color(0xFFFFF0E8), child: const Padding(padding: EdgeInsets.all(14), child: Text('Most 3/3 helyes válasz kell a lecke teljesítéséhez. Próbáld meg újra.'))),
     ])),
     bottomNavigationBar: SafeArea(
       top: false,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(18, 8, 18, 12),
         child: SizedBox(height: 52, child: FilledButton(
-          onPressed: _selected == null ? null : () {
+          onPressed: _retry ? () => setState(() { _index = 0; _selected = null; _correct = 0; _retry = false; }) : _selected == null ? null : () {
             if (_index + 1 == widget.module.questions.length) {
-              Navigator.pop(context, true);
+              if (_correct == widget.module.questions.length) {
+                Navigator.pop(context, true);
+              } else {
+                setState(() => _retry = true);
+              }
             } else {
               setState(() { _index++; _selected = null; });
             }
           },
-          child: Text(_index + 1 == widget.module.questions.length ? 'Következő modul' : 'Következő kérdés'),
+          child: Text(_retry ? 'Kérdések újrakezdése' : _index + 1 == widget.module.questions.length ? 'Eredmény' : 'Következő kérdés'),
         )),
       ),
     ),
