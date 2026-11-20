@@ -15,5 +15,23 @@ service cloud.firestore {
     match /offers/{id} { allow read, write: if signedIn(); }
     match /orders/{id} { allow read, write: if signedIn(); }
     match /chats/{id} { allow read, write: if signedIn(); }
+
+    // Academy learning materials are publicly readable. Only the publishing
+    // pipeline/admin should write the canonical questions and answer keys.
+    match /academy_modules/{id} { allow read: if true; allow write: if false; }
+    match /academy_lessons/{id} { allow read: if true; allow write: if false; }
+    match /academy_questions/{id} { allow read: if true; allow write: if false; }
+
+    match /academy_progress/{userId} {
+      allow read, create, update: if signedIn() && request.auth.uid == userId;
+      allow delete: if signedIn() && request.auth.uid == userId;
+    }
+    // Client submissions are deliberately labelled pending verification. A
+    // Cloud Function/admin verification must create official profile badges.
+    match /academy_exam_attempts/{attemptId} {
+      allow create: if signedIn() && request.resource.data.userId == request.auth.uid;
+      allow read: if signedIn() && resource.data.userId == request.auth.uid;
+      allow update, delete: if false;
+    }
   }
 }

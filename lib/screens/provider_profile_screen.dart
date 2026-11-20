@@ -102,6 +102,11 @@ class _S extends State<ProviderProfileScreen> {
       title: const Text('Szolgáltató profil'),
       actions: [
         IconButton(
+          tooltip: 'Takarító Akadémia',
+          onPressed: () => Navigator.pushNamed(context, '/academy'),
+          icon: const Icon(Icons.school_outlined),
+        ),
+        IconButton(
           tooltip: 'Értesítések',
           onPressed: () async {
             await Navigator.pushNamed(context, '/work_notifications');
