@@ -81,6 +81,18 @@ class RoleSelectScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 14),
                       SizedBox(
+                        height: constraints.maxHeight < 760 ? 180 : 198,
+                        child: _RoleCard(
+                          color: takiTealDark,
+                          icon: Icons.school_rounded,
+                          title: 'Takarító Akadémia',
+                          subtitle: 'Tanuld meg a professzionális apartmantakarítást – ingyenesen!',
+                          action: 'Tanulás indítása',
+                          onTap: () => Navigator.pushNamed(context, '/academy'),
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      SizedBox(
                         height: constraints.maxHeight < 760 ? 190 : 208,
                         child: _RoleCard(
                           color: takiOrange,

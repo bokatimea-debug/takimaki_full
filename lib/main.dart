@@ -19,6 +19,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'screens/splash_login_screen.dart';
 import 'screens/role_select_screen.dart';
+import 'screens/academy_screen.dart';
 
 import 'screens/customer_profile_screen.dart';
 import 'screens/customer_edit_profile_screen.dart';
@@ -135,6 +136,7 @@ class _TakimakiAppState extends State<TakimakiApp> with WidgetsBindingObserver {
         '/calendar': (_) => const WorkCalendarScreen(),
         '/problem_tickets': (_) => const ProblemTicketsScreen(),
         '/role': (_) => const RoleSelectScreen(),
+        '/academy': (_) => const AcademyScreen(),
         '/provider/setup': (_) => const OnboardingScreen(),
         '/provider/edit': (_) => const ProviderEditProfileScreen(),
         '/provider/offer_reply': (_) => const ProviderOfferReplyScreen(),
