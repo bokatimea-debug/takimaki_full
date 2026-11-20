@@ -16,6 +16,13 @@ service cloud.firestore {
     match /orders/{id} { allow read, write: if signedIn(); }
     match /chats/{id} { allow read, write: if signedIn(); }
 
+    match /cleaning_jobs/{id} {
+      // Participant checks are enforced by the server-side workflow as the
+      // existing anonymous-account migration is completed.
+      allow read, create, update: if signedIn();
+      allow delete: if signedIn() && resource.data.owner_uid == request.auth.uid;
+    }
+
     // Academy learning materials are publicly readable. Only the publishing
     // pipeline/admin should write the canonical questions and answer keys.
     match /academy_modules/{id} { allow read: if true; allow write: if false; }
