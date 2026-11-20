@@ -125,11 +125,6 @@ class _S extends State<CustomerProfileScreen> {
       title: const Text('Megrendelő profil'),
       actions: [
         IconButton(
-          tooltip: 'Takarító Akadémia',
-          onPressed: () => Navigator.pushNamed(context, '/academy'),
-          icon: const Icon(Icons.school_outlined),
-        ),
-        IconButton(
           tooltip: 'Értesítések',
           onPressed: () async {
             await Navigator.pushNamed(context, '/work_notifications');
