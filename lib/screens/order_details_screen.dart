@@ -414,6 +414,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       'Folyamatban',
       'Teljesítve',
     ].contains(status);
+    final isApartmentCleaning = _value('service', _value('title')).toLowerCase().contains('apartman');
 
     return Scaffold(
       appBar: TakiAppBar(title: const Text('Rendelés részletei')),
@@ -518,6 +519,13 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                   value: 'Mosással és vasalással',
                 ),
               const SizedBox(height: 8),
+              if (isApartmentCleaning && const ['Elfogadva', 'Folyamatban', 'Teljesítve'].contains(status))
+                FilledButton.tonalIcon(
+                  onPressed: () => Navigator.pushNamed(context, '/cleaning_job', arguments: _order),
+                  icon: const Icon(Icons.fact_check_outlined),
+                  label: const Text('Takarítási checklist és minőség'),
+                ),
+              if (isApartmentCleaning) const SizedBox(height: 8),
               if (canChat)
                 OutlinedButton.icon(
                   onPressed: () => _openChat(isProvider),
