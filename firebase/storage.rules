@@ -1,0 +1,21 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() { return request.auth != null; }
+
+    // The uploader may write an evidence image only into their own folder.
+    // A Cloud Function copies approved evidence references into the shared
+    // cleaning-job document; raw images are never publicly readable.
+    match /cleaning_evidence/{uid}/{allPaths=**} {
+      allow read, write: if signedIn() && request.auth.uid == uid
+        && request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+    match /chat_media/{uid}/{allPaths=**} {
+      allow read, write: if signedIn() && request.auth.uid == uid
+        && request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+  }
+}
