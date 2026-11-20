@@ -41,7 +41,7 @@ class RoleSelectScreen extends StatelessWidget {
       body: BrandedBackground(
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(22, 18, 22, 22),
+            padding: const EdgeInsets.fromLTRB(20, 10, 20, 12),
             child: LayoutBuilder(
               builder: (context, constraints) => SingleChildScrollView(
                 child: ConstrainedBox(
@@ -53,22 +53,22 @@ class RoleSelectScreen extends StatelessWidget {
                         icon: Icons.auto_awesome,
                         text: 'Válaszd ki a szereped',
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 7),
                       Text(
                         'Miben segíthetünk?',
-                        style: Theme.of(context).textTheme.displaySmall,
+                        style: Theme.of(context).textTheme.headlineMedium,
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 4),
                       const Text(
                         'A két mód között később is bármikor válthatsz.',
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: 14,
                           color: Color(0xFF617577),
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 10),
                       SizedBox(
-                        height: constraints.maxHeight < 760 ? 190 : 208,
+                        height: constraints.maxHeight < 760 ? 146 : 162,
                         child: _RoleCard(
                           color: takiTeal,
                           icon: Icons.cleaning_services_rounded,
@@ -79,21 +79,9 @@ class RoleSelectScreen extends StatelessWidget {
                           onTap: () => _selectRole(context, 'provider'),
                         ),
                       ),
-                      const SizedBox(height: 14),
+                      const SizedBox(height: 8),
                       SizedBox(
-                        height: constraints.maxHeight < 760 ? 180 : 198,
-                        child: _RoleCard(
-                          color: takiTealDark,
-                          icon: Icons.school_rounded,
-                          title: 'Takarító Akadémia',
-                          subtitle: 'Tanuld meg a professzionális apartmantakarítást – ingyenesen!',
-                          action: 'Tanulás indítása',
-                          onTap: () => Navigator.pushNamed(context, '/academy'),
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      SizedBox(
-                        height: constraints.maxHeight < 760 ? 190 : 208,
+                        height: constraints.maxHeight < 760 ? 146 : 162,
                         child: _RoleCard(
                           color: takiOrange,
                           icon: Icons.home_rounded,
@@ -102,6 +90,18 @@ class RoleSelectScreen extends StatelessWidget {
                               'Találd meg a feladathoz illő, elérhető szolgáltatót.',
                           action: 'Megrendelőként belépek',
                           onTap: () => _selectRole(context, 'customer'),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        height: constraints.maxHeight < 760 ? 146 : 162,
+                        child: _RoleCard(
+                          color: takiTealDark,
+                          icon: Icons.school_rounded,
+                          title: 'Takarító Akadémia',
+                          subtitle: 'Tanuld meg a professzionális apartmantakarítást – ingyenesen!',
+                          action: 'Tanulás indítása',
+                          onTap: () => Navigator.pushNamed(context, '/academy'),
                         ),
                       ),
                     ],
@@ -149,34 +149,36 @@ class _RoleCard extends StatelessWidget {
             child: Icon(icon, size: 150, color: Colors.white.withOpacity(.12)),
           ),
           Padding(
-            padding: const EdgeInsets.all(18),
+            padding: const EdgeInsets.all(14),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(.22),
                     borderRadius: BorderRadius.circular(18),
                   ),
-                  child: Icon(icon, color: Colors.white, size: 30),
+                  child: Icon(icon, color: Colors.white, size: 26),
                 ),
                 const Spacer(),
                 Text(
                   title,
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 21,
+                    fontSize: 19,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 3),
                 Text(
                   subtitle,
-                  style: const TextStyle(color: Colors.white, height: 1.3),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: Colors.white, height: 1.2, fontSize: 13),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 5),
                 Row(
                   children: [
                     Text(
@@ -184,6 +186,7 @@ class _RoleCard extends StatelessWidget {
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w800,
+                        fontSize: 13,
                       ),
                     ),
                     const Spacer(),
