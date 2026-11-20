@@ -40,8 +40,10 @@ class _AcademyScreenState extends State<AcademyScreen> {
       appBar: AppBar(title: const Text('Takarító Akadémia')),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
-          : ListView(
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 28),
+          : SafeArea(
+              top: false,
+              child: ListView(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 48),
               children: [
                 _AcademyHeader(progress: progress, completed: _completed.length),
                 const SizedBox(height: 12),
@@ -62,9 +64,10 @@ class _AcademyScreenState extends State<AcademyScreen> {
                   },
                   icon: const Icon(Icons.delete_outline),
                   label: const Text('Helyi tanulási adatok törlése'),
+                  style: TextButton.styleFrom(foregroundColor: const Color(0xFFC62828)),
                 ),
               ],
-            ),
+            )),
     );
   }
 }
@@ -396,16 +399,60 @@ class AcademyResultScreen extends StatelessWidget {
           const SizedBox(height: 12), Text(passed ? 'Gratulálunk! Sikeresen teljesítetted a Takimaki Takarító Akadémia vizsgáját. Most ingyenesen regisztrálhatsz takarítóként és munkát kereshetsz.' : 'Érdemes még gyakorolnod! Ismételd át az alábbi hibás témákat, majd próbáld meg újra.', textAlign: TextAlign.center, style: const TextStyle(height: 1.4)),
         ]))),
         const SizedBox(height: 12),
-        if (passed) FilledButton.icon(onPressed: () => Navigator.pushNamedAndRemoveUntil(context, '/role_select', (route) => false), icon: const Icon(Icons.person_add_alt_1_rounded), label: const Text('Regisztrálj apartmantakarítónak')),
-        if (!passed) FilledButton.icon(onPressed: () => Navigator.pushNamedAndRemoveUntil(context, '/academy', (route) => false), icon: const Icon(Icons.menu_book_rounded), label: const Text('Tananyag ismétlése')),
-        OutlinedButton.icon(onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const AcademyExamScreen())), icon: const Icon(Icons.refresh_rounded), label: const Text('Vizsga újra')),
-        const SizedBox(height: 8), Text('Hibás válaszok és megoldások', style: Theme.of(context).textTheme.titleLarge),
-        for (var i = 0; i < questions.length; i++) if (answers[i] != questions[i].correctIndex) Card(child: Padding(padding: const EdgeInsets.all(14), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(questions[i].question, style: const TextStyle(fontWeight: FontWeight.w800)), const SizedBox(height: 6),
-          Text('Helyes: ${questions[i].options[questions[i].correctIndex]}', style: const TextStyle(color: Color(0xFF27763B), fontWeight: FontWeight.w700)),
-          const SizedBox(height: 4), Text(questions[i].explanation),
-        ]))),
+        if (passed) FilledButton.icon(
+          onPressed: () => Navigator.pushNamedAndRemoveUntil(context, '/role_select', (route) => false),
+          icon: const Icon(Icons.person_add_alt_1_rounded),
+          label: const Text('Regisztrálj apartmantakarítónak'),
+          style: FilledButton.styleFrom(backgroundColor: takiTeal, foregroundColor: Colors.white),
+        ),
+        if (!passed) FilledButton.icon(
+          onPressed: () => Navigator.pushNamedAndRemoveUntil(context, '/academy', (route) => false),
+          icon: const Icon(Icons.menu_book_rounded),
+          label: const Text('Tananyag ismétlése'),
+          style: FilledButton.styleFrom(backgroundColor: takiOrange, foregroundColor: takiTealDark),
+        ),
+        if (!passed) OutlinedButton.icon(
+          onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const AcademyExamScreen())),
+          icon: const Icon(Icons.refresh_rounded),
+          label: const Text('Vizsga újrakezdése'),
+          style: OutlinedButton.styleFrom(foregroundColor: takiOrange, side: const BorderSide(color: takiOrange)),
+        ),
+        if (correct < 20) FilledButton.tonalIcon(
+          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => AcademyErrorReviewScreen(questions: questions, answers: answers))),
+          icon: const Icon(Icons.fact_check_outlined),
+          label: const Text('Hibás válaszok és megoldások'),
+          style: FilledButton.styleFrom(backgroundColor: takiMint, foregroundColor: takiTealDark),
+        ),
       ]),
     );
   }
+}
+
+class AcademyErrorReviewScreen extends StatelessWidget {
+  const AcademyErrorReviewScreen({super.key, required this.questions, required this.answers});
+  final List<AcademyQuestion> questions;
+  final List<int> answers;
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: const Text('Hibás válaszok és megoldások')),
+    backgroundColor: const Color(0xFFF1FBFA),
+    body: SafeArea(
+      top: false,
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(18, 14, 18, 28),
+        children: [
+          for (var i = 0; i < questions.length; i++)
+            if (answers[i] != questions[i].correctIndex)
+              Card(child: Padding(padding: const EdgeInsets.all(14), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(questions[i].question, style: const TextStyle(fontWeight: FontWeight.w800)),
+                const SizedBox(height: 6),
+                Text('Helyes: ${questions[i].options[questions[i].correctIndex]}', style: const TextStyle(color: Color(0xFF27763B), fontWeight: FontWeight.w700)),
+                const SizedBox(height: 4),
+                Text(questions[i].explanation),
+              ]))),
+        ],
+      ),
+    ),
+  );
 }
