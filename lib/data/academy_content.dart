@@ -45,7 +45,7 @@ class AcademyModule {
 AcademyQuestion q(String question, List<String> options, int correct, String why) =>
     AcademyQuestion(question: question, options: options, correctIndex: correct, explanation: why);
 
-const academyModules = <AcademyModule>[
+final academyModules = <AcademyModule>[
   AcademyModule(
     id: 1, title: 'Alapismeretek', subtitle: 'Higiénia, tisztítószerek, eszközök', duration: 10,
     icon: Icons.cleaning_services_rounded,
