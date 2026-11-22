@@ -100,7 +100,8 @@ class _CleaningJobScreenState extends State<CleaningJobScreen> {
   Future<void> _addEvidence(String id) async {
     try {
       final url = await RemoteMediaStore.pickAndUpload(
-        folder: 'cleaning_evidence/$_orderId/${id.hashCode}',
+        collection: 'cleaning_evidence',
+        relativePath: '$_orderId/${id.hashCode}',
       );
       if (url == null || !mounted) return;
       setState(() => _evidence = {
@@ -122,7 +123,8 @@ class _CleaningJobScreenState extends State<CleaningJobScreen> {
   Future<void> _addReference(String room) async {
     try {
       final url = await RemoteMediaStore.pickAndUpload(
-        folder: 'cleaning_evidence/$_orderId/reference/${room.hashCode}',
+        collection: 'cleaning_evidence',
+        relativePath: '$_orderId/reference/${room.hashCode}',
       );
       if (url == null || !mounted) return;
       setState(() => _referencePhotos = {..._referencePhotos, room: url});
