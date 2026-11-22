@@ -18,7 +18,12 @@ class FirebaseBackend {
 
   bool get isAvailable => _available;
   String? get startupError => _startupError;
-  String? get uid => FirebaseAuth.instance.currentUser?.uid;
+  String? get uid {
+    // Widget tests and old offline installs may call stores before Firebase
+    // has been initialised. Treat that as an unavailable backend.
+    if (Firebase.apps.isEmpty) return null;
+    return FirebaseAuth.instance.currentUser?.uid;
+  }
   FirebaseFirestore get firestore => FirebaseFirestore.instance;
   FirebaseFunctions get functions =>
       FirebaseFunctions.instanceFor(region: 'europe-west3');
