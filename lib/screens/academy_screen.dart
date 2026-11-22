@@ -341,6 +341,13 @@ class _AcademyExamScreenState extends State<AcademyExamScreen> {
     for (var i = 0; i < _questions.length; i++) if (_answers[i] == _questions[i].correctIndex) correct++;
     final score = AcademyScore(correct, _questions.length);
     await AcademyProgressStore.saveAttempt(correctCount: correct, percentage: score.percentage, grade: score.grade, passed: score.passed, answers: _answers.cast<int>());
+    // The on-device score gives guest learners immediate feedback. When a
+    // signed-in account and Cloud Function are available, the same attempt is
+    // also evaluated in the canonical original question order by the server.
+    final officialAnswers = academyExam
+        .map((question) => _answers[_questions.indexOf(question)]!)
+        .toList();
+    await AcademyProgressStore.submitForOfficialVerification(officialAnswers);
     if (!mounted) return;
     Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => AcademyResultScreen(correct: correct, percentage: score.percentage, grade: score.grade, questions: _questions, answers: _answers.cast<int>())));
   }
