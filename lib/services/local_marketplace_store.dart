@@ -111,7 +111,7 @@ class LocalMarketplaceStore {
       'status': 'pending',
       'created_at': DateTime.now().toIso8601String(),
     };
-    final requests = await _read(requestsKey);
+    final requests = await _allRequests();
     requests.insert(0, request);
     await _write(requestsKey, requests);
 
@@ -167,7 +167,7 @@ class LocalMarketplaceStore {
       'status': 'pending',
       'created_at': now.toIso8601String(),
     };
-    final requests = await _read(requestsKey);
+    final requests = await _allRequests();
     requests.insert(0, request);
     await _write(requestsKey, requests);
     final orders = await _read(customerOrdersKey);
@@ -178,8 +178,28 @@ class LocalMarketplaceStore {
   }
 
   static Future<List<Map<String, dynamic>>> offersFor(String requestId) async {
-    final offers = await _read(offersKey);
-    return offers.where((item) => item['request_id'] == requestId).toList();
+    final local = await _read(offersKey);
+    final remote = await FirebaseBackend.instance.offersForRequest(requestId);
+    final merged = <String, Map<String, dynamic>>{};
+    for (final item in [...local, ...remote]) {
+      merged[item['id']?.toString() ?? ''] = item;
+    }
+    final result = merged.values.where((item) => item['request_id'].toString() == requestId).toList();
+    await _write(offersKey, result);
+    return result;
+  }
+
+  static Future<List<Map<String, dynamic>>> _allRequests() async {
+    final local = await _read(requestsKey);
+    final remote = await FirebaseBackend.instance.openRequests();
+    final merged = <String, Map<String, dynamic>>{};
+    for (final item in [...local, ...remote]) {
+      final id = (item['request_id'] ?? item['id']).toString();
+      if (id.isNotEmpty) merged[id] = item;
+    }
+    final result = merged.values.toList();
+    await _write(requestsKey, result);
+    return result;
   }
 
   static Future<void> acceptSosRequest(Map<String, dynamic> request) async {
@@ -194,7 +214,7 @@ class LocalMarketplaceStore {
     if (expiresAt == null || !DateTime.now().isBefore(expiresAt)) {
       throw StateError('Ennek az SOS-kérésnek lejárt az időablaka.');
     }
-    final requests = await _read(requestsKey);
+    final requests = await _allRequests();
     final requestId = (request['request_id'] ?? request['id']).toString();
     final index = requests.indexWhere((item) =>
         (item['request_id'] ?? item['id']).toString() == requestId);
@@ -209,7 +229,7 @@ class LocalMarketplaceStore {
     final providerName = [providerLast, providerFirst]
         .where((part) => part.trim().isNotEmpty)
         .join(' ');
-    final accepted = <String, dynamic>{
+    var accepted = <String, dynamic>{
       ...requests[index],
       'provider': providerName.isEmpty ? 'Szolgáltató' : providerName,
       'provider_name': providerName.isEmpty ? 'Szolgáltató' : providerName,
@@ -220,6 +240,16 @@ class LocalMarketplaceStore {
       'sos_accepted_at': DateTime.now().toIso8601String(),
     };
     await WorkflowStore.checkConflict(accepted);
+    final remotelyAccepted = await FirebaseBackend.instance.claimSosRequest(requestId, {
+      'provider': accepted['provider'],
+      'provider_name': accepted['provider_name'],
+      'provider_id': accepted['provider_id'],
+      'provider_photo_b64': accepted['provider_photo_b64'],
+    });
+    if (FirebaseBackend.instance.isAvailable && remotelyAccepted == null) {
+      throw StateError('Ezt az SOS-munkát már más elfogadta, vagy lejárt az időablaka.');
+    }
+    if (remotelyAccepted != null) accepted = remotelyAccepted;
     requests[index] = accepted;
     await _write(requestsKey, requests);
     final customerOrders = await _read(customerOrdersKey);
@@ -230,7 +260,7 @@ class LocalMarketplaceStore {
     final providerOrders = await _read(providerOrdersKey);
     providerOrders.insert(0, accepted);
     await _write(providerOrdersKey, providerOrders);
-    await FirebaseBackend.instance.saveOrder(accepted);
+    if (remotelyAccepted == null) await FirebaseBackend.instance.saveOrder(accepted);
     await WorkflowStore.enqueue(
       requestId,
       'customer',
@@ -388,7 +418,7 @@ class LocalMarketplaceStore {
 
   static Future<List<Map<String, dynamic>>> providerRequests() async {
     final services = await _providerServices();
-    final requests = await _read(requestsKey);
+    final requests = await _allRequests();
     final prefs = await SharedPreferences.getInstance();
     final ownId = prefs.getString('registration_phone');
     final worksOnHolidays = prefs.getBool('provider_holidays') ?? false;
@@ -691,11 +721,27 @@ class LocalMarketplaceStore {
     return DateTime.now().isBefore(start.add(const Duration(days: 90)));
   }
 
-  static Future<List<Map<String, dynamic>>> customerOrders() =>
-      _read(customerOrdersKey);
+  static Future<List<Map<String, dynamic>>> _orders(String key, bool provider) async {
+    final local = await _read(key);
+    final remote = await FirebaseBackend.instance.ordersForCurrentUser();
+    final prefs = await SharedPreferences.getInstance();
+    final phone = prefs.getString('registration_phone');
+    final uid = FirebaseBackend.instance.uid;
+    final matching = remote.where((item) => provider
+        ? item['provider_uid'] == uid || item['provider_id'] == phone
+        : item['customer_uid'] == uid || item['customer_id'] == phone);
+    final merged = <String, Map<String, dynamic>>{};
+    for (final item in [...local, ...matching]) {
+      merged[(item['request_id'] ?? item['id']).toString()] = item;
+    }
+    final result = merged.values.toList();
+    await _write(key, result);
+    return result;
+  }
 
-  static Future<List<Map<String, dynamic>>> providerOrders() =>
-      _read(providerOrdersKey);
+  static Future<List<Map<String, dynamic>>> customerOrders() => _orders(customerOrdersKey, false);
+
+  static Future<List<Map<String, dynamic>>> providerOrders() => _orders(providerOrdersKey, true);
 
   static Future<void> updateOrderStatus(String requestId, String status) async {
     for (final key in [customerOrdersKey, providerOrdersKey]) {
