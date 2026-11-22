@@ -9,7 +9,8 @@ import 'firebase_backend.dart';
 /// the resulting reference/URL; no Base64 image data is persisted there.
 class RemoteMediaStore {
   static Future<String?> pickAndUpload({
-    required String folder,
+    required String collection,
+    required String relativePath,
     ImageSource source = ImageSource.camera,
   }) async {
     final image = await ImagePicker().pickImage(
@@ -24,8 +25,12 @@ class RemoteMediaStore {
       throw StateError('A képfeltöltéshez internetkapcsolat és Firebase-bejelentkezés szükséges.');
     }
     final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final safePath = relativePath
+        .split('/')
+        .where((part) => part.trim().isNotEmpty && part != '.' && part != '..')
+        .join('/');
     final ref = FirebaseStorage.instance.ref(
-      '$folder/${backend.uid}/$timestamp-${image.name}',
+      '$collection/${backend.uid}/${safePath.isEmpty ? '' : '$safePath/'}$timestamp-${image.name}',
     );
     await ref.putFile(File(image.path), SettableMetadata(contentType: 'image/jpeg'));
     return ref.getDownloadURL();
