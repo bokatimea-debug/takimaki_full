@@ -14,12 +14,22 @@ class CleaningJobStore {
   static Future<Map<String, dynamic>> load(String orderId) async {
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getString(_key(orderId));
-    if (raw == null) return {};
+    Map<String, dynamic> local = {};
     try {
-      return Map<String, dynamic>.from(jsonDecode(raw) as Map);
+      if (raw != null) local = Map<String, dynamic>.from(jsonDecode(raw) as Map);
     } catch (_) {
-      return {};
+      local = {};
     }
+    final backend = FirebaseBackend.instance;
+    if (!backend.isAvailable) return local;
+    try {
+      final snapshot = await backend.firestore.collection('cleaning_jobs').doc(orderId).get();
+      if (!snapshot.exists || snapshot.data() == null) return local;
+      final remote = Map<String, dynamic>.from(snapshot.data()!);
+      // Remote edits are shared; local fields fill only an offline draft that
+      // does not yet exist in Firestore.
+      return {...local, ...remote};
+    } catch (_) { return local; }
   }
 
   static Future<void> save(String orderId, Map<String, dynamic> value) async {
@@ -36,7 +46,8 @@ class CleaningJobStore {
           .doc(orderId)
           .set({
             ...record,
-            'owner_uid': backend.uid,
+            'last_editor_uid': backend.uid,
+            'created_by_uid': value['created_by_uid'] ?? backend.uid,
             'updated_at_server': FieldValue.serverTimestamp(),
           }, SetOptions(merge: true));
     } catch (_) {
