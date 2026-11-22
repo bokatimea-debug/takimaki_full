@@ -27,6 +27,7 @@ import 'screens/rental_calendar_sync_screen.dart';
 import 'screens/customer_profile_screen.dart';
 import 'screens/customer_edit_profile_screen.dart';
 import 'screens/customer_search_screen.dart';
+import 'screens/customer_sos_request_screen.dart';
 import 'screens/customer_orders_screen.dart';
 import 'screens/customer_messages_screen.dart';
 
@@ -154,6 +155,7 @@ class _TakimakiAppState extends State<TakimakiApp> with WidgetsBindingObserver {
         '/customer/profile': (_) => const CustomerProfileScreen(),
         '/customer/edit_profile': (_) => const CustomerEditProfileScreen(),
         '/customer/search': (_) => const CustomerSearchScreen(),
+        '/customer/sos': (_) => const CustomerSosRequestScreen(),
         '/customer/orders': (_) => const CustomerOrdersScreen(),
         '/customer/messages': (_) => const CustomerMessagesScreen(),
         '/offers': (_) => const OffersScreen(),
