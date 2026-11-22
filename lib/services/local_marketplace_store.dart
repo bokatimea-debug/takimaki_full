@@ -192,6 +192,7 @@ class LocalMarketplaceStore {
   static Future<List<Map<String, dynamic>>> _allRequests() async {
     final local = await _read(requestsKey);
     final remote = await FirebaseBackend.instance.openRequests();
+    if (remote.isEmpty) return local;
     final merged = <String, Map<String, dynamic>>{};
     for (final item in [...local, ...remote]) {
       final id = (item['request_id'] ?? item['id']).toString();
