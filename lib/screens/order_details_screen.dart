@@ -298,6 +298,17 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     controller.dispose();
     if (submit == true) {
       await WorkflowStore.report(_order, _role, reason, text);
+      if (_role == 'customer' && _order['is_sos'] == true && reason == 'Nem jelent meg') {
+        final until = await SanctionsStore.recordProviderSosNoShow();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(
+              'A bejelentést rögzítettük. Az SOS-előfizetés ${until.toLocal().toString().split(' ').first}-ig fel van függesztve.',
+            ),
+          ));
+        }
+        return;
+      }
       if (mounted)
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('A belső hibajegyet rögzítettük.')),
