@@ -65,6 +65,10 @@ class AcademyProgressStore {
     }
   }
 
+  static Future<Map<String, dynamic>?> submitForOfficialVerification(
+    List<int> answersInOfficialOrder,
+  ) => FirebaseBackend.instance.submitAcademyExam(answersInOfficialOrder);
+
   static Future<void> eraseGuestData() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_completedKey);
