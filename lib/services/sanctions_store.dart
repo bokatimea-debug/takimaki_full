@@ -4,6 +4,8 @@ class SanctionsStore {
   static const _providerNoShows = 'sanction_provider_no_shows';
   static const _providerPoints = 'sanction_provider_negative_points';
   static const _providerSuspendedUntil = 'sanction_provider_suspended_until';
+  static const _providerSosSuspendedUntil =
+      'sanction_provider_sos_suspended_until';
   static const _customerLateCancellations =
       'sanction_customer_late_cancellations';
   static const _customerSuspendedUntil = 'sanction_customer_suspended_until';
@@ -26,6 +28,28 @@ class SanctionsStore {
   static Future<bool> isProviderSuspended() async {
     final until = await providerSuspendedUntil();
     return until != null && DateTime.now().isBefore(until);
+  }
+
+  /// SOS-munkát csak az vállalhat, akinek nincs aktív SOS-felfüggesztése.
+  /// A normál szolgáltatásokhoz való hozzáférést ez nem érinti.
+  static Future<DateTime?> providerSosSuspendedUntil() async {
+    final prefs = await SharedPreferences.getInstance();
+    return DateTime.tryParse(prefs.getString(_providerSosSuspendedUntil) ?? '');
+  }
+
+  static Future<bool> isProviderSosSuspended() async {
+    final until = await providerSosSuspendedUntil();
+    return until != null && DateTime.now().isBefore(until);
+  }
+
+  /// SOS-nál a megrendelői "nem jelent meg" bejelentés három hónapra
+  /// felfüggeszti csak az SOS-funkció használatát. Élesben ezt a backendnek
+  /// kell fiókazonosítóhoz kötve, visszaélés-védelemmel kezelnie.
+  static Future<DateTime> recordProviderSosNoShow() async {
+    final prefs = await SharedPreferences.getInstance();
+    final until = DateTime.now().add(const Duration(days: 90));
+    await prefs.setString(_providerSosSuspendedUntil, until.toIso8601String());
+    return until;
   }
 
   static Future<bool> isCustomerSuspended() async {
