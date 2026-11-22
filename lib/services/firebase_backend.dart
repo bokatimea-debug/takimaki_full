@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 
 /// One controlled entry point for the Takimaki cloud backend.
 ///
@@ -19,6 +20,22 @@ class FirebaseBackend {
   String? get startupError => _startupError;
   String? get uid => FirebaseAuth.instance.currentUser?.uid;
   FirebaseFirestore get firestore => FirebaseFirestore.instance;
+  FirebaseFunctions get functions =>
+      FirebaseFunctions.instanceFor(region: 'europe-west3');
+
+  Future<Map<String, dynamic>?> submitAcademyExam(List<int> answers) async {
+    if (!_available || uid == null) return null;
+    try {
+      final result = await functions
+          .httpsCallable('submitAcademyExam')
+          .call<Map<String, dynamic>>({'answers': answers});
+      return Map<String, dynamic>.from(result.data);
+    } on FirebaseFunctionsException {
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
 
   Future<void> initialize() async {
     try {
@@ -85,5 +102,78 @@ class FirebaseBackend {
         'updated_at': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     } catch (_) {}
+  }
+
+  Future<List<Map<String, dynamic>>> openRequests() async {
+    if (!_available) return [];
+    try {
+      final snapshot = await firestore
+          .collection('requests')
+          .where('status', whereIn: const ['pending', 'offered'])
+          .limit(100)
+          .get();
+      return snapshot.docs.map((doc) => <String, dynamic>{
+        ...doc.data(),
+        'id': doc.id,
+      }).toList();
+    } catch (_) { return []; }
+  }
+
+  Future<List<Map<String, dynamic>>> offersForRequest(String requestId) async {
+    if (!_available) return [];
+    try {
+      final snapshot = await firestore
+          .collection('offers')
+          .where('request_id', isEqualTo: requestId)
+          .get();
+      return snapshot.docs.map((doc) => <String, dynamic>{...doc.data(), 'id': doc.id}).toList();
+    } catch (_) { return []; }
+  }
+
+  Future<List<Map<String, dynamic>>> ordersForCurrentUser() async {
+    if (!_available || uid == null) return [];
+    try {
+      final snapshots = await Future.wait([
+        firestore.collection('orders').where('customer_uid', isEqualTo: uid).get(),
+        firestore.collection('orders').where('provider_uid', isEqualTo: uid).get(),
+      ]);
+      final byId = <String, Map<String, dynamic>>{};
+      for (final snapshot in snapshots) {
+        for (final doc in snapshot.docs) {
+          byId[doc.id] = <String, dynamic>{...doc.data(), 'id': doc.id};
+        }
+      }
+      return byId.values.toList();
+    } catch (_) { return []; }
+  }
+
+  /// Atomically claims an SOS request. This prevents two providers on
+  /// different phones from accepting the same urgent work.
+  Future<Map<String, dynamic>?> claimSosRequest(
+    String requestId,
+    Map<String, dynamic> provider,
+  ) async {
+    if (!_available || uid == null) return null;
+    try {
+      return await firestore.runTransaction((transaction) async {
+        final ref = firestore.collection('requests').doc(requestId);
+        final snapshot = await transaction.get(ref);
+        final data = snapshot.data();
+        if (!snapshot.exists || data == null || data['is_sos'] != true || data['status'] != 'pending') return null;
+        final deadline = DateTime.tryParse(data['sos_expires_at']?.toString() ?? '');
+        if (deadline == null || !DateTime.now().isBefore(deadline)) return null;
+        final accepted = <String, dynamic>{
+          ...data,
+          ...provider,
+          'provider_uid': uid,
+          'status': 'Elfogadva',
+          'sos_accepted_at': DateTime.now().toIso8601String(),
+          'updated_at': FieldValue.serverTimestamp(),
+        };
+        transaction.update(ref, accepted);
+        transaction.set(firestore.collection('orders').doc(requestId), accepted);
+        return accepted;
+      });
+    } catch (_) { return null; }
   }
 }
