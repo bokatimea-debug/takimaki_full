@@ -17,6 +17,9 @@ class LocalMarketplaceStore {
   static const customerSubscriptionKey = 'customer_subscription_active';
 
   static DateTime? responseDeadline(Map<String, dynamic> item) {
+    if (item['is_sos'] == true) {
+      return DateTime.tryParse(item['sos_expires_at']?.toString() ?? '');
+    }
     final created = DateTime.tryParse(item['created_at']?.toString() ?? '');
     final date = item['date']?.toString() ?? '';
     final time = item['time']?.toString() ?? '';
@@ -119,9 +122,121 @@ class LocalMarketplaceStore {
     return id;
   }
 
+  /// Sürgős, bármely szolgáltatáskategóriára feladható kérés.
+  /// A kiírt munkadíjat a felek egymás között rendezik; az app nem szedi be.
+  static Future<String> createSosRequest({
+    required String service,
+    required String address,
+    required String note,
+    required int arrivalWithinHours,
+    required int listedPrice,
+  }) async {
+    if (arrivalWithinHours < 1 || arrivalWithinHours > 3) {
+      throw StateError('Az SOS időablak 1, 2 vagy 3 óra lehet.');
+    }
+    if (listedPrice <= 0) throw StateError('Adj meg érvényes munkadíjat.');
+    final now = DateTime.now();
+    final prefs = await SharedPreferences.getInstance();
+    final firstName = prefs.getString('customer_first_name') ?? '';
+    final lastName = prefs.getString('customer_last_name') ?? '';
+    final customerName = [lastName, firstName]
+        .where((part) => part.trim().isNotEmpty)
+        .join(' ');
+    final id = 'SOS${now.millisecondsSinceEpoch}';
+    final request = <String, dynamic>{
+      'id': id,
+      'request_id': id,
+      'service': service,
+      'customer': customerName.isEmpty ? 'Megrendelő' : customerName,
+      'customer_first_name': firstName,
+      'customer_id': prefs.getString('registration_phone'),
+      'customer_photo_b64': prefs.getString('profile_photo_b64') ??
+          prefs.getString('customer_profile_photo_b64'),
+      'customer_photo_path': prefs.getString('customer_photo_path') ??
+          prefs.getString('registration_photo_path'),
+      'address': address,
+      'date': '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}',
+      'time': '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}',
+      'duration_minutes': 120,
+      'note': note,
+      'listed_price': listedPrice,
+      'price': listedPrice,
+      'is_sos': true,
+      'sos_arrival_within_hours': arrivalWithinHours,
+      'sos_expires_at': now.add(Duration(hours: arrivalWithinHours)).toIso8601String(),
+      'status': 'pending',
+      'created_at': now.toIso8601String(),
+    };
+    final requests = await _read(requestsKey);
+    requests.insert(0, request);
+    await _write(requestsKey, requests);
+    final orders = await _read(customerOrdersKey);
+    orders.insert(0, {...request, 'title': service, 'status': 'SOS közzétéve'});
+    await _write(customerOrdersKey, orders);
+    await FirebaseBackend.instance.createRequest(request);
+    return id;
+  }
+
   static Future<List<Map<String, dynamic>>> offersFor(String requestId) async {
     final offers = await _read(offersKey);
     return offers.where((item) => item['request_id'] == requestId).toList();
+  }
+
+  static Future<void> acceptSosRequest(Map<String, dynamic> request) async {
+    if (request['is_sos'] != true) throw StateError('Ez nem SOS-munka.');
+    if (await SanctionsStore.isProviderSosSuspended()) {
+      final until = await SanctionsStore.providerSosSuspendedUntil();
+      throw StateError(
+        'A korábbi SOS meg nem jelenés miatt ${until?.toLocal().toString().split(' ').first ?? ''}-ig nem vállalhatsz SOS-munkát.',
+      );
+    }
+    final expiresAt = DateTime.tryParse(request['sos_expires_at']?.toString() ?? '');
+    if (expiresAt == null || !DateTime.now().isBefore(expiresAt)) {
+      throw StateError('Ennek az SOS-kérésnek lejárt az időablaka.');
+    }
+    final requests = await _read(requestsKey);
+    final requestId = (request['request_id'] ?? request['id']).toString();
+    final index = requests.indexWhere((item) =>
+        (item['request_id'] ?? item['id']).toString() == requestId);
+    if (index < 0 || requests[index]['status'] != 'pending') {
+      throw StateError('Ezt az SOS-munkát már más elfogadta.');
+    }
+    final prefs = await SharedPreferences.getInstance();
+    final providerFirst = prefs.getString('provider_first_name') ??
+        prefs.getString('registration_first_name') ?? '';
+    final providerLast = prefs.getString('provider_last_name') ??
+        prefs.getString('registration_last_name') ?? '';
+    final providerName = [providerLast, providerFirst]
+        .where((part) => part.trim().isNotEmpty)
+        .join(' ');
+    final accepted = <String, dynamic>{
+      ...requests[index],
+      'provider': providerName.isEmpty ? 'Szolgáltató' : providerName,
+      'provider_name': providerName.isEmpty ? 'Szolgáltató' : providerName,
+      'provider_id': prefs.getString('registration_phone'),
+      'provider_photo_b64': prefs.getString('provider_profile_photo_b64') ??
+          prefs.getString('profile_photo_b64'),
+      'status': 'Elfogadva',
+      'sos_accepted_at': DateTime.now().toIso8601String(),
+    };
+    await WorkflowStore.checkConflict(accepted);
+    requests[index] = accepted;
+    await _write(requestsKey, requests);
+    final customerOrders = await _read(customerOrdersKey);
+    final customerIndex = customerOrders.indexWhere((item) =>
+        (item['request_id'] ?? item['id']).toString() == requestId);
+    if (customerIndex >= 0) customerOrders[customerIndex] = accepted;
+    await _write(customerOrdersKey, customerOrders);
+    final providerOrders = await _read(providerOrdersKey);
+    providerOrders.insert(0, accepted);
+    await _write(providerOrdersKey, providerOrders);
+    await FirebaseBackend.instance.saveOrder(accepted);
+    await WorkflowStore.enqueue(
+      requestId,
+      'customer',
+      'SOS-munkát elfogadtak',
+      '${accepted['service']} • a szolgáltató úton van',
+    );
   }
 
   static Future<Map<String, dynamic>?> ownOfferFor(
