@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'firebase_backend.dart';
+
 class RentalCalendarSync {
   static const _feedsKey = 'rental_ical_feeds';
   static const _eventsKey = 'rental_ical_events';
@@ -10,8 +12,17 @@ class RentalCalendarSync {
   static Future<List<Map<String, String>>> feeds() async {
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getString(_feedsKey);
-    if (raw == null) return [];
-    return (jsonDecode(raw) as List).map((e) => Map<String, String>.from(e as Map)).toList();
+    final local = raw == null ? <Map<String, String>>[] : (jsonDecode(raw) as List).map((e) => Map<String, String>.from(e as Map)).toList();
+    final backend = FirebaseBackend.instance;
+    if (!backend.isAvailable || backend.uid == null) return local;
+    try {
+      final remote = await backend.firestore.collection('users').doc(backend.uid).get();
+      final remoteFeeds = remote.data()?['rental_ical_feeds'];
+      if (remoteFeeds is! List) return local;
+      final feeds = remoteFeeds.map((e) => Map<String, String>.from(e as Map)).toList();
+      await prefs.setString(_feedsKey, jsonEncode(feeds));
+      return feeds;
+    } catch (_) { return local; }
   }
 
   static Future<void> saveFeed(String provider, String url) async {
@@ -20,6 +31,7 @@ class RentalCalendarSync {
     list.add({'provider': provider, 'url': url.trim()});
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_feedsKey, jsonEncode(list));
+    await _syncFeeds(list);
   }
 
   static Future<void> removeFeed(String provider) async {
@@ -27,6 +39,7 @@ class RentalCalendarSync {
     list.removeWhere((item) => item['provider'] == provider);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_feedsKey, jsonEncode(list));
+    await _syncFeeds(list);
   }
 
   static Future<List<Map<String, String>>> refresh() async {
@@ -42,7 +55,23 @@ class RentalCalendarSync {
     }
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_eventsKey, jsonEncode(all));
+    final backend = FirebaseBackend.instance;
+    if (backend.isAvailable && backend.uid != null) {
+      try { await backend.firestore.collection('users').doc(backend.uid).set({
+        'rental_ical_events': all,
+        'rental_ical_refreshed_at': DateTime.now().toIso8601String(),
+      }, SetOptions(merge: true)); } catch (_) {}
+    }
     return all;
+  }
+
+  static Future<void> _syncFeeds(List<Map<String, String>> list) async {
+    final backend = FirebaseBackend.instance;
+    if (!backend.isAvailable || backend.uid == null) return;
+    try { await backend.firestore.collection('users').doc(backend.uid).set({
+      'rental_ical_feeds': list,
+      'rental_ical_updated_at': DateTime.now().toIso8601String(),
+    }, SetOptions(merge: true)); } catch (_) {}
   }
 
   static Future<List<Map<String, String>>> events() async {
