@@ -8,19 +8,46 @@ service cloud.firestore {
       allow read, create, update, delete: if signedIn() && request.auth.uid == userId;
     }
 
-    // These are the shared Takimaki marketplace collections. Every client is
-    // authenticated anonymously at minimum; tighter role and participant
-    // restrictions are applied together with the remaining migration.
-    match /requests/{id} { allow read, write: if signedIn(); }
-    match /offers/{id} { allow read, write: if signedIn(); }
-    match /orders/{id} { allow read, write: if signedIn(); }
-    match /chats/{id} { allow read, write: if signedIn(); }
+    // Requests must be discoverable by signed-in providers, but their owner
+    // cannot be impersonated or changed from a client.
+    match /requests/{id} {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.resource.data.customer_uid == request.auth.uid;
+      allow update: if signedIn() && resource.data.customer_uid == request.auth.uid
+        && request.resource.data.customer_uid == resource.data.customer_uid;
+      allow delete: if signedIn() && resource.data.customer_uid == request.auth.uid;
+    }
+
+    match /offers/{id} {
+      allow create: if signedIn() && request.resource.data.provider_uid == request.auth.uid;
+      allow read: if signedIn() && (resource.data.provider_uid == request.auth.uid ||
+        get(/databases/$(database)/documents/requests/$(resource.data.request_id)).data.customer_uid == request.auth.uid);
+      allow update: if signedIn() && resource.data.provider_uid == request.auth.uid
+        && request.resource.data.provider_uid == resource.data.provider_uid;
+      allow delete: if signedIn() && resource.data.provider_uid == request.auth.uid;
+    }
+
+    match /orders/{id} {
+      function participant(data) { return data.customer_uid == request.auth.uid || data.provider_uid == request.auth.uid; }
+      allow read: if signedIn() && participant(resource.data);
+      allow create, update: if signedIn() && participant(request.resource.data)
+        && ( !exists(/databases/$(database)/documents/orders/$(id)) || participant(resource.data));
+      allow delete: if signedIn() && participant(resource.data);
+    }
+
+    match /chats/{id} {
+      allow read, create, update: if signedIn() && request.auth.uid in request.resource.data.participant_uids;
+      allow delete: if signedIn() && request.auth.uid in resource.data.participant_uids;
+    }
 
     match /cleaning_jobs/{id} {
-      // Participant checks are enforced by the server-side workflow as the
-      // existing anonymous-account migration is completed.
-      allow read, create, update: if signedIn();
-      allow delete: if signedIn() && resource.data.owner_uid == request.auth.uid;
+      function isParticipant() {
+        return exists(/databases/$(database)/documents/orders/$(id)) &&
+          (get(/databases/$(database)/documents/orders/$(id)).data.customer_uid == request.auth.uid ||
+           get(/databases/$(database)/documents/orders/$(id)).data.provider_uid == request.auth.uid);
+      }
+      allow read, create, update: if signedIn() && isParticipant();
+      allow delete: if signedIn() && isParticipant();
     }
 
     // Academy learning materials are publicly readable. Only the publishing
