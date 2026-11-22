@@ -286,6 +286,31 @@ class _S extends State<CustomerProfileScreen> {
                   ),
                   const SizedBox(height: 14),
                   Material(
+                    color: takiTealDark,
+                    borderRadius: BorderRadius.circular(20),
+                    child: InkWell(
+                      onTap: () => Navigator.pushNamed(context, '/customer/sos'),
+                      borderRadius: BorderRadius.circular(20),
+                      child: const Padding(
+                        padding: EdgeInsets.all(14),
+                        child: Row(children: [
+                          Icon(Icons.bolt_rounded, size: 28, color: takiOrange),
+                          SizedBox(width: 12),
+                          Expanded(child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('SOS segítség', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)),
+                              SizedBox(height: 2),
+                              Text('Sürgős munka 1–3 órán belül', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                            ],
+                          )),
+                          Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 22),
+                        ]),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Material(
                     color: takiOrange,
                     borderRadius: BorderRadius.circular(20),
                     child: InkWell(
