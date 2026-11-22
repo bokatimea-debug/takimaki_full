@@ -36,7 +36,10 @@ service cloud.firestore {
     }
 
     match /chats/{id} {
-      allow read, create, update: if signedIn() && request.auth.uid in request.resource.data.participant_uids;
+      allow read: if signedIn() && request.auth.uid in resource.data.participant_uids;
+      allow create: if signedIn() && request.auth.uid in request.resource.data.participant_uids;
+      allow update: if signedIn() && request.auth.uid in resource.data.participant_uids
+        && request.auth.uid in request.resource.data.participant_uids;
       allow delete: if signedIn() && request.auth.uid in resource.data.participant_uids;
     }
 
