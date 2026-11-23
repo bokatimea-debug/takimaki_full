@@ -26,6 +26,7 @@ class MockMessage {
   final String from;
   final String text;
   final DateTime ts;
+  final String? mediaUrl;
 
   MockMessage({
     required this.id,
@@ -33,6 +34,7 @@ class MockMessage {
     required this.from,
     required this.text,
     required this.ts,
+    this.mediaUrl,
   });
 
   factory MockMessage.fromJson(Map<String, dynamic> json) => MockMessage(
@@ -41,6 +43,7 @@ class MockMessage {
     from: json['from'] as String,
     text: json['text'] as String,
     ts: DateTime.parse(json['ts'] as String),
+    mediaUrl: json['mediaUrl'] as String?,
   );
 
   Map<String, dynamic> toJson() => {
@@ -49,6 +52,7 @@ class MockMessage {
     'from': from,
     'text': text,
     'ts': ts.toIso8601String(),
+    'mediaUrl': mediaUrl,
   };
 }
 

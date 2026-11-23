@@ -1,6 +1,7 @@
 import '../widgets/taki_app_bar.dart';
 
 import "dart:io";
+import 'dart:async';
 
 import "package:flutter/material.dart";
 import "package:shared_preferences/shared_preferences.dart";
@@ -9,6 +10,8 @@ import "../utils/profile_photo_loader.dart";
 
 import "../data/mock_data.dart";
 import "../services/local_chat_store.dart";
+import '../services/remote_chat_store.dart';
+import '../services/remote_media_store.dart';
 import "../theme.dart";
 import "../widgets/branded_background.dart";
 
@@ -133,6 +136,7 @@ class ChatThreadScreen extends StatefulWidget {
 class _ChatThreadScreenState extends State<ChatThreadScreen> {
   late MockThread _thread;
   final _input = TextEditingController();
+  StreamSubscription<List<Map<String, dynamic>>>? _remoteMessages;
 
   @override
   void initState() {
@@ -146,17 +150,39 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
         ),
       );
     });
+    _remoteMessages = RemoteChatStore.messages(widget.threadId).listen((messages) {
+      if (!mounted) return;
+      var changed = false;
+      for (final remote in messages) {
+        if (_thread.messages.any((message) => message.id == remote['id'])) continue;
+        _thread.messages.add(MockMessage(
+          id: remote['id'] as String,
+          threadId: _thread.id,
+          from: remote['from'] as String,
+          text: remote['text'] as String,
+          mediaUrl: remote['mediaUrl'] as String?,
+          ts: remote['ts'] as DateTime,
+        ));
+        changed = true;
+      }
+      if (changed) {
+        _thread.messages.sort((a, b) => a.ts.compareTo(b.ts));
+        LocalChatStore.save();
+        setState(() {});
+      }
+    });
   }
 
   @override
   void dispose() {
+    _remoteMessages?.cancel();
     _input.dispose();
     super.dispose();
   }
 
-  Future<void> _send() async {
+  Future<void> _send([String? mediaUrl]) async {
     final text = _input.text.trim();
-    if (text.isEmpty) return;
+    if (text.isEmpty && (mediaUrl == null || mediaUrl.isEmpty)) return;
     setState(() {
       _thread.messages.add(
         MockMessage(
@@ -164,12 +190,26 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
           threadId: _thread.id,
           from: "Én",
           text: text,
+          mediaUrl: mediaUrl,
           ts: DateTime.now(),
         ),
       );
     });
     _input.clear();
     await LocalChatStore.save();
+    await RemoteChatStore.send(threadId: _thread.id, text: text, mediaUrl: mediaUrl);
+  }
+
+  Future<void> _sendImage() async {
+    try {
+      final url = await RemoteMediaStore.pickAndUpload(
+        collection: 'chat_media',
+        relativePath: _thread.id,
+      );
+      if (url != null) await _send(url);
+    } on StateError catch (error) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.message.toString())));
+    }
   }
 
   @override
@@ -267,6 +307,13 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                           ? CrossAxisAlignment.end
                           : CrossAxisAlignment.start,
                       children: [
+                        if (m.mediaUrl != null && m.mediaUrl!.isNotEmpty) ...[
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.network(m.mediaUrl!, width: 210, height: 210, fit: BoxFit.cover),
+                          ),
+                          if (m.text.isNotEmpty) const SizedBox(height: 8),
+                        ],
                         Text(
                           m.text,
                           style: TextStyle(
@@ -320,6 +367,11 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
               ),
               child: Row(
                 children: [
+                  IconButton(
+                    tooltip: 'Kép küldése',
+                    onPressed: _sendImage,
+                    icon: const Icon(Icons.image_outlined),
+                  ),
                   Expanded(
                     child: TextField(
                       controller: _input,

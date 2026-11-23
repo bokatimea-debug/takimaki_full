@@ -7,6 +7,7 @@ import '../theme.dart';
 import '../data/mock_data.dart';
 import '../services/local_chat_store.dart';
 import '../services/firebase_backend.dart';
+import '../services/remote_chat_store.dart';
 import '../services/local_marketplace_store.dart';
 import '../services/sanctions_store.dart';
 import '../services/workflow_store.dart';
@@ -406,6 +407,12 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               as String?,
     );
     await LocalChatStore.save();
+    final peerUid = _order[isProvider ? 'customer_uid' : 'provider_uid']?.toString() ?? '';
+    await RemoteChatStore.ensureThread(
+      threadId: thread.id,
+      peerUid: peerUid,
+      peerName: peerName,
+    );
     if (!mounted) return;
     Navigator.push(
       context,

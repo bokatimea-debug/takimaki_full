@@ -12,8 +12,13 @@ service firebase.storage {
         && request.resource.size < 10 * 1024 * 1024
         && request.resource.contentType.matches('image/.*');
     }
-    match /chat_media/{uid}/{allPaths=**} {
-      allow read, write: if signedIn() && request.auth.uid == uid
+    match /chat_media/{uid}/{threadId}/{allPaths=**} {
+      function chatParticipant() {
+        return exists(/databases/(default)/documents/chats/$(threadId)) &&
+          request.auth.uid in get(/databases/(default)/documents/chats/$(threadId)).data.participant_uids;
+      }
+      allow read: if signedIn() && chatParticipant();
+      allow write: if signedIn() && request.auth.uid == uid
         && request.resource.size < 10 * 1024 * 1024
         && request.resource.contentType.matches('image/.*');
     }
