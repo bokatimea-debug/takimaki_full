@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../services/cleaning_job_store.dart';
+import '../services/cleaning_checklist_templates.dart';
 import '../services/remote_media_store.dart';
 import '../theme.dart';
 import '../widgets/branded_background.dart';
@@ -14,14 +15,8 @@ class CleaningJobScreen extends StatefulWidget {
 }
 
 class _CleaningJobScreenState extends State<CleaningJobScreen> {
-  static const _standard = <String, List<String>>{
-    'Fürdőszoba': ['WC és öblítőgomb', 'Mosdó, tükör és csaptelep', 'Zuhanyzó/kád és hajszálak', 'Tiszta törölközők, WC-papír'],
-    'Konyha': ['Mosogató és munkapult', 'Főzőlap, mikrohullámú sütő', 'Edények és poharak', 'Szemetes és bekészítések'],
-    'Hálószoba': ['Használt textíliák összegyűjtve', 'Ágyazás és párnák', 'Felületek és kapcsolók', 'Padló és ágy alatti terület'],
-    'Nappali és előszoba': ['Portalanítás felülről lefelé', 'Kanapé, párnák és textíliák', 'Elektronika külső felülete', 'Porszívózás és felmosás'],
-  };
-
   late String _orderId;
+  String _propertyAddress = '';
   bool _isOwner = false;
   String _cleaningType = 'Általános vendégváltási takarítás';
   bool _bringsSupplies = true;
@@ -31,6 +26,7 @@ class _CleaningJobScreenState extends State<CleaningJobScreen> {
   Set<String> _checked = <String>{};
   Map<String, List<String>> _evidence = <String, List<String>>{};
   Map<String, String> _referencePhotos = <String, String>{};
+  Map<String, List<String>> _rooms = Map<String, List<String>>.from(CleaningChecklistTemplates.standard);
 
   @override
   void didChangeDependencies() {
@@ -40,12 +36,17 @@ class _CleaningJobScreenState extends State<CleaningJobScreen> {
     final args = ModalRoute.of(context)?.settings.arguments;
     final order = args is Map ? Map<String, dynamic>.from(args) : <String, dynamic>{};
     _orderId = (order['request_id'] ?? order['id'] ?? 'draft').toString();
+    _propertyAddress = order['address']?.toString() ?? '';
     _isOwner = order['view_role'] != 'provider';
     _load();
   }
 
   Future<void> _load() async {
     final data = await CleaningJobStore.load(_orderId);
+    final storedRooms = data['rooms'];
+    final template = storedRooms is Map
+        ? storedRooms.map((key, value) => MapEntry(key.toString(), (value as List? ?? const []).map((item) => item.toString()).toList()))
+        : await CleaningChecklistTemplates.load(_propertyAddress);
     if (!mounted) return;
     setState(() {
       _cleaningType = data['type']?.toString() ?? _cleaningType;
@@ -64,6 +65,7 @@ class _CleaningJobScreenState extends State<CleaningJobScreen> {
       if (rawReferences is Map) {
         _referencePhotos = rawReferences.map((key, value) => MapEntry(key.toString(), value.toString()));
       }
+      _rooms = template;
     });
   }
 
@@ -75,9 +77,11 @@ class _CleaningJobScreenState extends State<CleaningJobScreen> {
         'owner_note': _ownerNote,
         'evidence': _evidence,
         'reference_photos': _referencePhotos,
+        'rooms': _rooms,
+        'property_address': _propertyAddress,
       });
 
-  int get _total => _standard.values.fold(0, (sum, items) => sum + items.length);
+  int get _total => _rooms.values.fold(0, (sum, items) => sum + items.length);
   int get _done => _checked.length;
 
   Future<void> _complete() async {
@@ -162,6 +166,34 @@ class _CleaningJobScreenState extends State<CleaningJobScreen> {
     note.dispose();
   }
 
+  Future<void> _editTemplate() async {
+    final controllers = <String, TextEditingController>{
+      for (final entry in _rooms.entries) entry.key: TextEditingController(text: entry.value.join('\n')),
+    };
+    final accepted = await showDialog<bool>(context: context, builder: (context) => AlertDialog(
+      title: const Text('Ingatlan checklistje'),
+      content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
+        const Text('Szobánként egy sor egy ellenőrzési pont. A változás az új munkák alaplistája lesz.'),
+        const SizedBox(height: 8),
+        for (final entry in controllers.entries) Padding(padding: const EdgeInsets.only(bottom: 8), child: TextField(controller: entry.value, minLines: 3, maxLines: 7, decoration: InputDecoration(labelText: entry.key, alignLabelWithHint: true))),
+      ])),
+      actions: [TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Mégse')), FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Mentés'))],
+    ));
+    if (accepted == true) {
+      final rooms = <String, List<String>>{};
+      for (final entry in controllers.entries) {
+        final items = entry.value.text.split('\n').map((item) => item.trim()).where((item) => item.isNotEmpty).toList();
+        if (items.isNotEmpty) rooms[entry.key] = items;
+      }
+      if (rooms.isNotEmpty) {
+        await CleaningChecklistTemplates.save(_propertyAddress, rooms);
+        if (mounted) setState(() => _rooms = rooms);
+        await _save();
+      }
+    }
+    for (final controller in controllers.values) { controller.dispose(); }
+  }
+
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: TakiAppBar(title: const Text('Apartmantakarítás')),
@@ -175,7 +207,7 @@ class _CleaningJobScreenState extends State<CleaningJobScreen> {
                   color: takiMint,
                   padding: const EdgeInsets.all(14),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    const Row(children: [Icon(Icons.cleaning_services_rounded, color: takiTealDark), SizedBox(width: 8), Text('Munkalap és minőségellenőrzés', style: TextStyle(fontWeight: FontWeight.w800, color: takiNavy, fontSize: 17))]),
+                    Row(children: [const Icon(Icons.cleaning_services_rounded, color: takiTealDark), const SizedBox(width: 8), const Expanded(child: Text('Munkalap és minőségellenőrzés', style: TextStyle(fontWeight: FontWeight.w800, color: takiNavy, fontSize: 17))), if (_isOwner) TextButton(onPressed: _editTemplate, child: const Text('Szerkesztés'))]),
                     const SizedBox(height: 8),
                     Text('$_done / $_total pont elkészült', style: const TextStyle(color: takiMutedText)),
                     const SizedBox(height: 7),
@@ -202,7 +234,7 @@ class _CleaningJobScreenState extends State<CleaningJobScreen> {
                   ]),
                 ),
                 const SizedBox(height: 10),
-                for (final room in _standard.entries) ...[
+                for (final room in _rooms.entries) ...[
                   _RoomChecklist(
                     room: room.key,
                     items: room.value,
