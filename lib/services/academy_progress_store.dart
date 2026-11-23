@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'firebase_backend.dart';
@@ -52,17 +51,8 @@ class AcademyProgressStore {
     attempts.add(attempt);
     await prefs.setString(_attemptsKey, jsonEncode(attempts));
 
-    final backend = FirebaseBackend.instance;
-    if (backend.isAvailable && backend.uid != null) {
-      try {
-        await backend.firestore
-            .collection('academy_exam_attempts')
-            .doc('${backend.uid}_${DateTime.now().microsecondsSinceEpoch}')
-            .set({...attempt, 'userId': backend.uid, 'source': 'client_pending_verification'});
-      } catch (_) {
-        // Local attempt remains available while offline.
-      }
-    }
+    // This is a local practice history only. Official attempts are created
+    // exclusively by the submitAcademyExam Cloud Function.
   }
 
   /// The most recent local result is shown again on the Academy home screen.

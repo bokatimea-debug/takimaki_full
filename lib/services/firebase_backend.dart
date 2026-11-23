@@ -42,6 +42,32 @@ class FirebaseBackend {
     }
   }
 
+  Future<bool> submitOrderReview({required String orderId, required int rating, required String review}) async {
+    if (!_available || uid == null) return false;
+    try {
+      await functions.httpsCallable('submitOrderReview').call(<String, dynamic>{'orderId': orderId, 'rating': rating, 'review': review});
+      return true;
+    } catch (_) { return false; }
+  }
+
+  Future<bool> completeOrder(String orderId) async {
+    if (!_available || uid == null || orderId.isEmpty) return false;
+    try {
+      await functions.httpsCallable('completeOrder').call(<String, dynamic>{'orderId': orderId});
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<bool> submitProblemTicket({required String orderId, required String reason, required String description}) async {
+    if (!_available || uid == null) return false;
+    try {
+      await functions.httpsCallable('submitProblemTicket').call(<String, dynamic>{'orderId': orderId, 'reason': reason, 'description': description});
+      return true;
+    } catch (_) { return false; }
+  }
+
   Future<void> initialize() async {
     try {
       if (Firebase.apps.isEmpty) await Firebase.initializeApp();

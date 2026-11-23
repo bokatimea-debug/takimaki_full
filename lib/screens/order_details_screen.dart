@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../theme.dart';
 import '../data/mock_data.dart';
 import '../services/local_chat_store.dart';
+import '../services/firebase_backend.dart';
 import '../services/local_marketplace_store.dart';
 import '../services/sanctions_store.dart';
 import '../services/workflow_store.dart';
@@ -166,6 +167,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
 
   Future<void> _setStatus(String status) async {
     if (_requestId.isEmpty) return;
+    if (status == 'Teljesítve') {
+      await FirebaseBackend.instance.completeOrder(_requestId);
+    }
     await LocalMarketplaceStore.updateOrderStatus(_requestId, status);
     if (!mounted) return;
     setState(() => _order['status'] = status);
@@ -236,6 +240,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         rating,
         reviewController.text.trim(),
       );
+      await FirebaseBackend.instance.submitOrderReview(orderId: _requestId, rating: rating, review: reviewController.text.trim());
       await _reload();
     }
     reviewController.dispose();
@@ -298,6 +303,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     controller.dispose();
     if (submit == true) {
       await WorkflowStore.report(_order, _role, reason, text);
+      await FirebaseBackend.instance.submitProblemTicket(orderId: _requestId, reason: reason, description: text);
       if (_role == 'customer' && _order['is_sos'] == true && reason == 'Nem jelent meg') {
         final until = await SanctionsStore.recordProviderSosNoShow();
         if (mounted) {

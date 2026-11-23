@@ -33,6 +33,16 @@ service cloud.firestore {
       allow create, update: if signedIn() && participant(request.resource.data)
         && ( !exists(/databases/$(database)/documents/orders/$(id)) || participant(resource.data));
       allow delete: if signedIn() && participant(resource.data);
+      match /reviews/{role} {
+        allow read: if signedIn() && participant(get(/databases/$(database)/documents/orders/$(id)).data)
+          && get(/databases/$(database)/documents/orders/$(id)).data.reviews_visible == true;
+        allow write: if false;
+      }
+    }
+
+    match /problem_tickets/{id} {
+      allow read: if signedIn() && resource.data.reporter_uid == request.auth.uid;
+      allow write: if false;
     }
 
     match /chats/{id} {
@@ -71,12 +81,10 @@ service cloud.firestore {
       allow read, create, update: if signedIn() && request.auth.uid == userId;
       allow delete: if signedIn() && request.auth.uid == userId;
     }
-    // Client submissions are deliberately labelled pending verification. A
-    // Cloud Function/admin verification must create official profile badges.
+    // Official attempts are created exclusively by the Cloud Function.
     match /academy_exam_attempts/{attemptId} {
-      allow create: if signedIn() && request.resource.data.userId == request.auth.uid;
       allow read: if signedIn() && resource.data.userId == request.auth.uid;
-      allow update, delete: if false;
+      allow write: if false;
     }
   }
 }
