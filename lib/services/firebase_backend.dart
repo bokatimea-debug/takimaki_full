@@ -84,6 +84,13 @@ class FirebaseBackend {
     } catch (_) {}
   }
 
+  Future<void> deleteRequest(String requestId) async {
+    if (!_available || uid == null) return;
+    try {
+      await firestore.collection('requests').doc(requestId).delete();
+    } catch (_) {}
+  }
+
   Future<void> saveOffer(Map<String, dynamic> offer) async {
     if (!_available || uid == null) return;
     final id = offer['id']?.toString();
