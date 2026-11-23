@@ -94,7 +94,7 @@ class _CustomerSosRequestScreenState extends State<CustomerSosRequestScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: TakiAppBar(title: const Text('SOS segítség kérése')),
+    appBar: TakiAppBar(title: const Text('Expressz rendelés')),
     body: BrandedBackground(
       child: SafeArea(
         top: false,

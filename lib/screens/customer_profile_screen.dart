@@ -299,9 +299,9 @@ class _S extends State<CustomerProfileScreen> {
                           Expanded(child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('SOS segítség', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)),
+                              Text('Expressz rendelés', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)),
                               SizedBox(height: 2),
-                              Text('Sürgős munka 1–3 órán belül', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                              Text('Azonnali segítség 1–3 órán belül', style: TextStyle(color: Colors.white70, fontSize: 13)),
                             ],
                           )),
                           Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 22),
