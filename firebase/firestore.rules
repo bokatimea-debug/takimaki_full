@@ -53,6 +53,14 @@ service cloud.firestore {
       allow delete: if signedIn() && isParticipant();
     }
 
+    // An apartment owner controls only their own reusable room-by-room list.
+    match /cleaning_checklist_templates/{id} {
+      allow read, delete: if signedIn() && resource.data.owner_uid == request.auth.uid;
+      allow create: if signedIn() && request.resource.data.owner_uid == request.auth.uid;
+      allow update: if signedIn() && resource.data.owner_uid == request.auth.uid
+        && request.resource.data.owner_uid == resource.data.owner_uid;
+    }
+
     // Academy learning materials are publicly readable. Only the publishing
     // pipeline/admin should write the canonical questions and answer keys.
     match /academy_modules/{id} { allow read: if true; allow write: if false; }
