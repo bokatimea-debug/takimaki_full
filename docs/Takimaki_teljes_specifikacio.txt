@@ -319,9 +319,9 @@ GitHubon a codex/takimaki-108 ágban teljes forráscheckpoint és specifikáció
 - A mentett egyedi napok időintervallum szerint csoportosított, tömör türkiz–halványsárga kártyákon jelennek meg, és csoportosan szerkeszthetők vagy törölhetők.
 - Ha az Ünnepnap beállítás Nem, a szolgáltató magyar munkaszüneti napra nem kap megkeresést. Kivétel az a konkrét ünnepnap, amelyet az adott szolgáltatás Egyedi napjai között munkaidővel külön megadott.
 
-28. NAPTÁRBÓL KÉSZÜLŐ TAKARÍTÁSI PISZKOZATOK — 2026. NOVEMBER 23.
-- Az Airbnb vagy Booking.com iCal naptár frissítésekor minden új, jövőbeli kijelentkezéshez automatikusan létrejön egy privát Apartmantakarítás-piszkozat.
-- A piszkozat a foglalás nevét, forrását, kijelentkezési napját, javasolt 11:00 kezdést és 120 perces időtartamot tartalmazza.
-- A rendszer semmilyen foglalásból nem küld ki automatikusan nyilvános ajánlatkérést.
-- A tulajdonos a Naptár képernyőn az Ellenőrzés gombbal megadja az apartman címét, szükség esetén módosítja a kezdést és a megjegyzést, majd az Ajánlatkérés kiküldése gombbal hagyja jóvá.
+28. AIRBNB/BOOKING FOGLALÁSIMPORT ÉS TAKARÍTÁSI PISZKOZATOK — 2026. NOVEMBER 23.
+- A megrendelői regisztrációkor, majd a Beállításokban az alkalmazás felajánlja az Airbnb- vagy Booking.com-fiók közvetlen összekötését. Nem a telefon naptárát használja, és a felhasználónak nem kell technikai iCal-linket keresnie vagy bemásolnia.
+- A csatlakozás a szolgáltatók hivatalos, engedélyalapú partneri API-ján történik. A Takimaki nem kér és nem tárol Airbnb- vagy Booking-jelszót.
+- Minden új, jövőbeli kijelentkezéshez automatikusan létrejön egy privát Apartmantakarítás-piszkozat, a kapcsolt ingatlan címével, vendégváltási standard checklisttel, kijelentkezési nappal, javasolt 11:00 kezdéssel és 120 perces időtartammal.
+- A rendszer semmilyen foglalásból nem küld ki automatikusan nyilvános ajánlatkérést. A tulajdonos csak ellenőrzi és egyetlen jóváhagyással kiküldi a teljesen kitöltött piszkozatot.
 - Kiküldés után a piszkozat elküldött státuszú marad, ugyanabból a foglalásból nem készül második ajánlatkérés.
