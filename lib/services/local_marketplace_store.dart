@@ -130,6 +130,10 @@ class LocalMarketplaceStore {
     required String note,
     required int arrivalWithinHours,
     required int listedPrice,
+    int durationMinutes = 120,
+    List<String> serviceOptions = const [],
+    int? areaSqm,
+    bool laundryAndIroning = false,
   }) async {
     if (arrivalWithinHours < 1 || arrivalWithinHours > 3) {
       throw StateError('Az SOS időablak 1, 2 vagy 3 óra lehet.');
@@ -157,8 +161,11 @@ class LocalMarketplaceStore {
       'address': address,
       'date': '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}',
       'time': '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}',
-      'duration_minutes': 120,
+      'duration_minutes': durationMinutes,
+      if (areaSqm != null) 'area_sqm': areaSqm,
       'note': note,
+      'service_options': serviceOptions,
+      'laundry_and_ironing': laundryAndIroning,
       'listed_price': listedPrice,
       'price': listedPrice,
       'is_sos': true,
@@ -175,6 +182,53 @@ class LocalMarketplaceStore {
     await _write(customerOrdersKey, orders);
     await FirebaseBackend.instance.createRequest(request);
     return id;
+  }
+
+  /// SOS can be changed or withdrawn only while it is still open. Once a
+  /// provider has accepted it, changing price/address would be unfair.
+  static Future<void> updateSosRequest({
+    required String requestId,
+    required String service,
+    required String address,
+    required String note,
+    required int arrivalWithinHours,
+    required int listedPrice,
+  }) async {
+    if (arrivalWithinHours < 1 || arrivalWithinHours > 3 || listedPrice <= 0) {
+      throw StateError('Adj meg érvényes SOS-adatokat.');
+    }
+    final requests = await _allRequests();
+    final index = requests.indexWhere((item) => (item['request_id'] ?? item['id']).toString() == requestId);
+    if (index < 0 || requests[index]['is_sos'] != true || requests[index]['status'] != 'pending') {
+      throw StateError('Az elfogadott vagy lezárt SOS-kérés már nem módosítható.');
+    }
+    final updated = <String, dynamic>{
+      ...requests[index], 'service': service, 'address': address, 'note': note,
+      'listed_price': listedPrice, 'price': listedPrice,
+      'sos_arrival_within_hours': arrivalWithinHours,
+      'sos_expires_at': DateTime.now().add(Duration(hours: arrivalWithinHours)).toIso8601String(),
+      'updated_at': DateTime.now().toIso8601String(),
+    };
+    requests[index] = updated;
+    await _write(requestsKey, requests);
+    final orders = await _read(customerOrdersKey);
+    final orderIndex = orders.indexWhere((item) => (item['request_id'] ?? item['id']).toString() == requestId);
+    if (orderIndex >= 0) { orders[orderIndex] = {...orders[orderIndex], ...updated, 'status': 'SOS közzétéve'}; await _write(customerOrdersKey, orders); }
+    await FirebaseBackend.instance.createRequest(updated);
+  }
+
+  static Future<void> deleteSosRequest(String requestId) async {
+    final requests = await _allRequests();
+    final item = requests.where((value) => (value['request_id'] ?? value['id']).toString() == requestId).firstOrNull;
+    if (item == null || item['is_sos'] != true || item['status'] != 'pending') {
+      throw StateError('Az elfogadott vagy lezárt SOS-kérés már nem törölhető.');
+    }
+    requests.removeWhere((value) => (value['request_id'] ?? value['id']).toString() == requestId);
+    await _write(requestsKey, requests);
+    final orders = await _read(customerOrdersKey);
+    orders.removeWhere((value) => (value['request_id'] ?? value['id']).toString() == requestId);
+    await _write(customerOrdersKey, orders);
+    await FirebaseBackend.instance.deleteRequest(requestId);
   }
 
   static Future<List<Map<String, dynamic>>> offersFor(String requestId) async {
