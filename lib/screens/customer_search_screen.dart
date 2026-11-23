@@ -10,7 +10,8 @@ import "../widgets/branded_background.dart";
 import "../widgets/service_choice_grid.dart";
 
 class CustomerSearchScreen extends StatefulWidget {
-  const CustomerSearchScreen({super.key});
+  const CustomerSearchScreen({super.key, this.startAsSos = false});
+  final bool startAsSos;
   @override
   State<CustomerSearchScreen> createState() => _CustomerSearchScreenState();
 }
@@ -43,6 +44,15 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
   final _areaController = TextEditingController();
   final _noteController = TextEditingController();
   final Set<String> _requestedOptions = {};
+  bool _isSos = false;
+  int _sosHours = 2;
+  final _sosPriceController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _isSos = widget.startAsSos;
+  }
 
   Future<void> _chooseService() async {
     final selected = await showModalBottomSheet<String>(
@@ -192,9 +202,12 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
         _errors['address'] = 'Add meg a címet.';
       if (_needsArea && (int.tryParse(_areaController.text.trim()) ?? 0) <= 0)
         _errors['area'] = 'Adj meg érvényes alapterületet.';
-      if (_date == null) _errors['date'] = 'Válassz dátumot.';
-      if (_startTime == null || _endTime == null)
+      if (!_isSos && _date == null) _errors['date'] = 'Válassz dátumot.';
+      if (!_isSos && (_startTime == null || _endTime == null))
         _errors['time'] = 'Add meg a kezdést és a befejezést.';
+      if (_isSos && (int.tryParse(_sosPriceController.text.trim()) ?? 0) <= 0) {
+        _errors['sosPrice'] = 'Adj meg érvényes munkadíjat.';
+      }
     });
     if (_errors.isNotEmpty) {
       _reveal(
@@ -208,14 +221,10 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
       );
       return;
     }
-    final dateTime = DateTime(
-      _date!.year,
-      _date!.month,
-      _date!.day,
-      _startTime!.hour,
-      _startTime!.minute,
-    );
-    if (!dateTime.isAfter(DateTime.now().add(const Duration(hours: 1)))) {
+    final dateTime = _isSos
+        ? DateTime.now()
+        : DateTime(_date!.year, _date!.month, _date!.day, _startTime!.hour, _startTime!.minute);
+    if (!_isSos && !dateTime.isAfter(DateTime.now().add(const Duration(hours: 1)))) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
@@ -225,7 +234,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
       );
       return;
     }
-    final durationMinutes = _minutesOf(_endTime!) - _minutesOf(_startTime!);
+    final durationMinutes = _isSos ? 120 : _minutesOf(_endTime!) - _minutesOf(_startTime!);
     if (durationMinutes <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -236,19 +245,21 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
       );
       return;
     }
-    final requestId = await LocalMarketplaceStore.createRequest(
-      durationMinutes: durationMinutes,
-      service: _service!,
-      address: _addressController.text.trim(),
-      dateTime: dateTime,
-      note: _noteController.text.trim(),
-      laundryAndIroning:
-          _service == "Mosodai szolgáltatás" ||
-          _requestedOptions.contains('Mosodai szolgáltatás') ||
-          _requestedOptions.contains('Helyszíni mosás'),
-      serviceOptions: _requestedOptions.toList(),
-      areaSqm: _needsArea ? int.parse(_areaController.text.trim()) : null,
-    );
+    final laundry = _service == "Mosodai szolgáltatás" ||
+        _requestedOptions.contains('Mosodai szolgáltatás') ||
+        _requestedOptions.contains('Helyszíni mosás');
+    final requestId = _isSos
+        ? await LocalMarketplaceStore.createSosRequest(
+            service: _service!, address: _addressController.text.trim(), note: _noteController.text.trim(),
+            arrivalWithinHours: _sosHours, listedPrice: int.parse(_sosPriceController.text.trim()),
+            durationMinutes: durationMinutes, serviceOptions: _requestedOptions.toList(),
+            areaSqm: _needsArea ? int.parse(_areaController.text.trim()) : null, laundryAndIroning: laundry,
+          )
+        : await LocalMarketplaceStore.createRequest(
+            durationMinutes: durationMinutes, service: _service!, address: _addressController.text.trim(),
+            dateTime: dateTime, note: _noteController.text.trim(), laundryAndIroning: laundry,
+            serviceOptions: _requestedOptions.toList(), areaSqm: _needsArea ? int.parse(_areaController.text.trim()) : null,
+          );
     if (!mounted) return;
     Navigator.pushReplacementNamed(
       context,
@@ -273,6 +284,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
     _addressController.dispose();
     _areaController.dispose();
     _noteController.dispose();
+    _sosPriceController.dispose();
     super.dispose();
   }
 
@@ -291,6 +303,31 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
           children: [
+            SwitchListTile.adaptive(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('SOS kérés', style: TextStyle(fontWeight: FontWeight.w800, color: takiNavy)),
+              subtitle: const Text('Ugyanaz az ajánlatkérés, csak 1–3 órás sürgős határidővel és elsőbbségi listázással.'),
+              value: _isSos,
+              onChanged: (value) => setState(() => _isSos = value),
+            ),
+            if (_isSos) ...[
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(color: takiYellowSoft, borderRadius: BorderRadius.circular(16)),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  const Text('SOS feltételek', style: TextStyle(fontWeight: FontWeight.w800, color: takiNavy)),
+                  const SizedBox(height: 4),
+                  const Text('Elfogadás után a szolgáltató vállalja a megjelenést. Jelentett meg nem jelenéskor az SOS-jogosultság 3 hónapra felfüggeszthető.'),
+                  const SizedBox(height: 8),
+                  SegmentedButton<int>(
+                    segments: const [ButtonSegment(value: 1, label: Text('1 óra')), ButtonSegment(value: 2, label: Text('2 óra')), ButtonSegment(value: 3, label: Text('3 óra'))],
+                    selected: {_sosHours},
+                    onSelectionChanged: (value) => setState(() => _sosHours = value.first),
+                  ),
+                ]),
+              ),
+              const SizedBox(height: 8),
+            ],
             const Text(
               'Szolgáltatás *',
               style: TextStyle(
@@ -443,6 +480,21 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
                 ),
               ),
             ],
+            if (_isSos) ...[
+              const SizedBox(height: 8),
+              TextField(
+                controller: _sosPriceController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: 'Felajánlott munkadíj',
+                  suffixText: 'Ft',
+                  prefixIcon: const Icon(Icons.payments_outlined),
+                  errorText: _errors['sosPrice'],
+                ),
+              ),
+              const SizedBox(height: 4),
+              const Text('A munkadíjat közvetlenül a megrendelő és a szolgáltató rendezi; a Takimaki nem kezeli a pénzt.', style: TextStyle(fontSize: 12, color: takiMutedText)),
+            ] else ...[
             const SizedBox(height: 8),
             if (_errors['date'] != null)
               Text(_errors['date']!, style: const TextStyle(color: Colors.red)),
@@ -522,6 +574,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
                 ),
               ],
             ),
+            ],
             const SizedBox(height: 8),
             TextField(
               controller: _noteController,
@@ -562,12 +615,12 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
                 ),
               ),
               onPressed: _saving ? null : _search,
-              child: const Row(
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Flexible(
                     child: Text(
-                      "Ajánlatok kérése",
+                      _isSos ? "SOS kérés kiküldése" : "Ajánlatok kérése",
                       textAlign: TextAlign.center,
                       style: TextStyle(fontWeight: FontWeight.w800),
                     ),
