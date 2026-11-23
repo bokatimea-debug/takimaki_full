@@ -21,7 +21,7 @@ export const submitAcademyExam = onCall({ region: "europe-west3" }, async (reque
   if (!request.auth) throw new HttpsError("unauthenticated", "Bejelentkezés szükséges.");
   const answers = request.data?.answers;
   if (!Array.isArray(answers) || answers.length !== correctAnswersV1.length ||
-      !answers.every((value: unknown) => Number.isInteger(value) && value >= 0 && value <= 2)) {
+      !answers.every((value: unknown) => typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= 2)) {
     throw new HttpsError("invalid-argument", "Érvényes, 20 válaszos vizsga szükséges.");
   }
   const correctCount = answers.reduce((sum: number, answer: number, index: number) =>
