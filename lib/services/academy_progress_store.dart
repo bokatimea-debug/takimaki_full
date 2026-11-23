@@ -65,6 +65,21 @@ class AcademyProgressStore {
     }
   }
 
+  /// The most recent local result is shown again on the Academy home screen.
+  /// It remains available after an app restart until the learner deletes local
+  /// learning data.
+  static Future<Map<String, dynamic>?> latestAttempt() async {
+    final prefs = await SharedPreferences.getInstance();
+    try {
+      final list = (jsonDecode(prefs.getString(_attemptsKey) ?? '[]') as List)
+          .map((value) => Map<String, dynamic>.from(value as Map))
+          .toList();
+      return list.isEmpty ? null : list.last;
+    } catch (_) {
+      return null;
+    }
+  }
+
   static Future<Map<String, dynamic>?> submitForOfficialVerification(
     List<int> answersInOfficialOrder,
   ) => FirebaseBackend.instance.submitAcademyExam(answersInOfficialOrder);
