@@ -155,7 +155,7 @@ class _TakimakiAppState extends State<TakimakiApp> with WidgetsBindingObserver {
         '/customer/profile': (_) => const CustomerProfileScreen(),
         '/customer/edit_profile': (_) => const CustomerEditProfileScreen(),
         '/customer/search': (_) => const CustomerSearchScreen(),
-        '/customer/sos': (_) => const CustomerSosRequestScreen(),
+        '/customer/sos': (_) => const CustomerSearchScreen(startAsSos: true),
         '/customer/orders': (_) => const CustomerOrdersScreen(),
         '/customer/messages': (_) => const CustomerMessagesScreen(),
         '/offers': (_) => const OffersScreen(),
