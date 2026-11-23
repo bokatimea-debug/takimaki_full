@@ -13,6 +13,7 @@ class AcademyScreen extends StatefulWidget {
 
 class _AcademyScreenState extends State<AcademyScreen> {
   Set<int> _completed = {};
+  Map<String, dynamic>? _latestAttempt;
   bool _loading = true;
 
   @override
@@ -23,7 +24,8 @@ class _AcademyScreenState extends State<AcademyScreen> {
 
   Future<void> _load() async {
     final completed = await AcademyProgressStore.completedModules();
-    if (mounted) setState(() { _completed = completed; _loading = false; });
+    final latestAttempt = await AcademyProgressStore.latestAttempt();
+    if (mounted) setState(() { _completed = completed; _latestAttempt = latestAttempt; _loading = false; });
   }
 
   Future<void> _open(AcademyModule module) async {
@@ -47,6 +49,8 @@ class _AcademyScreenState extends State<AcademyScreen> {
               children: [
                 _AcademyHeader(progress: progress, completed: _completed.length),
                 const SizedBox(height: 12),
+                if (_latestAttempt != null) _SavedExamCard(attempt: _latestAttempt!),
+                if (_latestAttempt != null) const SizedBox(height: 12),
                 for (final module in academyModules)
                   _ModuleCard(module: module, completed: _completed.contains(module.id), onTap: () => _open(module)),
                 const SizedBox(height: 12),
@@ -68,6 +72,37 @@ class _AcademyScreenState extends State<AcademyScreen> {
                 ),
               ],
             )),
+    );
+  }
+}
+
+class _SavedExamCard extends StatelessWidget {
+  const _SavedExamCard({required this.attempt});
+  final Map<String, dynamic> attempt;
+  @override
+  Widget build(BuildContext context) {
+    final percentage = attempt['percentage'] ?? 0;
+    final grade = attempt['grade'] ?? 1;
+    final passed = attempt['passed'] == true;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        gradient: LinearGradient(colors: passed
+            ? const [Color(0xFF087B7B), Color(0xFF14AAA5)]
+            : const [Color(0xFFFFA51F), Color(0xFFFFC75A)]),
+        boxShadow: const [BoxShadow(color: Color(0x24004D4A), blurRadius: 12, offset: Offset(0, 5))],
+      ),
+      child: Row(children: [
+        Container(width: 56, height: 56, decoration: BoxDecoration(color: Colors.white.withValues(alpha: .2), shape: BoxShape.circle), child: Icon(passed ? Icons.workspace_premium_rounded : Icons.menu_book_rounded, color: Colors.white, size: 30)),
+        const SizedBox(width: 13),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const Text('Legutóbbi vizsgaeredmény', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 2),
+          Text('$percentage%  •  $grade-ös', style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900)),
+          Text(passed ? 'Sikeres teljesítés' : 'Bármikor újrapróbálhatod', style: TextStyle(color: Colors.white.withValues(alpha: .92))),
+        ])),
+      ]),
     );
   }
 }
@@ -272,19 +307,20 @@ class _AcademyPracticeScreenState extends State<AcademyPracticeScreen> {
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text('Ellenőrző kérdések')),
     backgroundColor: const Color(0xFFF1FBFA),
-    body: SafeArea(top: false, child: ListView(padding: const EdgeInsets.fromLTRB(18, 16, 18, 8), children: [
-      Text('${_index + 1} / ${widget.module.questions.length} kérdés', style: const TextStyle(fontWeight: FontWeight.w800, color: takiTeal)),
-      const SizedBox(height: 8), LinearProgressIndicator(value: (_index + 1) / widget.module.questions.length, color: takiTeal),
-      const SizedBox(height: 26), Text(_question.question, style: Theme.of(context).textTheme.headlineSmall), const SizedBox(height: 18),
-      for (var i = 0; i < _question.options.length; i++) _AnswerTile(index: i, label: _question.options[i], selected: _selected, correct: _question.correctIndex, reveal: _selected != null, onTap: () {
+    body: SafeArea(top: false, child: ListView(padding: const EdgeInsets.fromLTRB(18, 14, 18, 8), children: [
+      _QuestionProgressBanner(kicker: 'GYAKORLÓ KÉRDÉSEK', current: _index + 1, total: widget.module.questions.length, accent: takiTeal, icon: Icons.psychology_alt_rounded),
+      const SizedBox(height: 18),
+      _QuestionCard(question: _question.question, accent: takiTeal),
+      const SizedBox(height: 14),
+      for (var i = 0; i < _question.options.length; i++) _AnswerTile(index: i, label: _question.options[i], selected: _selected, correct: _question.correctIndex, reveal: _selected != null, accent: takiTeal, onTap: () {
         if (_selected != null) return;
         setState(() {
           _selected = i;
           if (i == _question.correctIndex) _correct++;
         });
       }),
-      if (_selected != null) Card(color: _selected == _question.correctIndex ? const Color(0xFFE2F4E6) : const Color(0xFFFFE8E4), child: Padding(padding: const EdgeInsets.all(14), child: Text(_question.explanation))),
-      if (_retry) Card(color: const Color(0xFFFFF0E8), child: const Padding(padding: EdgeInsets.all(14), child: Text('Most 3/3 helyes válasz kell a lecke teljesítéséhez. Próbáld meg újra.'))),
+      if (_selected != null) _AnswerFeedback(correct: _selected == _question.correctIndex, text: _question.explanation),
+      if (_retry) const _AnswerFeedback(correct: false, text: 'Most 3/3 helyes válasz kell a lecke teljesítéséhez. Próbáld meg újra.'),
     ])),
     bottomNavigationBar: SafeArea(
       top: false,
@@ -310,17 +346,45 @@ class _AcademyPracticeScreenState extends State<AcademyPracticeScreen> {
 }
 
 class _AnswerTile extends StatelessWidget {
-  const _AnswerTile({required this.index, required this.label, required this.selected, required this.correct, required this.reveal, required this.onTap});
-  final int index; final String label; final int? selected; final int correct; final bool reveal; final VoidCallback onTap;
+  const _AnswerTile({required this.index, required this.label, required this.selected, required this.correct, required this.reveal, required this.accent, required this.onTap});
+  final int index; final String label; final int? selected; final int correct; final bool reveal; final Color accent; final VoidCallback onTap;
   @override
   Widget build(BuildContext context) {
     final isCorrect = index == correct;
     final chosen = selected == index;
-    final color = reveal && isCorrect ? const Color(0xFF3A9B54) : reveal && chosen ? const Color(0xFFC86B55) : takiTeal;
-    return Card(child: InkWell(onTap: reveal ? null : onTap, borderRadius: BorderRadius.circular(20), child: Padding(padding: const EdgeInsets.all(14), child: Row(children: [
-      Icon(reveal && isCorrect ? Icons.check_circle : chosen ? Icons.radio_button_checked : Icons.radio_button_off, color: color), const SizedBox(width: 12), Expanded(child: Text(label, style: const TextStyle(fontSize: 16, height: 1.25))),
+    final color = reveal && isCorrect ? const Color(0xFF3A9B54) : reveal && chosen ? const Color(0xFFC86B55) : accent;
+    final background = reveal && isCorrect ? const Color(0xFFE2F4E6) : reveal && chosen ? const Color(0xFFFFE8E4) : chosen ? accent.withValues(alpha: .12) : Colors.white;
+    return Container(margin: const EdgeInsets.only(bottom: 10), decoration: BoxDecoration(color: background, borderRadius: BorderRadius.circular(20), border: Border.all(color: chosen || (reveal && isCorrect) ? color : const Color(0xFFE2EFED), width: chosen || (reveal && isCorrect) ? 2 : 1), boxShadow: const [BoxShadow(color: Color(0x0D004D4A), blurRadius: 7, offset: Offset(0, 3))]), child: InkWell(onTap: reveal ? null : onTap, borderRadius: BorderRadius.circular(19), child: Padding(padding: const EdgeInsets.all(14), child: Row(children: [
+      Container(width: 31, height: 31, alignment: Alignment.center, decoration: BoxDecoration(color: color, shape: BoxShape.circle), child: Text(String.fromCharCode(65 + index), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900))), const SizedBox(width: 12), Expanded(child: Text(label, style: const TextStyle(fontSize: 16, height: 1.25, fontWeight: FontWeight.w600))),
+      if (reveal && (isCorrect || chosen)) Icon(isCorrect ? Icons.check_circle_rounded : Icons.cancel_rounded, color: color),
     ]))));
   }
+}
+
+class _QuestionProgressBanner extends StatelessWidget {
+  const _QuestionProgressBanner({required this.kicker, required this.current, required this.total, required this.accent, required this.icon});
+  final String kicker; final int current; final int total; final Color accent; final IconData icon;
+  @override
+  Widget build(BuildContext context) => Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: accent, borderRadius: BorderRadius.circular(24), boxShadow: const [BoxShadow(color: Color(0x26004D4A), blurRadius: 12, offset: Offset(0, 5))]), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    Row(children: [Container(padding: const EdgeInsets.all(9), decoration: BoxDecoration(color: Colors.white.withValues(alpha: .18), shape: BoxShape.circle), child: Icon(icon, color: Colors.white)), const SizedBox(width: 10), Expanded(child: Text(kicker, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, letterSpacing: .5))), Text('$current / $total', style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900))]),
+    const SizedBox(height: 14), ClipRRect(borderRadius: BorderRadius.circular(8), child: LinearProgressIndicator(value: current / total, minHeight: 8, color: Colors.white, backgroundColor: Colors.white.withValues(alpha: .25))),
+  ]));
+}
+
+class _QuestionCard extends StatelessWidget {
+  const _QuestionCard({required this.question, required this.accent});
+  final String question; final Color accent;
+  @override
+  Widget build(BuildContext context) => Container(padding: const EdgeInsets.all(20), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(26), border: Border.all(color: accent.withValues(alpha: .18)), boxShadow: const [BoxShadow(color: Color(0x12004D4A), blurRadius: 12, offset: Offset(0, 4))]), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    Text('MIT GONDOLSZ?', style: TextStyle(color: accent, fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 1)), const SizedBox(height: 9), Text(question, style: Theme.of(context).textTheme.headlineSmall?.copyWith(height: 1.18, fontWeight: FontWeight.w900)),
+  ]));
+}
+
+class _AnswerFeedback extends StatelessWidget {
+  const _AnswerFeedback({required this.correct, required this.text});
+  final bool correct; final String text;
+  @override
+  Widget build(BuildContext context) { final color = correct ? const Color(0xFF3A9B54) : const Color(0xFFC86B55); return Container(margin: const EdgeInsets.only(top: 4), padding: const EdgeInsets.all(15), decoration: BoxDecoration(color: color.withValues(alpha: .12), borderRadius: BorderRadius.circular(20), border: Border.all(color: color.withValues(alpha: .3))), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [Icon(correct ? Icons.auto_awesome_rounded : Icons.lightbulb_outline_rounded, color: color), const SizedBox(width: 10), Expanded(child: Text(text, style: const TextStyle(height: 1.35, fontWeight: FontWeight.w600)))])); }
 }
 
 class AcademyExamScreen extends StatefulWidget {
@@ -357,11 +421,12 @@ class _AcademyExamScreenState extends State<AcademyExamScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Záróvizsga')),
       backgroundColor: const Color(0xFFF1FBFA),
-      body: SafeArea(top: false, child: ListView(padding: const EdgeInsets.fromLTRB(18, 16, 18, 8), children: [
-        Text('${_index + 1} / 20 kérdés', style: const TextStyle(fontWeight: FontWeight.w800, color: takiTeal)),
-        const SizedBox(height: 8), LinearProgressIndicator(value: (_index + 1) / 20, minHeight: 7, color: takiTeal),
-        const SizedBox(height: 28), Text(question.question, style: Theme.of(context).textTheme.headlineSmall), const SizedBox(height: 18),
-        for (var i = 0; i < question.options.length; i++) _ExamAnswer(index: i, label: question.options[i], selected: _answers[_index] == i, onTap: () => setState(() => _answers[_index] = i)),
+      body: SafeArea(top: false, child: ListView(padding: const EdgeInsets.fromLTRB(18, 14, 18, 8), children: [
+        const _ExamNotice(),
+        const SizedBox(height: 12),
+        _QuestionProgressBanner(kicker: 'ZÁRÓVIZSGA', current: _index + 1, total: 20, accent: takiTealDark, icon: Icons.workspace_premium_rounded),
+        const SizedBox(height: 18), _QuestionCard(question: question.question, accent: takiOrange), const SizedBox(height: 14),
+        for (var i = 0; i < question.options.length; i++) _AnswerTile(index: i, label: question.options[i], selected: _answers[_index], correct: question.correctIndex, reveal: false, accent: takiOrange, onTap: () => setState(() => _answers[_index] = i)),
       ])),
       bottomNavigationBar: SafeArea(
         top: false,
@@ -379,13 +444,10 @@ class _AcademyExamScreenState extends State<AcademyExamScreen> {
   }
 }
 
-class _ExamAnswer extends StatelessWidget {
-  const _ExamAnswer({required this.index, required this.label, required this.selected, required this.onTap});
-  final int index; final String label; final bool selected; final VoidCallback onTap;
+class _ExamNotice extends StatelessWidget {
+  const _ExamNotice();
   @override
-  Widget build(BuildContext context) => Card(child: InkWell(onTap: onTap, borderRadius: BorderRadius.circular(20), child: Padding(padding: const EdgeInsets.all(14), child: Row(children: [
-    Icon(selected ? Icons.radio_button_checked : Icons.radio_button_off, color: selected ? takiTeal : takiMutedText), const SizedBox(width: 12), Expanded(child: Text(label, style: const TextStyle(fontSize: 16))),
-  ]))));
+  Widget build(BuildContext context) => Container(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11), decoration: BoxDecoration(color: takiOrange.withValues(alpha: .17), borderRadius: BorderRadius.circular(18)), child: const Row(children: [Icon(Icons.visibility_off_rounded, color: takiTealDark, size: 20), SizedBox(width: 8), Expanded(child: Text('A helyes megoldásokat az eredmény után mutatjuk.', style: TextStyle(fontWeight: FontWeight.w700, color: takiTealDark)))]));
 }
 
 class AcademyResultScreen extends StatelessWidget {
