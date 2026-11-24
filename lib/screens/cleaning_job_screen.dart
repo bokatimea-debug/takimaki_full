@@ -207,7 +207,12 @@ class _CleaningJobScreenState extends State<CleaningJobScreen> {
                   color: takiMint,
                   padding: const EdgeInsets.all(14),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Row(children: [const Icon(Icons.cleaning_services_rounded, color: takiTealDark), const SizedBox(width: 8), const Expanded(child: Text('Munkalap és minőségellenőrzés', style: TextStyle(fontWeight: FontWeight.w800, color: takiNavy, fontSize: 17))), if (_isOwner) TextButton(onPressed: _editTemplate, child: const Text('Szerkesztés'))]),
+                    Row(children: const [Icon(Icons.cleaning_services_rounded, color: takiTealDark), SizedBox(width: 8), Expanded(child: Text('Munkalap és minőségellenőrzés', style: TextStyle(fontWeight: FontWeight.w800, color: takiNavy, fontSize: 17)))]),
+                    if (_isOwner)
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(onPressed: _editTemplate, child: const Text('Szerkesztés')),
+                      ),
                     const SizedBox(height: 8),
                     Text('$_done / $_total pont elkészült', style: const TextStyle(color: takiMutedText)),
                     const SizedBox(height: 7),
@@ -345,12 +350,49 @@ class _RoomChecklist extends StatelessWidget {
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Padding(padding: const EdgeInsets.fromLTRB(6, 4, 6, 3), child: Text(room, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: takiNavy))),
           if (referencePhoto != null || canSetReference)
-            Padding(padding: const EdgeInsets.only(left: 6, right: 6, bottom: 3), child: Row(children: [
-              if (referencePhoto != null) ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.network(referencePhoto!, width: 52, height: 40, fit: BoxFit.cover)),
-              if (referencePhoto != null) const SizedBox(width: 8),
-              Expanded(child: Text(referencePhoto == null ? 'Nincs referenciafotó' : 'Referenciafotó beállítva', style: const TextStyle(fontSize: 12, color: takiMutedText))),
-              if (canSetReference) TextButton.icon(onPressed: onAddReference, icon: const Icon(Icons.add_a_photo_outlined, size: 18), label: const Text('Referencia')),
-            ])),
+            Padding(
+              padding: const EdgeInsets.only(left: 6, right: 6, bottom: 3),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final compact = constraints.maxWidth < 330 ||
+                      MediaQuery.textScalerOf(context).scale(12) > 13.2;
+                  final description = Text(
+                    referencePhoto == null
+                        ? 'Nincs referenciafotó'
+                        : 'Referenciafotó beállítva',
+                    style: const TextStyle(fontSize: 12, color: takiMutedText),
+                  );
+                  final button = TextButton.icon(
+                    onPressed: onAddReference,
+                    icon: const Icon(Icons.add_a_photo_outlined, size: 18),
+                    label: const Text('Referencia'),
+                  );
+                  final preview = referencePhoto == null
+                      ? null
+                      : ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.network(referencePhoto!, width: 52, height: 40, fit: BoxFit.cover),
+                        );
+                  if (compact) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (preview != null) preview,
+                        if (preview != null) const SizedBox(height: 4),
+                        description,
+                        if (canSetReference) Align(alignment: Alignment.centerLeft, child: button),
+                      ],
+                    );
+                  }
+                  return Row(children: [
+                    if (preview != null) preview,
+                    if (preview != null) const SizedBox(width: 8),
+                    Expanded(child: description),
+                    if (canSetReference) button,
+                  ]);
+                },
+              ),
+            ),
           for (final item in items) Builder(builder: (context) {
             final id = '$room:$item';
             final hasPhoto = (evidence[id] ?? const []).isNotEmpty;
