@@ -256,7 +256,32 @@ class _CleaningJobScreenState extends State<CleaningJobScreen> {
                   color: _ownerApproved ? const Color(0xFFE6F6E8) : takiYellowSoft,
                   padding: const EdgeInsets.all(12),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Row(children: [Icon(_ownerApproved ? Icons.verified_rounded : Icons.pending_actions_rounded, color: _ownerApproved ? Colors.green.shade700 : takiOrange), const SizedBox(width: 8), Text(_ownerApproved ? 'Tulajdonos jóváhagyta' : 'Tulajdonosi ellenőrzésre vár', style: const TextStyle(fontWeight: FontWeight.w800, color: takiNavy))]),
+                    Row(
+                      children: [
+                        Icon(
+                          _ownerApproved
+                              ? Icons.verified_rounded
+                              : Icons.pending_actions_rounded,
+                          color: _ownerApproved
+                              ? Colors.green.shade700
+                              : takiOrange,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _ownerApproved
+                                ? 'Tulajdonos jóváhagyta'
+                                : 'Tulajdonosi ellenőrzésre vár',
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w800,
+                              color: takiNavy,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                     if (_ownerNote.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 6), child: Text(_ownerNote)),
                   ]),
                 ),

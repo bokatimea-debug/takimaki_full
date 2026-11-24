@@ -19,8 +19,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Preserve the current visual test suite
+        run: cp test/layout_regression_test.dart "$RUNNER_TEMP/layout_regression_test.dart"
+      - uses: actions/checkout@v4
         with:
           ref: main
+      - name: Use the same visual test suite against main
+        run: cp "$RUNNER_TEMP/layout_regression_test.dart" test/layout_regression_test.dart
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
