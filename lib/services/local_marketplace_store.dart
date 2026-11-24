@@ -70,6 +70,7 @@ class LocalMarketplaceStore {
     List<String> serviceOptions = const [],
     int? areaSqm,
     int durationMinutes = 60,
+    bool isExpress = false,
   }) async {
     final prefs = await SharedPreferences.getInstance();
     final lastName = prefs.getString('customer_last_name') ?? '';
@@ -109,6 +110,12 @@ class LocalMarketplaceStore {
       'laundry_and_ironing': laundryAndIroning,
       'service_options': serviceOptions,
       'status': 'pending',
+      if (isExpress) 'is_sos': true,
+      if (isExpress)
+        'sos_arrival_within_hours':
+            ((dateTime.difference(DateTime.now()).inMinutes + 59) ~/ 60)
+                .clamp(1, 3),
+      if (isExpress) 'sos_expires_at': dateTime.toIso8601String(),
       'created_at': DateTime.now().toIso8601String(),
     };
     final requests = await _allRequests();
@@ -116,7 +123,11 @@ class LocalMarketplaceStore {
     await _write(requestsKey, requests);
 
     final orders = await _read(customerOrdersKey);
-    orders.insert(0, {...request, 'title': service, 'status': 'Függőben'});
+    orders.insert(0, {
+      ...request,
+      'title': service,
+      'status': isExpress ? 'Expressz rendelés közzétéve' : 'Függőben',
+    });
     await _write(customerOrdersKey, orders);
     await FirebaseBackend.instance.createRequest(request);
     return id;
@@ -193,6 +204,8 @@ class LocalMarketplaceStore {
     required String note,
     required int arrivalWithinHours,
     required int listedPrice,
+    DateTime? dateTime,
+    int? durationMinutes,
   }) async {
     if (arrivalWithinHours < 1 || arrivalWithinHours > 3 || listedPrice <= 0) {
       throw StateError('Adj meg érvényes expressz rendelési adatokat.');
@@ -206,7 +219,10 @@ class LocalMarketplaceStore {
       ...requests[index], 'service': service, 'address': address, 'note': note,
       'listed_price': listedPrice, 'price': listedPrice,
       'sos_arrival_within_hours': arrivalWithinHours,
-      'sos_expires_at': DateTime.now().add(Duration(hours: arrivalWithinHours)).toIso8601String(),
+      'sos_expires_at': (dateTime ?? DateTime.now().add(Duration(hours: arrivalWithinHours))).toIso8601String(),
+      if (dateTime != null) 'date': '${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')}',
+      if (dateTime != null) 'time': '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}',
+      if (durationMinutes != null) 'duration_minutes': durationMinutes,
       'updated_at': DateTime.now().toIso8601String(),
     };
     requests[index] = updated;
