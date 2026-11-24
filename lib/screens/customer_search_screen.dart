@@ -47,11 +47,36 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
   bool _isSos = false;
   int _sosHours = 2;
   final _sosPriceController = TextEditingController();
+  String? _editingRequestId;
+  bool _routeDataLoaded = false;
 
   @override
   void initState() {
     super.initState();
     _isSos = widget.startAsSos;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_routeDataLoaded) return;
+    _routeDataLoaded = true;
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is! Map || args['is_sos'] != true) return;
+    final order = Map<String, dynamic>.from(args);
+    _editingRequestId = (order['request_id'] ?? order['id'] ?? '').toString();
+    if (_editingRequestId!.isEmpty) {
+      _editingRequestId = null;
+      return;
+    }
+    _isSos = true;
+    _service = (order['service'] ?? order['title'])?.toString();
+    _addressController.text = order['address']?.toString() ?? '';
+    _areaController.text = order['area_sqm']?.toString() ?? '';
+    _noteController.text = order['note']?.toString() ?? '';
+    _sosPriceController.text = (order['listed_price'] ?? order['price'] ?? '').toString();
+    _sosHours = int.tryParse(order['sos_arrival_within_hours']?.toString() ?? '') ?? 2;
+    _requestedOptions.addAll((order['service_options'] as List? ?? const []).map((item) => item.toString()));
   }
 
   Future<void> _chooseService() async {
@@ -168,7 +193,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
       );
       return;
     }
-    final canCreate = await LocalMarketplaceStore.canCustomerCreateOrder();
+    final canCreate = _editingRequestId != null || await LocalMarketplaceStore.canCustomerCreateOrder();
     if (!mounted) return;
     if (!canCreate) {
       await showDialog<void>(
@@ -249,7 +274,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
         _requestedOptions.contains('Mosodai szolgáltatás') ||
         _requestedOptions.contains('Helyszíni mosás');
     final requestId = _isSos
-        ? await LocalMarketplaceStore.createSosRequest(
+        ? _editingRequestId ?? await LocalMarketplaceStore.createSosRequest(
             service: _service!, address: _addressController.text.trim(), note: _noteController.text.trim(),
             arrivalWithinHours: _sosHours, listedPrice: int.parse(_sosPriceController.text.trim()),
             durationMinutes: durationMinutes, serviceOptions: _requestedOptions.toList(),
@@ -260,7 +285,21 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
             dateTime: dateTime, note: _noteController.text.trim(), laundryAndIroning: laundry,
             serviceOptions: _requestedOptions.toList(), areaSqm: _needsArea ? int.parse(_areaController.text.trim()) : null,
           );
+    if (_isSos && _editingRequestId != null) {
+      await LocalMarketplaceStore.updateSosRequest(
+        requestId: _editingRequestId!,
+        service: _service!,
+        address: _addressController.text.trim(),
+        note: _noteController.text.trim(),
+        arrivalWithinHours: _sosHours,
+        listedPrice: int.parse(_sosPriceController.text.trim()),
+      );
+    }
     if (!mounted) return;
+    if (_editingRequestId != null) {
+      Navigator.pop(context, true);
+      return;
+    }
     Navigator.pushReplacementNamed(
       context,
       "/offers",
@@ -298,7 +337,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
         : "${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}";
 
     return Scaffold(
-      appBar: TakiAppBar(title: Text(_isSos ? 'Expressz rendelés' : 'Új megrendelés')),
+      appBar: TakiAppBar(title: Text(_editingRequestId != null ? 'Expressz rendelés szerkesztése' : (_isSos ? 'Expressz rendelés' : 'Új megrendelés'))),
       body: BrandedBackground(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
@@ -621,7 +660,9 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
                 children: [
                   Flexible(
                     child: Text(
-                      _isSos ? "Expressz rendelés kiküldése" : "Ajánlatok kérése",
+                      _editingRequestId != null
+                          ? 'Változások mentése'
+                          : (_isSos ? "Expressz rendelés kiküldése" : "Ajánlatok kérése"),
                       textAlign: TextAlign.center,
                       style: TextStyle(fontWeight: FontWeight.w800),
                     ),
