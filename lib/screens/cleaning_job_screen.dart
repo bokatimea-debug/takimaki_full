@@ -227,6 +227,20 @@ class _CleaningJobScreenState extends State<CleaningJobScreen> {
                       value: _cleaningType,
                       decoration: const InputDecoration(labelText: 'Takarítás típusa', border: InputBorder.none),
                       items: const ['Általános vendégváltási takarítás', 'Nagytakarítás'].map((v) => DropdownMenuItem(value: v, child: Text(v))).toList(),
+                      selectedItemBuilder: (context) => const [
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            'Általános takarítás',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text('Nagytakarítás', maxLines: 1, overflow: TextOverflow.ellipsis),
+                        ),
+                      ],
                       onChanged: (v) { if (v != null) setState(() => _cleaningType = v); _save(); },
                     ),
                     SwitchListTile.adaptive(
