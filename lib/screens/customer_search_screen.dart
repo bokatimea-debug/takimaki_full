@@ -77,6 +77,17 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
     _sosPriceController.text = (order['listed_price'] ?? order['price'] ?? '').toString();
     _sosHours = int.tryParse(order['sos_arrival_within_hours']?.toString() ?? '') ?? 2;
     _requestedOptions.addAll((order['service_options'] as List? ?? const []).map((item) => item.toString()));
+    final date = DateTime.tryParse('${order['date'] ?? ''}T${order['time'] ?? ''}:00');
+    if (date != null) {
+      _date = date;
+      _startTime = TimeOfDay(hour: date.hour, minute: date.minute);
+      final duration = int.tryParse(order['duration_minutes']?.toString() ?? '') ?? 120;
+      final endMinutes = date.hour * 60 + date.minute + duration;
+      _endTime = endMinutes < 24 * 60
+          ? TimeOfDay(hour: endMinutes ~/ 60, minute: endMinutes % 60)
+          : null;
+      _refreshExpress();
+    }
   }
 
   Future<void> _chooseService() async {
@@ -134,7 +145,10 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
       firstDate: now,
       lastDate: DateTime(now.year + 1),
     );
-    if (d != null) setState(() => _date = d);
+    if (d != null) setState(() {
+      _date = d;
+      _refreshExpress();
+    });
   }
 
   Future<void> _pickStartTime() async {
@@ -151,6 +165,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
               ? TimeOfDay(hour: suggested ~/ 60, minute: suggested % 60)
               : null;
         }
+        _refreshExpress();
       });
     }
   }
@@ -159,6 +174,25 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
     final initial = _endTime ?? const TimeOfDay(hour: 11, minute: 0);
     final t = await showTimePicker(context: context, initialTime: initial);
     if (t != null) setState(() => _endTime = t);
+  }
+
+  void _refreshExpress() {
+    if (_date == null || _startTime == null) {
+      _isSos = false;
+      return;
+    }
+    final start = DateTime(
+      _date!.year,
+      _date!.month,
+      _date!.day,
+      _startTime!.hour,
+      _startTime!.minute,
+    );
+    final now = DateTime.now();
+    _isSos = start.isAfter(now) && !start.isAfter(now.add(const Duration(hours: 3)));
+    if (_isSos) {
+      _sosHours = ((start.difference(now).inMinutes + 59) ~/ 60).clamp(1, 3);
+    }
   }
 
   int _minutesOf(TimeOfDay time) => time.hour * 60 + time.minute;
@@ -227,12 +261,9 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
         _errors['address'] = 'Add meg a címet.';
       if (_needsArea && (int.tryParse(_areaController.text.trim()) ?? 0) <= 0)
         _errors['area'] = 'Adj meg érvényes alapterületet.';
-      if (!_isSos && _date == null) _errors['date'] = 'Válassz dátumot.';
-      if (!_isSos && (_startTime == null || _endTime == null))
+      if (_date == null) _errors['date'] = 'Válassz dátumot.';
+      if (_startTime == null || _endTime == null)
         _errors['time'] = 'Add meg a kezdést és a befejezést.';
-      if (_isSos && (int.tryParse(_sosPriceController.text.trim()) ?? 0) <= 0) {
-        _errors['sosPrice'] = 'Adj meg érvényes munkadíjat.';
-      }
     });
     if (_errors.isNotEmpty) {
       _reveal(
@@ -246,20 +277,18 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
       );
       return;
     }
-    final dateTime = _isSos
-        ? DateTime.now()
-        : DateTime(_date!.year, _date!.month, _date!.day, _startTime!.hour, _startTime!.minute);
-    if (!_isSos && !dateTime.isAfter(DateTime.now().add(const Duration(hours: 1)))) {
+    final dateTime = DateTime(_date!.year, _date!.month, _date!.day, _startTime!.hour, _startTime!.minute);
+    if (!dateTime.isAfter(DateTime.now())) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            "Olyan időpontot válassz, amely legalább 1 órával később van.",
+            "A kezdésnek későbbi időpontnak kell lennie.",
           ),
         ),
       );
       return;
     }
-    final durationMinutes = _isSos ? 120 : _minutesOf(_endTime!) - _minutesOf(_startTime!);
+    final durationMinutes = _minutesOf(_endTime!) - _minutesOf(_startTime!);
     if (durationMinutes <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -273,18 +302,18 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
     final laundry = _service == "Mosodai szolgáltatás" ||
         _requestedOptions.contains('Mosodai szolgáltatás') ||
         _requestedOptions.contains('Helyszíni mosás');
-    final requestId = _isSos
-        ? _editingRequestId ?? await LocalMarketplaceStore.createSosRequest(
-            service: _service!, address: _addressController.text.trim(), note: _noteController.text.trim(),
-            arrivalWithinHours: _sosHours, listedPrice: int.parse(_sosPriceController.text.trim()),
-            durationMinutes: durationMinutes, serviceOptions: _requestedOptions.toList(),
-            areaSqm: _needsArea ? int.parse(_areaController.text.trim()) : null, laundryAndIroning: laundry,
-          )
-        : await LocalMarketplaceStore.createRequest(
-            durationMinutes: durationMinutes, service: _service!, address: _addressController.text.trim(),
-            dateTime: dateTime, note: _noteController.text.trim(), laundryAndIroning: laundry,
-            serviceOptions: _requestedOptions.toList(), areaSqm: _needsArea ? int.parse(_areaController.text.trim()) : null,
-          );
+    final requestId = _editingRequestId ??
+        await LocalMarketplaceStore.createRequest(
+          durationMinutes: durationMinutes,
+          service: _service!,
+          address: _addressController.text.trim(),
+          dateTime: dateTime,
+          note: _noteController.text.trim(),
+          laundryAndIroning: laundry,
+          serviceOptions: _requestedOptions.toList(),
+          areaSqm: _needsArea ? int.parse(_areaController.text.trim()) : null,
+          isExpress: _isSos,
+        );
     if (_isSos && _editingRequestId != null) {
       await LocalMarketplaceStore.updateSosRequest(
         requestId: _editingRequestId!,
@@ -292,7 +321,9 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
         address: _addressController.text.trim(),
         note: _noteController.text.trim(),
         arrivalWithinHours: _sosHours,
-        listedPrice: int.parse(_sosPriceController.text.trim()),
+        listedPrice: int.tryParse(_sosPriceController.text.trim()) ?? 1,
+        dateTime: dateTime,
+        durationMinutes: durationMinutes,
       );
     }
     if (!mounted) return;
@@ -342,28 +373,14 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
           children: [
-            if (!widget.startAsSos)
-              SwitchListTile.adaptive(
-                contentPadding: EdgeInsets.zero,
-                title: const Text('Expressz rendelés', style: TextStyle(fontWeight: FontWeight.w800, color: takiNavy)),
-                subtitle: const Text('1–3 órás sürgős határidővel és elsőbbségi listázással.'),
-                value: _isSos,
-                onChanged: (value) => setState(() => _isSos = value),
-              ),
             if (_isSos) ...[
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(color: takiYellowSoft, borderRadius: BorderRadius.circular(16)),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  const Text('Expressz rendelés feltételei', style: TextStyle(fontWeight: FontWeight.w800, color: takiNavy)),
+                  const Text('Expressz rendelés', style: TextStyle(fontWeight: FontWeight.w800, color: takiNavy)),
                   const SizedBox(height: 4),
-                  const Text('Elfogadás után a szolgáltató vállalja a megjelenést. Jelentett meg nem jelenéskor az expressz hozzáférés 3 hónapra felfüggeszthető.'),
-                  const SizedBox(height: 8),
-                  SegmentedButton<int>(
-                    segments: const [ButtonSegment(value: 1, label: Text('1 óra')), ButtonSegment(value: 2, label: Text('2 óra')), ButtonSegment(value: 3, label: Text('3 óra'))],
-                    selected: {_sosHours},
-                    onSelectionChanged: (value) => setState(() => _sosHours = value.first),
-                  ),
+                  const Text('A kiválasztott kezdés 3 órán belül van, ezért a rendelés elsőbbségi listázást kap.'),
                 ]),
               ),
               const SizedBox(height: 8),
@@ -520,21 +537,6 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
                 ),
               ),
             ],
-            if (_isSos) ...[
-              const SizedBox(height: 8),
-              TextField(
-                controller: _sosPriceController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText: 'Felajánlott munkadíj',
-                  suffixText: 'Ft',
-                  prefixIcon: const Icon(Icons.payments_outlined),
-                  errorText: _errors['sosPrice'],
-                ),
-              ),
-              const SizedBox(height: 4),
-              const Text('A munkadíjat közvetlenül a megrendelő és a szolgáltató rendezi; a Takimaki nem kezeli a pénzt.', style: TextStyle(fontSize: 12, color: takiMutedText)),
-            ] else ...[
             const SizedBox(height: 8),
             if (_errors['date'] != null)
               Text(_errors['date']!, style: const TextStyle(color: Colors.red)),
@@ -614,7 +616,6 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
                 ),
               ],
             ),
-            ],
             const SizedBox(height: 8),
             TextField(
               controller: _noteController,
