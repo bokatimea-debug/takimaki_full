@@ -43,3 +43,11 @@ adatkommunikációt.
 
 - A nyitóképernyő utánra került az FCM-tokenkérés, így a hálózati push-regisztráció nem blokkolja az első képkockát.
 - A debug build `takimaki.performance` naplója kiírja a `first_frame_ms` értéket. Ezt valódi Android-készüléken, hidegindításokból kell rögzíteni; ebben a környezetben nincs csatlakoztatott telefon, ezért nincs kitalált mérési érték.
+
+
+## Firebase éles biztonsági ellenőrzés – 2026-11-24 17:35 CET
+
+- A meglévő `takimaki` Firebase-projekt Firestore adatbázisában a korábbi, minden belépett felhasználónak írási jogot adó szabályok helyére a tárolt projekt-szabályok kerültek.
+- A szabályverzió a Firebase konzolban sikeresen publikálva lett. A megrendelések, ajánlatok, csetek és takarítási adatok hozzáférése résztvevőhöz kötött; a csetüzenetek módosítása/törlése tiltott.
+- A Firebase Storage EU-West3 bucket és az ahhoz tartozó képtárolási szabályok korábban már sikeresen publikálva lettek.
+- Az éles, többtelefonos végponttól végpontig teszt a privát Android Firebase-konfiguráció és a Functions deploy után marad hátra.
