@@ -347,3 +347,6 @@ GitHubon a codex/takimaki-108 ágban teljes forráscheckpoint és specifikáció
   docs/OPTIMALIZATION_AUDIT_2026-11-24.md. Fizikai eszköz, telepített Firebase
   szabály és partneri API-teszt nélkül semmilyen külső integráció nem minősül
   késznek.
+- Az Android tesztaláíró kulcs és jelszófájl nem tárolható a GitHub-forrásban.
+  A kiadási build csak titkos GitHub Actions változókból kaphat aláírást; hiányzó
+  titoknál a folyamat hibával megáll, debug-aláírású ál-release nem adható át.

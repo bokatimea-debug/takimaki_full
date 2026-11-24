@@ -26,12 +26,22 @@ jobs:
       - run: flutter pub get
       - run: flutter analyze --no-fatal-infos --no-fatal-warnings
       - run: flutter test
+      - name: Prepare persistent test signing key
+        env:
+          TAKIMAKI_KEYSTORE_B64: ${{ secrets.TAKIMAKI_KEYSTORE_B64 }}
+        run: |
+          test -n "$TAKIMAKI_KEYSTORE_B64" || { echo "Missing TAKIMAKI_KEYSTORE_B64 GitHub secret"; exit 1; }
+          echo "$TAKIMAKI_KEYSTORE_B64" | base64 --decode > "$RUNNER_TEMP/takimaki-test.keystore"
       - name: Build Takimaki Test APK
         env:
           ORG_GRADLE_PROJECT_takimakiTest: "true"
+          TAKIMAKI_KEYSTORE: ${{ runner.temp }}/takimaki-test.keystore
+          TAKIMAKI_STORE_PASSWORD: ${{ secrets.TAKIMAKI_STORE_PASSWORD }}
+          TAKIMAKI_KEY_ALIAS: ${{ secrets.TAKIMAKI_KEY_ALIAS }}
+          TAKIMAKI_KEY_PASSWORD: ${{ secrets.TAKIMAKI_KEY_PASSWORD }}
         run: flutter build apk --release
       - uses: actions/upload-artifact@v4
         with:
-          name: Takimaki_Teszt_1.0.20
+          name: Takimaki_Teszt_1.0.26
           path: build/app/outputs/flutter-apk/app-release.apk
           retention-days: 14
