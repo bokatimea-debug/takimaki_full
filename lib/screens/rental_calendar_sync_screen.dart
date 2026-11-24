@@ -17,16 +17,8 @@ class _RentalCalendarSyncScreenState extends State<RentalCalendarSyncScreen> {
   List<Map<String, String>> _feeds = [];
   List<Map<String, String>> _events = [];
   List<Map<String, dynamic>> _drafts = [];
-  bool _busy = false;
   @override void initState() { super.initState(); _load(); }
   Future<void> _load() async { final feeds = await RentalCalendarSync.feeds(); final events = await RentalCalendarSync.events(); final drafts = await RentalCleaningDrafts.all(); if (mounted) setState(() { _feeds = feeds; _events = events; _drafts = drafts; }); }
-  Future<void> _add(String provider) async {
-    final input = TextEditingController();
-    final ok = await showDialog<bool>(context: context, builder: (context) => AlertDialog(title: Text('$provider iCal-link'), content: TextField(controller: input, keyboardType: TextInputType.url, decoration: const InputDecoration(hintText: 'https://... .ics')), actions: [TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Mégse')), FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Mentés'))]));
-    if (ok == true && input.text.trim().isNotEmpty) { await RentalCalendarSync.saveFeed(provider, input.text); await _load(); }
-    input.dispose();
-  }
-  Future<void> _refresh() async { setState(() => _busy = true); try { final events = await RentalCalendarSync.refresh(); final drafts = await RentalCleaningDrafts.generateFromCalendar(); if (mounted) { setState(() { _events = events; _drafts = drafts; }); ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${events.length} foglalás frissítve, a piszkozatok elkészültek.'))); } } on StateError catch (e) { if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message.toString()))); } finally { if (mounted) setState(() => _busy = false); } }
 
   Future<void> _sendDraft(Map<String, dynamic> draft) async {
     final address = TextEditingController();
@@ -57,17 +49,21 @@ class _RentalCalendarSyncScreenState extends State<RentalCalendarSyncScreen> {
   }
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: TakiAppBar(title: const Text('Airbnb és Booking naptár')),
+    appBar: TakiAppBar(title: const Text('Foglalási fiókok')),
     body: BrandedBackground(child: SafeArea(top: false, child: ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        const Text('Add meg az Airbnb és Booking.com által kiadott privát iCal/ICS linket. A foglalások blokkolják az érintett időpontokat; jelszót nem tárolunk.', style: TextStyle(color: takiMutedText)),
+        const Text('A fiók-összekötés opcionális. Összekapcsolás után a Takimaki a kijelentkezésekből takarítási piszkozatot készít; jelszót nem kér és nem tárol.', style: TextStyle(color: takiMutedText)),
         const SizedBox(height: 12),
         for (final provider in const ['Airbnb', 'Booking.com']) ...[
-          TakiPanel(child: ListTile(leading: const Icon(Icons.calendar_month_rounded, color: takiTeal), title: Text(provider), subtitle: Text(_feeds.any((f) => f['provider'] == provider) ? 'Kapcsolva' : 'Nincs kapcsolva'), trailing: IconButton(icon: const Icon(Icons.link_rounded), onPressed: () => _add(provider)))),
+          TakiPanel(child: ListTile(leading: const Icon(Icons.calendar_month_rounded, color: takiTeal), title: Text(provider), subtitle: Text(_feeds.any((f) => f['provider'] == provider) ? 'Korábbi import található' : 'Nincs kapcsolva'), trailing: const Chip(label: Text('Hamarosan')))),
           const SizedBox(height: 8),
         ],
-        FilledButton.icon(onPressed: _busy || _feeds.isEmpty ? null : _refresh, icon: const Icon(Icons.sync_rounded), label: Text(_busy ? 'Frissítés…' : 'Naptárak frissítése')),
+        const TakiPanel(
+          color: takiYellowSoft,
+          padding: EdgeInsets.all(12),
+          child: Text('A közvetlen Airbnb- és Booking-kapcsolat csak a Takimaki hivatalos partneri API-hozzáférésének beállítása után indítható. Addig nem kérünk iCal-linket és nem állítjuk késznek az automatikus importot.'),
+        ),
         if (_drafts.isNotEmpty) ...[
           const SizedBox(height: 18),
           const Text('Automatikus takarítási piszkozatok', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17, color: takiNavy)),

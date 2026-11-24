@@ -325,3 +325,25 @@ GitHubon a codex/takimaki-108 ágban teljes forráscheckpoint és specifikáció
 - Minden új, jövőbeli kijelentkezéshez automatikusan létrejön egy privát Apartmantakarítás-piszkozat, a kapcsolt ingatlan címével, vendégváltási standard checklisttel, kijelentkezési nappal, javasolt 11:00 kezdéssel és 120 perces időtartammal.
 - A rendszer semmilyen foglalásból nem küld ki automatikusan nyilvános ajánlatkérést. A tulajdonos csak ellenőrzi és egyetlen jóváhagyással kiküldi a teljesen kitöltött piszkozatot.
 - Kiküldés után a piszkozat elküldött státuszú marad, ugyanabból a foglalásból nem készül második ajánlatkérés.
+
+29. PROFESSZIONÁLIS VÉGLEGESÍTÉS – 2026. NOVEMBER 24.
+
+- Az optimalizálás külön GitHub-ágon történik; a főág csak ellenőrzött átadás
+  után módosítható.
+- Az "SOS segítség" megnevezés lezárt. A megrendelői gyors folyamat neve
+  "Expressz rendelés", szövege: "Azonnali segítség 1–3 órán belül".
+- Az expressz rendelés ugyanazt a teljes, validált megrendelési folyamatot
+  használja, csak az 1–3 órás érkezési ablak és az elsőbbségi listázás aktív.
+  Ne maradjon külön, eltérő mezőkkel vagy üzleti szabályokkal működő SOS-űrlap.
+- Az Airbnb/Booking iCal-link megadását nem szabad közvetlen fiók-összekötésként
+  bemutatni. A régi iCal belépési felület lezárt; csak a hivatalos, opcionális,
+  engedélyalapú partneri API-val megvalósított kapcsolat lehet kész funkció.
+- A képküldésnél kamera és galéria is választható; hibás vagy már nem elérhető
+  távoli képnél a cset használható marad.
+- A több készülékes csethez az üzenet-alkönyvtárra is külön Firestore jogosultság
+  kell. A cset résztvevői kliensről nem cserélhetők le. A takarítási fotókat csak
+  az adott munka résztvevői olvashatják.
+- A tényszerű audit és a fennmaradó külső függőségek dokumentuma:
+  docs/OPTIMALIZATION_AUDIT_2026-11-24.md. Fizikai eszköz, telepített Firebase
+  szabály és partneri API-teszt nélkül semmilyen külső integráció nem minősül
+  késznek.

@@ -298,24 +298,25 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
         : "${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}";
 
     return Scaffold(
-      appBar: TakiAppBar(title: const Text("Új megrendelés")),
+      appBar: TakiAppBar(title: Text(_isSos ? 'Expressz rendelés' : 'Új megrendelés')),
       body: BrandedBackground(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
           children: [
-            SwitchListTile.adaptive(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('SOS kérés', style: TextStyle(fontWeight: FontWeight.w800, color: takiNavy)),
-              subtitle: const Text('Ugyanaz az ajánlatkérés, csak 1–3 órás sürgős határidővel és elsőbbségi listázással.'),
-              value: _isSos,
-              onChanged: (value) => setState(() => _isSos = value),
-            ),
+            if (!widget.startAsSos)
+              SwitchListTile.adaptive(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Expressz rendelés', style: TextStyle(fontWeight: FontWeight.w800, color: takiNavy)),
+                subtitle: const Text('1–3 órás sürgős határidővel és elsőbbségi listázással.'),
+                value: _isSos,
+                onChanged: (value) => setState(() => _isSos = value),
+              ),
             if (_isSos) ...[
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(color: takiYellowSoft, borderRadius: BorderRadius.circular(16)),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  const Text('SOS feltételek', style: TextStyle(fontWeight: FontWeight.w800, color: takiNavy)),
+                  const Text('Expressz rendelés feltételei', style: TextStyle(fontWeight: FontWeight.w800, color: takiNavy)),
                   const SizedBox(height: 4),
                   const Text('Elfogadás után a szolgáltató vállalja a megjelenést. Jelentett meg nem jelenéskor az SOS-jogosultság 3 hónapra felfüggeszthető.'),
                   const SizedBox(height: 8),
@@ -620,7 +621,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
                 children: [
                   Flexible(
                     child: Text(
-                      _isSos ? "SOS kérés kiküldése" : "Ajánlatok kérése",
+                      _isSos ? "Expressz rendelés kiküldése" : "Ajánlatok kérése",
                       textAlign: TextAlign.center,
                       style: TextStyle(fontWeight: FontWeight.w800),
                     ),

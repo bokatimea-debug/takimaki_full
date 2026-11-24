@@ -66,7 +66,7 @@ class _CustomerSosRequestScreenState extends State<CustomerSosRequestScreen> {
     }
     if (await SanctionsStore.isCustomerSuspended()) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Felfüggesztett fiókkal nem adhatsz fel SOS-kérést.'),
+        content: Text('Felfüggesztett fiókkal nem adhatsz fel expressz rendelést.'),
       ));
       return;
     }
@@ -82,7 +82,7 @@ class _CustomerSosRequestScreenState extends State<CustomerSosRequestScreen> {
       if (!mounted) return;
       Navigator.pop(context, true);
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Az SOS-kérés kiment az elérhető szolgáltatóknak.'),
+        content: Text('Az expressz rendelés kiment az elérhető szolgáltatóknak.'),
       ));
     } on StateError catch (error) {
       if (mounted) ScaffoldMessenger.of(context)
@@ -170,7 +170,7 @@ class _CustomerSosRequestScreenState extends State<CustomerSosRequestScreen> {
               ),
               onPressed: _saving ? null : _submit,
               icon: const Icon(Icons.bolt_rounded),
-              label: Text(_saving ? 'Küldés...' : 'SOS-kérés kiküldése'),
+              label: Text(_saving ? 'Küldés...' : 'Expressz rendelés kiküldése'),
             ),
           ],
         ),

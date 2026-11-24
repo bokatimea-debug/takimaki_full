@@ -4,11 +4,19 @@ service firebase.storage {
   match /b/{bucket}/o {
     function signedIn() { return request.auth != null; }
 
-    // The uploader may write an evidence image only into their own folder.
-    // A Cloud Function copies approved evidence references into the shared
-    // cleaning-job document; raw images are never publicly readable.
-    match /cleaning_evidence/{uid}/{allPaths=**} {
-      allow read, write: if signedIn() && request.auth.uid == uid
+    // Both order participants can view cleaning proof; only its uploader can
+    // create it.  This prevents an unrelated authenticated user from reading
+    // a property's photos.
+    match /cleaning_evidence/{uid}/{orderId}/{allPaths=**} {
+      function orderParticipant() {
+        return exists(/databases/(default)/documents/orders/$(orderId)) &&
+          request.auth.uid in [
+            get(/databases/(default)/documents/orders/$(orderId)).data.customer_uid,
+            get(/databases/(default)/documents/orders/$(orderId)).data.provider_uid
+          ];
+      }
+      allow read: if signedIn() && orderParticipant();
+      allow create: if signedIn() && request.auth.uid == uid
         && request.resource.size < 10 * 1024 * 1024
         && request.resource.contentType.matches('image/.*');
     }

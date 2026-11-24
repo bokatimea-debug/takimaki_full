@@ -4,6 +4,7 @@ import "dart:io";
 import 'dart:async';
 
 import "package:flutter/material.dart";
+import 'package:image_picker/image_picker.dart';
 import "package:shared_preferences/shared_preferences.dart";
 
 import "../utils/profile_photo_loader.dart";
@@ -200,16 +201,40 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
     await RemoteChatStore.send(threadId: _thread.id, text: text, mediaUrl: mediaUrl);
   }
 
-  Future<void> _sendImage() async {
+  Future<void> _sendImage(ImageSource source) async {
     try {
       final url = await RemoteMediaStore.pickAndUpload(
         collection: 'chat_media',
         relativePath: _thread.id,
+        source: source,
       );
       if (url != null) await _send(url);
     } on StateError catch (error) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.message.toString())));
     }
+  }
+
+  Future<void> _chooseImage() async {
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        top: false,
+        child: Wrap(children: [
+          ListTile(
+            leading: const Icon(Icons.photo_camera_outlined),
+            title: const Text('Fotó készítése'),
+            onTap: () => Navigator.pop(sheetContext, ImageSource.camera),
+          ),
+          ListTile(
+            leading: const Icon(Icons.photo_library_outlined),
+            title: const Text('Kép kiválasztása'),
+            onTap: () => Navigator.pop(sheetContext, ImageSource.gallery),
+          ),
+        ]),
+      ),
+    );
+    if (source != null) await _sendImage(source);
   }
 
   @override
@@ -310,7 +335,17 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                         if (m.mediaUrl != null && m.mediaUrl!.isNotEmpty) ...[
                           ClipRRect(
                             borderRadius: BorderRadius.circular(12),
-                            child: Image.network(m.mediaUrl!, width: 210, height: 210, fit: BoxFit.cover),
+                            child: Image.network(
+                              m.mediaUrl!,
+                              width: 210,
+                              height: 210,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => const SizedBox(
+                                width: 210,
+                                height: 120,
+                                child: Center(child: Icon(Icons.broken_image_outlined)),
+                              ),
+                            ),
                           ),
                           if (m.text.isNotEmpty) const SizedBox(height: 8),
                         ],
@@ -369,7 +404,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                 children: [
                   IconButton(
                     tooltip: 'Kép küldése',
-                    onPressed: _sendImage,
+                    onPressed: _chooseImage,
                     icon: const Icon(Icons.image_outlined),
                   ),
                   Expanded(
