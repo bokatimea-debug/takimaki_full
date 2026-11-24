@@ -28,7 +28,7 @@ Az APK csak a futó Actions build sikeres befejezése után tekinthető az utols
 ## Nem végrehajtható ebben a környezetben
 
 - Valódi Android/iOS készülékes telepítés, teljes érintéses folyamat és akkumulátor/memória profilozás.
-- Éles Firebase Auth, Firestore, Storage, Functions és FCM kommunikáció: a meglévő `takimaki` projekt, Frankfurt Firestore és anonim Auth ellenőrizve, de a privát alkalmazáskonfiguráció, Storage bucket és éles Functions-deploy még nincs itt.
+- Éles Firebase Auth, Firestore, Storage, Functions és FCM kommunikáció: a meglévő `takimaki` projekt, Frankfurt Firestore, anonim Auth, Storage bucket és Storage-szabályok ellenőrizve, de a privát alkalmazáskonfiguráció és éles Functions-deploy még nincs itt.
 - Airbnb és Booking.com hivatalos partneri OAuth/API kapcsolat.
 - Aláírt teszt-APK: a kulcs megvan, de a GitHub Actions titokbeállításokhoz nincs jogosultság.
 
