@@ -10,13 +10,11 @@ service firebase.storage {
     match /cleaning_evidence/{uid}/{orderId}/{allPaths=**} {
       function orderParticipant() {
         return exists(/databases/(default)/documents/orders/$(orderId)) &&
-          request.auth.uid in [
-            get(/databases/(default)/documents/orders/$(orderId)).data.customer_uid,
-            get(/databases/(default)/documents/orders/$(orderId)).data.provider_uid
-          ];
+          (request.auth.uid == get(/databases/(default)/documents/orders/$(orderId)).data.customer_uid ||
+           request.auth.uid == get(/databases/(default)/documents/orders/$(orderId)).data.provider_uid);
       }
       allow read: if signedIn() && orderParticipant();
-      allow create: if signedIn() && request.auth.uid == uid
+      allow create: if signedIn() && orderParticipant() && request.auth.uid == uid
         && request.resource.size < 10 * 1024 * 1024
         && request.resource.contentType.matches('image/.*');
     }
@@ -26,7 +24,7 @@ service firebase.storage {
           request.auth.uid in get(/databases/(default)/documents/chats/$(threadId)).data.participant_uids;
       }
       allow read: if signedIn() && chatParticipant();
-      allow write: if signedIn() && request.auth.uid == uid
+      allow create: if signedIn() && chatParticipant() && request.auth.uid == uid
         && request.resource.size < 10 * 1024 * 1024
         && request.resource.contentType.matches('image/.*');
     }
