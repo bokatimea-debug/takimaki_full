@@ -13,6 +13,15 @@ Kiinduló commit: `ceb2e19`
   távoli Android build kötelező.
 - Fizikai Android/iOS-készülékes teszt, telepített Firebase szabályok,
   Storage bucket és Airbnb/Booking partneri API-hozzáférés nem igazolt.
+- A forrásban nincs `android/app/google-services.json`, iOS
+  `GoogleService-Info.plist` vagy `.firebaserc`. Emiatt a Firebase-projekt
+  azonosítója, a telepített szabályok és a Cloud Functions éles elérhetősége
+  ebből a környezetből nem ellenőrizhető. Az Android Google Maps-kulcs helyén
+  továbbra is `REPLACE_WITH_YOUR_API_KEY` szerepel.
+- A korábbi tesztaláíró kulcs a munkakörnyezetben még megvan és a kulcs
+  érvényessége ellenőrizhető volt, de már nincs követve Gitben. GitHub CLI
+  hitelesítés és titokkezelési jogosultság nincs, ezért a szükséges Actions
+  titkokat innen nem lehet beállítani.
 
 ## Feltárt hibák és javítási állapot
 
@@ -20,6 +29,7 @@ Kiinduló commit: `ceb2e19`
 |---|---|---|
 | Távoli cset | A `chats/{id}/messages` alkönyvtárra nem volt Firestore-szabály, ezért a cset két telefon között megtagadhatta az olvasást/írást. | Javítva ezen az ágon: csak a chat két résztvevője olvashat/írhat, a küldő azonosítója kötelező. Firebase-telepítéses ellenőrzés még szükséges. |
 | Cset jogosultság | Egy chat résztvevői kliensoldali frissítéssel módosíthatók voltak. | Javítva: a résztvevőlista változatlan. |
+| Cset létrehozás | Egy kliens korlátlan résztvevőlistás chatet hozhatott volna létre. | Javítva: új cset pontosan két, eltérő résztvevőt tartalmazhat; a létrehozó csak egyikük lehet. |
 | Cset duplikáció / offline állapot | A saját távoli üzenet eltérő szerverazonosítóval visszaérkezve megduplázódhatott, hálózati hibánál pedig nem volt visszajelzés. | Javítva ezen az ágon: közös kliens/szerver üzenetazonosító és egyértelmű helyi mentési jelzés. |
 | Fotóbiztonság | A takarítási bizonyítékok tárolási szabálya csak a feltöltőnek adott hozzáférést; a tulajdonos/partner nem kapott biztos olvasási jogot. | Javítva: rendelési résztvevő alapú olvasás, képfájl- és méretkorláttal. Firebase-telepítéses ellenőrzés még szükséges. |
 | Cset-média jogosultság | A cset-képnél az írási szabály indokolatlanul engedte volna a meglévő fájl módosítását vagy törlését. | Javítva: résztvevő csak új, saját képfájlt tölthet fel; módosítás és törlés tiltott. |
@@ -40,6 +50,7 @@ Kiinduló commit: `ceb2e19`
 5. GitHub Actions titkok: `TAKIMAKI_KEYSTORE_B64`, `TAKIMAKI_STORE_PASSWORD`,
    `TAKIMAKI_KEY_ALIAS`, `TAKIMAKI_KEY_PASSWORD`. Ezek nélkül az új, aláírt
    teszt-APK build szándékosan leáll, nem készül debug-kulccsal félrevezető release.
+6. A debug APK külön buildként készül, ehhez nincs szükség kiadási kulcsra.
 
 E dokumentum nem minősít késznek külső vagy fizikai teszt nélkül maradt
 funkciót.

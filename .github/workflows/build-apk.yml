@@ -26,13 +26,36 @@ jobs:
       - run: flutter pub get
       - run: flutter analyze --no-fatal-infos --no-fatal-warnings
       - run: flutter test
+      - name: Build installable debug APK
+        run: flutter build apk --debug
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Takimaki_Debug_1.0.26
+          path: build/app/outputs/flutter-apk/app-debug.apk
+          retention-days: 14
+      - name: Detect persistent test signing key
+        id: signing
+        env:
+          TAKIMAKI_KEYSTORE_B64: ${{ secrets.TAKIMAKI_KEYSTORE_B64 }}
+          TAKIMAKI_STORE_PASSWORD: ${{ secrets.TAKIMAKI_STORE_PASSWORD }}
+          TAKIMAKI_KEY_ALIAS: ${{ secrets.TAKIMAKI_KEY_ALIAS }}
+          TAKIMAKI_KEY_PASSWORD: ${{ secrets.TAKIMAKI_KEY_PASSWORD }}
+        run: |
+          if [ -n "$TAKIMAKI_KEYSTORE_B64" ] && [ -n "$TAKIMAKI_STORE_PASSWORD" ] && [ -n "$TAKIMAKI_KEY_ALIAS" ] && [ -n "$TAKIMAKI_KEY_PASSWORD" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "Persistent signing secrets are not configured; debug APK remains available."
+          fi
       - name: Prepare persistent test signing key
+        if: steps.signing.outputs.available == 'true'
         env:
           TAKIMAKI_KEYSTORE_B64: ${{ secrets.TAKIMAKI_KEYSTORE_B64 }}
         run: |
-          test -n "$TAKIMAKI_KEYSTORE_B64" || { echo "Missing TAKIMAKI_KEYSTORE_B64 GitHub secret"; exit 1; }
           echo "$TAKIMAKI_KEYSTORE_B64" | base64 --decode > "$RUNNER_TEMP/takimaki-test.keystore"
       - name: Build Takimaki Test APK
+        if: steps.signing.outputs.available == 'true'
         env:
           ORG_GRADLE_PROJECT_takimakiTest: "true"
           TAKIMAKI_KEYSTORE: ${{ runner.temp }}/takimaki-test.keystore
@@ -40,7 +63,9 @@ jobs:
           TAKIMAKI_KEY_ALIAS: ${{ secrets.TAKIMAKI_KEY_ALIAS }}
           TAKIMAKI_KEY_PASSWORD: ${{ secrets.TAKIMAKI_KEY_PASSWORD }}
         run: flutter build apk --release
-      - uses: actions/upload-artifact@v4
+      - name: Upload signed test APK
+        if: steps.signing.outputs.available == 'true'
+        uses: actions/upload-artifact@v4
         with:
           name: Takimaki_Teszt_1.0.26
           path: build/app/outputs/flutter-apk/app-release.apk

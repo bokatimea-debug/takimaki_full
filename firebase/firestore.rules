@@ -51,7 +51,13 @@ service cloud.firestore {
 
     match /chats/{id} {
       allow read: if signedIn() && request.auth.uid in resource.data.participant_uids;
-      allow create: if signedIn() && request.auth.uid in request.resource.data.participant_uids;
+      // A chat is strictly a two-party conversation.  The immutable list
+      // prevents a client from turning a thread into a group or adding a
+      // third party after it was created.
+      allow create: if signedIn()
+        && request.resource.data.participant_uids.size() == 2
+        && request.resource.data.participant_uids[0] != request.resource.data.participant_uids[1]
+        && request.auth.uid in request.resource.data.participant_uids;
       allow update: if signedIn() && request.auth.uid in resource.data.participant_uids
         && request.resource.data.participant_uids == resource.data.participant_uids;
       allow delete: if signedIn() && request.auth.uid in resource.data.participant_uids;
