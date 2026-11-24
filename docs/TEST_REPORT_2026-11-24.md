@@ -13,6 +13,18 @@ Vizsgált ág: `codex/professional-finalization-20261124`
 | Debug Android APK | Sikeresen felépült a `0c77e72` commitból. SHA-256: `3fc4a5d7e6b6095d6a511b89dd036ee9a7e1e4af318354715c2ceb6e0fc9d534`. |
 | Tesztaláíró kulcs helyi ellenőrzése | A korábbi kulcs a munkakörnyezetben megvan és érvényes; új kulcs nem készült. |
 
+## Teljes képernyőellenőrzés – utolsó optimalizált kódfuttatás
+
+| Ellenőrzés | Eredmény |
+|---|---|
+| Statikus elemzés | Sikeres a `869de6d` kódverzió buildjén. |
+| Teljes Flutter tesztcsomag | Sikeres: 185 teszt. |
+| Képernyő-regresszió | 28 éles képernyő × 3 kijelzőállapot: 84 ellenőrzés, túlcsordulás nélkül. |
+| Interakciós regresszió | Rendelési űrlap, profilmentés, szolgáltatás-szerkesztés, törlés megerősítése, cset billentyűzettel és navigációs elérés sikeres. |
+| Előtte/utána képek | A `main` alapág és az optimalizált ág azonos képernyőteszttel készült; az összevethető PNG-k külön GitHub Actions artefaktumban vannak. |
+
+Az APK csak a futó Actions build sikeres befejezése után tekinthető az utolsó kódverzióhoz tartozónak.
+
 ## Nem végrehajtható ebben a környezetben
 
 - Valódi Android/iOS készülékes telepítés, teljes érintéses folyamat és akkumulátor/memória profilozás.
