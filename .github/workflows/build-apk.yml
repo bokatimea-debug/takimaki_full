@@ -33,6 +33,10 @@ jobs:
           cache: true
       - run: flutter pub get
       - name: Capture baseline layout checks
+        # The baseline is intentionally the pre-fix main branch. It may expose
+        # old overflows, but that must not block verification or APK creation
+        # for the optimized branch.
+        continue-on-error: true
         env:
           TAKIMAKI_CAPTURE: artifacts/ui-before
         run: flutter test
