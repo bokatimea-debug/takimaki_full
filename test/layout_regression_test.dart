@@ -178,8 +178,8 @@ void main() {
               'provider_add_service',
             ].contains(screen.key),
           );
-          expect(tester.takeException(), isNull);
           await _capture(tester, '${screen.key}_${size.$1.toInt()}_${size.$3}');
+          expect(tester.takeException(), isNull);
         },
       );
     }
