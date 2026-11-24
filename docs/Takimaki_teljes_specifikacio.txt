@@ -212,13 +212,13 @@ Kiadási zárás: az 1.0.7+8 APK sikeresen elkészült. Csomagazonosító, verzi
 - A meglévő helyi tárolás átmeneti visszaesési mód marad: korábbi tesztadat és hálózat nélküli használat nem vész el. Több telefon közötti teljes olvasási/szinkronizációs folyamat, fájltárolás, FCM-push és éles SMS továbbra is külön elkészítendő és telefonon ellenőrizendő tétel.
 - A Firebase Blaze számlázási csomag aktiválva van. Költési limitet később külön kell beállítani a Firebase/Google Cloud költségkeret oldalán.
 
-20.2 SOS GYORS KÉRÉS — 2026. NOVEMBER 22.
+20.2 EXPRESSZ RENDELÉS — 2026. NOVEMBER 22.
 
-- Az SOS funkció nem kizárólag apartmantakarításra, hanem minden Takimaki szolgáltatáskategóriára használható.
+- Az expressz rendelés nem kizárólag apartmantakarításra, hanem minden Takimaki szolgáltatáskategóriára használható.
 - A megrendelő 1, 2 vagy 3 órás érkezési időablakot, szolgáltatást, címet, rövid leírást és felajánlott munkadíjat ad meg.
 - A Takimaki nem szedi be és nem közvetíti a munkadíjat; a megrendelő és a szolgáltató közvetlenül rendezik azt.
-- Az aktív SOS-kérések mindig az új szolgáltatói megkeresések lista elején jelennek meg, egyértelmű SOS jelöléssel.
-- Elfogadás előtt a szolgáltató figyelmeztetést kap: csak biztos megérkezés esetén vállalhatja. SOS-munkánál a megrendelői „Nem jelent meg” bejelentés után az SOS-előfizetés 3 hónapra felfüggesztésre kerül.
+- Az aktív expressz rendelések mindig az új szolgáltatói megkeresések lista elején jelennek meg, egyértelmű Expressz jelöléssel.
+- Elfogadás előtt a szolgáltató figyelmeztetést kap: csak biztos megérkezés esetén vállalhatja. Expressz rendelésnél a megrendelői „Nem jelent meg” bejelentés után az expressz hozzáférés 3 hónapra felfüggesztésre kerül.
 - A jelen tesztalkalmazásban ez helyi állapot. Éles, több készülékes felfüggesztéshez szerveroldali fiókazonosító, jelentés-hitelesítés és Firestore/Cloud Function kikényszerítés szükséges.
 
 

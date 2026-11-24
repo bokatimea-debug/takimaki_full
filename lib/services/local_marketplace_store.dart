@@ -136,7 +136,7 @@ class LocalMarketplaceStore {
     bool laundryAndIroning = false,
   }) async {
     if (arrivalWithinHours < 1 || arrivalWithinHours > 3) {
-      throw StateError('Az SOS időablak 1, 2 vagy 3 óra lehet.');
+      throw StateError('Az expressz rendelés időablaka 1, 2 vagy 3 óra lehet.');
     }
     if (listedPrice <= 0) throw StateError('Adj meg érvényes munkadíjat.');
     final now = DateTime.now();
@@ -178,7 +178,7 @@ class LocalMarketplaceStore {
     requests.insert(0, request);
     await _write(requestsKey, requests);
     final orders = await _read(customerOrdersKey);
-    orders.insert(0, {...request, 'title': service, 'status': 'SOS közzétéve'});
+    orders.insert(0, {...request, 'title': service, 'status': 'Expressz rendelés közzétéve'});
     await _write(customerOrdersKey, orders);
     await FirebaseBackend.instance.createRequest(request);
     return id;
@@ -195,12 +195,12 @@ class LocalMarketplaceStore {
     required int listedPrice,
   }) async {
     if (arrivalWithinHours < 1 || arrivalWithinHours > 3 || listedPrice <= 0) {
-      throw StateError('Adj meg érvényes SOS-adatokat.');
+      throw StateError('Adj meg érvényes expressz rendelési adatokat.');
     }
     final requests = await _allRequests();
     final index = requests.indexWhere((item) => (item['request_id'] ?? item['id']).toString() == requestId);
     if (index < 0 || requests[index]['is_sos'] != true || requests[index]['status'] != 'pending') {
-      throw StateError('Az elfogadott vagy lezárt SOS-kérés már nem módosítható.');
+      throw StateError('Az elfogadott vagy lezárt expressz rendelés már nem módosítható.');
     }
     final updated = <String, dynamic>{
       ...requests[index], 'service': service, 'address': address, 'note': note,
@@ -213,7 +213,7 @@ class LocalMarketplaceStore {
     await _write(requestsKey, requests);
     final orders = await _read(customerOrdersKey);
     final orderIndex = orders.indexWhere((item) => (item['request_id'] ?? item['id']).toString() == requestId);
-    if (orderIndex >= 0) { orders[orderIndex] = {...orders[orderIndex], ...updated, 'status': 'SOS közzétéve'}; await _write(customerOrdersKey, orders); }
+    if (orderIndex >= 0) { orders[orderIndex] = {...orders[orderIndex], ...updated, 'status': 'Expressz rendelés közzétéve'}; await _write(customerOrdersKey, orders); }
     await FirebaseBackend.instance.createRequest(updated);
   }
 
@@ -221,7 +221,7 @@ class LocalMarketplaceStore {
     final requests = await _allRequests();
     final item = requests.where((value) => (value['request_id'] ?? value['id']).toString() == requestId).firstOrNull;
     if (item == null || item['is_sos'] != true || item['status'] != 'pending') {
-      throw StateError('Az elfogadott vagy lezárt SOS-kérés már nem törölhető.');
+      throw StateError('Az elfogadott vagy lezárt expressz rendelés már nem törölhető.');
     }
     requests.removeWhere((value) => (value['request_id'] ?? value['id']).toString() == requestId);
     await _write(requestsKey, requests);
@@ -261,23 +261,23 @@ class LocalMarketplaceStore {
   }
 
   static Future<void> acceptSosRequest(Map<String, dynamic> request) async {
-    if (request['is_sos'] != true) throw StateError('Ez nem SOS-munka.');
+    if (request['is_sos'] != true) throw StateError('Ez nem expressz rendelés.');
     if (await SanctionsStore.isProviderSosSuspended()) {
       final until = await SanctionsStore.providerSosSuspendedUntil();
       throw StateError(
-        'A korábbi SOS meg nem jelenés miatt ${until?.toLocal().toString().split(' ').first ?? ''}-ig nem vállalhatsz SOS-munkát.',
+        'A korábbi expressz rendelésnél történt meg nem jelenés miatt ${until?.toLocal().toString().split(' ').first ?? ''}-ig nem vállalhatsz expressz rendelést.',
       );
     }
     final expiresAt = DateTime.tryParse(request['sos_expires_at']?.toString() ?? '');
     if (expiresAt == null || !DateTime.now().isBefore(expiresAt)) {
-      throw StateError('Ennek az SOS-kérésnek lejárt az időablaka.');
+      throw StateError('Ennek az expressz rendelésnek lejárt az időablaka.');
     }
     final requests = await _allRequests();
     final requestId = (request['request_id'] ?? request['id']).toString();
     final index = requests.indexWhere((item) =>
         (item['request_id'] ?? item['id']).toString() == requestId);
     if (index < 0 || requests[index]['status'] != 'pending') {
-      throw StateError('Ezt az SOS-munkát már más elfogadta.');
+      throw StateError('Ezt az expressz rendelést már más elfogadta.');
     }
     final prefs = await SharedPreferences.getInstance();
     final providerFirst = prefs.getString('provider_first_name') ??
@@ -305,7 +305,7 @@ class LocalMarketplaceStore {
       'provider_photo_b64': accepted['provider_photo_b64'],
     });
     if (FirebaseBackend.instance.isAvailable && remotelyAccepted == null) {
-      throw StateError('Ezt az SOS-munkát már más elfogadta, vagy lejárt az időablaka.');
+      throw StateError('Ezt az expressz rendelést már más elfogadta, vagy lejárt az időablaka.');
     }
     if (remotelyAccepted != null) accepted = remotelyAccepted;
     requests[index] = accepted;
@@ -322,7 +322,7 @@ class LocalMarketplaceStore {
     await WorkflowStore.enqueue(
       requestId,
       'customer',
-      'SOS-munkát elfogadtak',
+      'Expressz rendelést elfogadtak',
       '${accepted['service']} • a szolgáltató úton van',
     );
   }

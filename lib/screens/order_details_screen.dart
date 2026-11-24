@@ -310,7 +310,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(
-              'A bejelentést rögzítettük. Az SOS-előfizetés ${until.toLocal().toString().split(' ').first}-ig fel van függesztve.',
+              'A bejelentést rögzítettük. Az expressz hozzáférés ${until.toLocal().toString().split(' ').first}-ig fel van függesztve.',
             ),
           ));
         }

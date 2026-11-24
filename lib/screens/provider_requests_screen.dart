@@ -41,7 +41,7 @@ class _ProviderRequestsScreenState extends State<ProviderRequestsScreen> {
     final suspendedUntil = await SanctionsStore.providerSosSuspendedUntil();
     if (suspendedUntil != null && DateTime.now().isBefore(suspendedUntil)) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(
-        'Az SOS-hozzáférésed ${suspendedUntil.toLocal().toString().split(' ').first}-ig fel van függesztve.',
+        'Az expressz rendelési hozzáférésed ${suspendedUntil.toLocal().toString().split(' ').first}-ig fel van függesztve.',
       )));
       return;
     }
@@ -49,9 +49,9 @@ class _ProviderRequestsScreenState extends State<ProviderRequestsScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('SOS-munka elfogadása'),
+        title: const Text('Expressz rendelés elfogadása'),
         content: const Text(
-          'Csak akkor fogadd el, ha biztosan megérkezel a megadott időablakon belül. SOS-munkánál történt meg nem jelenés bejelentése után az SOS-előfizetésed 3 hónapra felfüggesztésre kerül.',
+          'Csak akkor fogadd el, ha biztosan megérkezel a megadott időablakon belül. Expressz rendelésnél történt meg nem jelenés bejelentése után az expressz hozzáférésed 3 hónapra felfüggesztésre kerül.',
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Mégse')),
@@ -64,7 +64,7 @@ class _ProviderRequestsScreenState extends State<ProviderRequestsScreen> {
       await LocalMarketplaceStore.acceptSosRequest(request);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('SOS-munka elfogadva. A megrendelő értesítést kapott.'),
+        content: Text('Expressz rendelés elfogadva. A megrendelő értesítést kapott.'),
       ));
       await _load();
     } on StateError catch (error) {
@@ -108,7 +108,7 @@ class _ProviderRequestsScreenState extends State<ProviderRequestsScreen> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                               decoration: BoxDecoration(color: takiOrange, borderRadius: BorderRadius.circular(20)),
-                              child: Text('⚡ SOS • ${request['sos_arrival_within_hours']} órán belül', style: const TextStyle(fontWeight: FontWeight.w900, color: takiTealDark)),
+                              child: Text('⚡ Expressz • ${request['sos_arrival_within_hours']} órán belül', style: const TextStyle(fontWeight: FontWeight.w900, color: takiTealDark)),
                             ),
                             const SizedBox(height: 10),
                           ],

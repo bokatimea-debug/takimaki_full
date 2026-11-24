@@ -318,7 +318,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   const Text('Expressz rendelés feltételei', style: TextStyle(fontWeight: FontWeight.w800, color: takiNavy)),
                   const SizedBox(height: 4),
-                  const Text('Elfogadás után a szolgáltató vállalja a megjelenést. Jelentett meg nem jelenéskor az SOS-jogosultság 3 hónapra felfüggeszthető.'),
+                  const Text('Elfogadás után a szolgáltató vállalja a megjelenést. Jelentett meg nem jelenéskor az expressz hozzáférés 3 hónapra felfüggeszthető.'),
                   const SizedBox(height: 8),
                   SegmentedButton<int>(
                     segments: const [ButtonSegment(value: 1, label: Text('1 óra')), ButtonSegment(value: 2, label: Text('2 óra')), ButtonSegment(value: 3, label: Text('3 óra'))],
