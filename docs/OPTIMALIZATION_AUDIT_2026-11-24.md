@@ -20,6 +20,7 @@ Kiinduló commit: `ceb2e19`
 |---|---|---|
 | Távoli cset | A `chats/{id}/messages` alkönyvtárra nem volt Firestore-szabály, ezért a cset két telefon között megtagadhatta az olvasást/írást. | Javítás alatt ezen az ágon. |
 | Cset jogosultság | Egy chat résztvevői kliensoldali frissítéssel módosíthatók voltak. | Javítás alatt: a résztvevőlista változatlan. |
+| Cset duplikáció / offline állapot | A saját távoli üzenet eltérő szerverazonosítóval visszaérkezve megduplázódhatott, hálózati hibánál pedig nem volt visszajelzés. | Javítva ezen az ágon: közös kliens/szerver üzenetazonosító és egyértelmű helyi mentési jelzés. |
 | Fotóbiztonság | A takarítási bizonyítékok tárolási szabálya csak a feltöltőnek adott hozzáférést; a tulajdonos/partner nem kapott biztos olvasási jogot. | Javítás alatt: rendelési résztvevő alapú olvasás. |
 | Marketplace | A helyi visszaesés és a Firestore rekordok párhuzamosan élnek; a teljes, szerveroldali tranzakciós rendelési folyamat nincs lezárva. | Külső Firebase-telepítés és végponti teszt szükséges. |
 | Airbnb/Booking | A korábbi iCal-képernyő nem teljesíti a közvetlen fiók-összekötés követelményét. | Nem tekinthető késznek; hivatalos partneri OAuth/API szükséges. |

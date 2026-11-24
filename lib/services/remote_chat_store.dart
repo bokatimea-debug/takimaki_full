@@ -21,27 +21,36 @@ class RemoteChatStore {
     }, SetOptions(merge: true));
   }
 
-  static Future<void> send({
+  static Future<bool> send({
     required String threadId,
+    required String clientMessageId,
     required String text,
     String? mediaUrl,
   }) async {
     final backend = FirebaseBackend.instance;
     final uid = backend.uid;
-    if (!backend.isAvailable || uid == null) return;
+    if (!backend.isAvailable || uid == null) return false;
     final cleanText = text.trim();
-    if (cleanText.isEmpty && (mediaUrl == null || mediaUrl.isEmpty)) return;
+    if (cleanText.isEmpty && (mediaUrl == null || mediaUrl.isEmpty)) return false;
     final thread = backend.firestore.collection('chats').doc(threadId);
-    final snapshot = await thread.get();
-    if (!snapshot.exists) return;
-    await thread.collection('messages').add({
-      'sender_uid': uid,
-      'text': cleanText,
-      'media_url': mediaUrl,
-      'created_at': FieldValue.serverTimestamp(),
-      'client_created_at': DateTime.now().toIso8601String(),
-    });
-    await thread.set({'updated_at': FieldValue.serverTimestamp(), 'last_message': cleanText.isEmpty ? 'Kép' : cleanText}, SetOptions(merge: true));
+    try {
+      final snapshot = await thread.get();
+      if (!snapshot.exists) return false;
+      await thread.collection('messages').doc(clientMessageId).set({
+        'sender_uid': uid,
+        'text': cleanText,
+        'media_url': mediaUrl,
+        'created_at': FieldValue.serverTimestamp(),
+        'client_created_at': DateTime.now().toIso8601String(),
+      });
+      await thread.set({
+        'updated_at': FieldValue.serverTimestamp(),
+        'last_message': cleanText.isEmpty ? 'Kép' : cleanText,
+      }, SetOptions(merge: true));
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   static Stream<List<Map<String, dynamic>>> messages(String threadId) {

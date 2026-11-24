@@ -184,10 +184,11 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
   Future<void> _send([String? mediaUrl]) async {
     final text = _input.text.trim();
     if (text.isEmpty && (mediaUrl == null || mediaUrl.isEmpty)) return;
+    final messageId = DateTime.now().millisecondsSinceEpoch.toString();
     setState(() {
       _thread.messages.add(
         MockMessage(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          id: messageId,
           threadId: _thread.id,
           from: "Én",
           text: text,
@@ -198,7 +199,17 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
     });
     _input.clear();
     await LocalChatStore.save();
-    await RemoteChatStore.send(threadId: _thread.id, text: text, mediaUrl: mediaUrl);
+    final sent = await RemoteChatStore.send(
+      threadId: _thread.id,
+      clientMessageId: messageId,
+      text: text,
+      mediaUrl: mediaUrl,
+    );
+    if (!sent && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Az üzenet ezen a telefonon elmentve. Internetkapcsolat után küldd el újra.'),
+      ));
+    }
   }
 
   Future<void> _sendImage(ImageSource source) async {
