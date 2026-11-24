@@ -12,7 +12,8 @@ Enabled products:
 The `google-services.json` file downloaded from Firebase Console belongs in
 `android/app/google-services.json`. It is intentionally ignored by Git.
 
-Firebase Storage has not been provisioned yet. A production-mode bucket in
-`europe-west3` was requested in the existing Firebase project, but the console
-returned an unknown error before creating it. Do not store customer or provider
-images in Firestore as Base64 as a substitute.
+Firebase Storage is provisioned in `europe-west3` as
+`takimaki.firebasestorage.app`, initially in production mode (deny by default).
+The repository's `firebase/storage.rules` must be published to enable the
+participant-only image upload paths. Do not store customer or provider images
+in Firestore as Base64 as a substitute.
