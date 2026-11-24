@@ -21,7 +21,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Expressz rendelés'), findsWidgets);
-    expect(find.text('Expressz rendelés feltételei'), findsOneWidget);
+    expect(
+      find.text('A kiválasztott kezdés 3 órán belül van, ezért a rendelés elsőbbségi listázást kap.'),
+      findsOneWidget,
+    );
     expect(find.text('SOS segítség'), findsNothing);
     expect(tester.takeException(), isNull);
   });
