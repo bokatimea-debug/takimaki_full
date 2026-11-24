@@ -51,6 +51,9 @@ Kiinduló commit: `ceb2e19`
    `TAKIMAKI_KEY_ALIAS`, `TAKIMAKI_KEY_PASSWORD`. Ezek nélkül az új, aláírt
    teszt-APK build szándékosan leáll, nem készül debug-kulccsal félrevezető release.
 6. A debug APK külön buildként készül, ehhez nincs szükség kiadási kulcsra.
+7. A CI a widgetes képernyőtesztek közben 320–412 px szélességű vizuális
+   ellenőrzőképeket is készít és külön letölthető leletként tárol. Ez nem
+   helyettesíti a fizikai készülékes ellenőrzést.
 
 E dokumentum nem minősít késznek külső vagy fizikai teszt nélkül maradt
 funkciót.
