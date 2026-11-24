@@ -57,7 +57,7 @@ service cloud.firestore {
       allow delete: if signedIn() && request.auth.uid in resource.data.participant_uids;
       match /messages/{messageId} {
         function participant() {
-          return get(/databases/$(database)/documents/chats/$(id)).data.participant_uids.hasAny([request.auth.uid]);
+          return request.auth.uid in get(/databases/$(database)/documents/chats/$(id)).data.participant_uids;
         }
         allow read: if signedIn() && participant();
         allow create: if signedIn() && participant()
