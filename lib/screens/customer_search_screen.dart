@@ -191,7 +191,9 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
     final now = DateTime.now();
     _isSos = start.isAfter(now) && !start.isAfter(now.add(const Duration(hours: 3)));
     if (_isSos) {
-      _sosHours = ((start.difference(now).inMinutes + 59) ~/ 60).clamp(1, 3);
+      _sosHours = ((start.difference(now).inMinutes + 59) ~/ 60)
+          .clamp(1, 3)
+          .toInt();
     }
   }
 
