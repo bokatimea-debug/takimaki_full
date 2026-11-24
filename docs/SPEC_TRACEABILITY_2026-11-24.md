@@ -10,9 +10,9 @@
 | Push értesítés | Részben implementált | FCM és szerveres újraütemezés éles projektben nincs ellenőrizve |
 | Értékelés, hibajegy | Részben implementált | Szerveroldali 72 órás szabály és admin-feldolgozás nincs éles Functions-környezetben hitelesítve |
 | Apartmantakarítás | Implementált UI és adattárolási réteg | Általános/nagytakarítás, szobás checklist, kötelező képek, referenciafotó, jóváhagyás/javításkérés; élő Storage hitelesítés szükséges |
-| Airbnb / Booking közvetlen kapcsolat | Nem kész, külső partneri hozzáférést igényel | Az iCal nem közvetlen fiókkapcsolat; nincs partner API/OAuth és nincs azt szimuláló funkció |
+| Airbnb / Booking közvetlen kapcsolat | Nem kész, külső partneri hozzáférést igényel | Az iCal-import kódszinten is letiltva; nincs partner API/OAuth és nincs azt szimuláló funkció |
 | Akadémia | Részben implementált | UI és helyi folyamat van; hiteles, Cloud Functions-alapú vizsgapontozás, admin CMS, teljes EN és statisztika nincs hitelesítve |
-| Google Maps címjavaslat | Nem éles | Android manifestben helyőrző API-kulcs van; nincs google-services konfiguráció a tárolóban |
-| Firebase | Konfiguráció nem ellenőrizhető | Nincs `.firebaserc`, Android `google-services.json` vagy iOS `GoogleService-Info.plist`; a távoli projekt és deployolt szabályok nem olvashatók ebből a környezetből |
+| Google Maps címjavaslat | Nem éles | A kulcs már biztonságos Android-erőforrásból, privát buildtitokként adható át; meglévő Maps-kulcs vagy konzol-hozzáférés még nincs ellenőrizve |
+| Firebase | Részben ellenőrzött | Meglévő `takimaki` projekt, `europe-west3` Firestore és anonim Auth ellenőrizve; `google-services.json`, Storage bucket és éles deploy még hiányzik |
 | Aláírt APK | Nem kész | Az eredeti kulcs helyben érvényes, de Actions titkok nincsenek konfigurálva; debug APK épül |
 | Android debug APK | Ellenőrzött build után átadható | A legutóbbi teljes teszt és build artefaktumot kell használni |
