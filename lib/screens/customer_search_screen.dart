@@ -323,7 +323,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
         address: _addressController.text.trim(),
         note: _noteController.text.trim(),
         arrivalWithinHours: _sosHours,
-        listedPrice: int.tryParse(_sosPriceController.text.trim()) ?? 1,
+        listedPrice: int.tryParse(_sosPriceController.text.trim()),
         dateTime: dateTime,
         durationMinutes: durationMinutes,
       );
