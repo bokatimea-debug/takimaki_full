@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'screens/work_notifications_screen.dart';
 
 import 'package:flutter/services.dart';
@@ -52,8 +54,11 @@ import 'widgets/branded_background.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await FirebaseBackend.instance.initialize();
-  await PushNotifications.initialize();
   runApp(const TakimakiApp());
+  // FCM permission/token registration is useful, but it must not keep the
+  // first frame behind a network request. Firebase has already initialised
+  // above, so this work can continue safely after the UI is visible.
+  unawaited(PushNotifications.initialize());
 }
 
 class TakimakiApp extends StatefulWidget {
