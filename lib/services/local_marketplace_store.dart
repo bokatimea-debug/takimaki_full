@@ -203,11 +203,11 @@ class LocalMarketplaceStore {
     required String address,
     required String note,
     required int arrivalWithinHours,
-    required int listedPrice,
+    int? listedPrice,
     DateTime? dateTime,
     int? durationMinutes,
   }) async {
-    if (arrivalWithinHours < 1 || arrivalWithinHours > 3 || listedPrice <= 0) {
+    if (arrivalWithinHours < 1 || arrivalWithinHours > 3) {
       throw StateError('Adj meg érvényes expressz rendelési adatokat.');
     }
     final requests = await _allRequests();
@@ -215,9 +215,15 @@ class LocalMarketplaceStore {
     if (index < 0 || requests[index]['is_sos'] != true || requests[index]['status'] != 'pending') {
       throw StateError('Az elfogadott vagy lezárt expressz rendelés már nem módosítható.');
     }
+    final previousPrice = requests[index]['listed_price'] ?? requests[index]['price'];
+    final effectivePrice = listedPrice ?? previousPrice;
+    if (effectivePrice is num && effectivePrice <= 0) {
+      throw StateError('Adj meg érvényes expressz rendelési adatokat.');
+    }
     final updated = <String, dynamic>{
       ...requests[index], 'service': service, 'address': address, 'note': note,
-      'listed_price': listedPrice, 'price': listedPrice,
+      if (effectivePrice != null) 'listed_price': effectivePrice,
+      if (effectivePrice != null) 'price': effectivePrice,
       'sos_arrival_within_hours': arrivalWithinHours,
       'sos_expires_at': (dateTime ?? DateTime.now().add(Duration(hours: arrivalWithinHours))).toIso8601String(),
       if (dateTime != null) 'date': '${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')}',
@@ -772,142 +778,3 @@ class LocalMarketplaceStore {
     final prefs = await SharedPreferences.getInstance();
     var usedFreeOrder = prefs.getBool(providerFirstAcceptedKey) ?? false;
     if (usedFreeOrder) {
-      final history = await _read(providerOrdersKey);
-      if (history.isNotEmpty &&
-          history.every((order) => order['id'].toString().startsWith('TEST'))) {
-        // Legacy generated offers must not consume a real provider's free job.
-        usedFreeOrder = false;
-        await prefs.setBool(providerFirstAcceptedKey, false);
-      }
-    }
-    final paid = prefs.getBool(providerSubscriptionKey) ?? false;
-    return !usedFreeOrder || paid;
-  }
-
-  static Future<bool> canCustomerCreateOrder() async {
-    if (await SanctionsStore.isCustomerSuspended()) return false;
-    final prefs = await SharedPreferences.getInstance();
-    if (prefs.getBool(customerSubscriptionKey) ?? false) return true;
-    final rawStart = prefs.getString(customerTrialStartedKey);
-    if (rawStart == null) return true;
-    final start = DateTime.tryParse(rawStart);
-    if (start == null) return true;
-    return DateTime.now().isBefore(start.add(const Duration(days: 90)));
-  }
-
-  static Future<List<Map<String, dynamic>>> _orders(String key, bool provider) async {
-    final local = await _read(key);
-    final remote = await FirebaseBackend.instance.ordersForCurrentUser();
-    final prefs = await SharedPreferences.getInstance();
-    final phone = prefs.getString('registration_phone');
-    final uid = FirebaseBackend.instance.uid;
-    final matching = remote.where((item) => provider
-        ? item['provider_uid'] == uid || item['provider_id'] == phone
-        : item['customer_uid'] == uid || item['customer_id'] == phone);
-    final merged = <String, Map<String, dynamic>>{};
-    for (final item in [...local, ...matching]) {
-      merged[(item['request_id'] ?? item['id']).toString()] = item;
-    }
-    final result = merged.values.toList();
-    await _write(key, result);
-    return result;
-  }
-
-  static Future<List<Map<String, dynamic>>> customerOrders() => _orders(customerOrdersKey, false);
-
-  static Future<List<Map<String, dynamic>>> providerOrders() => _orders(providerOrdersKey, true);
-
-  static Future<void> updateOrderStatus(String requestId, String status) async {
-    for (final key in [customerOrdersKey, providerOrdersKey]) {
-      final orders = await _read(key);
-      final index = orders.indexWhere(
-        (item) => (item['request_id'] ?? item['id']).toString() == requestId,
-      );
-      if (index >= 0) {
-        orders[index]['status'] = status;
-        await _write(key, orders);
-      }
-    }
-    final updated = (await customerOrders())
-        .where((w) => (w['request_id'] ?? w['id']).toString() == requestId)
-        .firstOrNull;
-    if (updated != null) await WorkflowStore.reconcileReminders(updated);
-    if (updated != null) await FirebaseBackend.instance.saveOrder(updated);
-    if (status == 'Lemondva') await updateRequestStatus(requestId, 'cancelled');
-    if (status == 'Teljesítve') {
-      final prefs = await SharedPreferences.getInstance();
-      final providerOrders = await _read(providerOrdersKey);
-      final providerCompleted = providerOrders
-          .where((item) => item['status'] == 'Teljesítve')
-          .length;
-      final customerOrders = await _read(customerOrdersKey);
-      final customerCompleted = customerOrders
-          .where((item) => item['status'] == 'Teljesítve')
-          .length;
-      await prefs.setInt('provider_success_count', providerCompleted);
-      await prefs.setInt('customer_success_count', customerCompleted);
-    }
-  }
-
-  static Future<bool> recordOrderAction({
-    required String requestId,
-    required String key,
-    required dynamic value,
-  }) async {
-    var found = false;
-    for (final storeKey in [customerOrdersKey, providerOrdersKey]) {
-      final orders = await _read(storeKey);
-      final index = orders.indexWhere(
-        (item) => (item['request_id'] ?? item['id']).toString() == requestId,
-      );
-      if (index >= 0) {
-        found = true;
-        if (orders[index][key] != null) return false;
-      }
-    }
-    if (!found) return false;
-    for (final storeKey in [customerOrdersKey, providerOrdersKey]) {
-      final orders = await _read(storeKey);
-      final index = orders.indexWhere(
-        (item) => (item['request_id'] ?? item['id']).toString() == requestId,
-      );
-      if (index >= 0) {
-        orders[index][key] = value;
-        await _write(storeKey, orders);
-      }
-    }
-    return true;
-  }
-
-  static Future<void> rateOrder({
-    required String requestId,
-    required int rating,
-    required String review,
-  }) async {
-    final safeRating = rating.clamp(1, 5);
-    for (final key in [customerOrdersKey, providerOrdersKey]) {
-      final orders = await _read(key);
-      final index = orders.indexWhere(
-        (item) => (item['request_id'] ?? item['id']).toString() == requestId,
-      );
-      if (index >= 0) {
-        orders[index]['rating'] = safeRating;
-        orders[index]['review'] = review;
-        await _write(key, orders);
-      }
-    }
-
-    final providerOrders = await _read(providerOrdersKey);
-    final ratings = providerOrders
-        .map((item) => item['rating'])
-        .whereType<num>()
-        .map((value) => value.toDouble())
-        .toList();
-    if (ratings.isNotEmpty) {
-      final average = ratings.reduce((a, b) => a + b) / ratings.length;
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setDouble('provider_rating', average);
-      await prefs.setInt('provider_rating_count', ratings.length);
-    }
-  }
-}
