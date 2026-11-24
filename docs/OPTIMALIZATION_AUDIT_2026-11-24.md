@@ -22,8 +22,9 @@ Kiinduló commit: `ceb2e19`
   forrás helyett privát buildtitokként használható, de létrehozása és Android
   alkalmazásra/szignóra korlátozása még szükséges.
 - A Firebase Storage production bucket sikeresen létrejött `europe-west3`
-  régióban, neve `takimaki.firebasestorage.app`. A tároló szabályai még
-  közzétételre várnak, ezért a képfeltöltést nem tekintjük késznek.
+  régióban, neve `takimaki.firebasestorage.app`. A résztvevő-alapú
+  képfeltöltési szabályok közzétéve; éles kéttelefonos feltöltési próba még
+  szükséges.
 - A korábbi tesztaláíró kulcs a munkakörnyezetben még megvan és a kulcs
   érvényessége ellenőrizhető volt, de már nincs követve Gitben. GitHub CLI
   hitelesítés és titokkezelési jogosultság nincs, ezért a szükséges Actions
