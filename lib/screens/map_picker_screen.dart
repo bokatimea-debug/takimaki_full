@@ -2,6 +2,7 @@ import '../widgets/taki_app_bar.dart';
 import 'package:flutter/material.dart';
 
 import '../theme.dart';
+import '../widgets/branded_background.dart';
 
 class MapPickerScreen extends StatefulWidget {
   const MapPickerScreen({super.key});
