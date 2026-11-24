@@ -9,6 +9,7 @@ import 'services/device_workflow.dart';
 import 'services/local_marketplace_store.dart';
 import 'services/firebase_backend.dart';
 import 'services/push_notifications.dart';
+import 'services/app_performance.dart';
 import 'utils/work_schedule.dart';
 import 'screens/calendar_connection_screen.dart';
 import 'screens/work_calendar_screen.dart';
@@ -53,8 +54,12 @@ import 'widgets/branded_background.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  AppPerformance.start();
   await FirebaseBackend.instance.initialize();
   runApp(const TakimakiApp());
+  WidgetsBinding.instance.addPostFrameCallback(
+    (_) => AppPerformance.recordFirstFrame(),
+  );
   // FCM permission/token registration is useful, but it must not keep the
   // first frame behind a network request. Firebase has already initialised
   // above, so this work can continue safely after the UI is visible.
