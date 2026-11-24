@@ -14,6 +14,7 @@ The `google-services.json` file downloaded from Firebase Console belongs in
 
 Firebase Storage is provisioned in `europe-west3` as
 `takimaki.firebasestorage.app`, initially in production mode (deny by default).
-The repository's `firebase/storage.rules` must be published to enable the
-participant-only image upload paths. Do not store customer or provider images
-in Firestore as Base64 as a substitute.
+The repository's participant-only `firebase/storage.rules` are published:
+only the two order/chat participants can read the supported image paths, and
+an uploader can create only their own JPEG/image upload below 10 MB. Do not
+store customer or provider images in Firestore as Base64 as a substitute.
