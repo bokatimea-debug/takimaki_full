@@ -10,9 +10,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:takimaki_full/data/mock_data.dart';
 import 'package:takimaki_full/screens/chat_screens.dart';
+import 'package:takimaki_full/screens/academy_screen.dart';
+import 'package:takimaki_full/screens/calendar_connection_screen.dart';
+import 'package:takimaki_full/screens/cleaning_job_screen.dart';
 import 'package:takimaki_full/screens/customer_edit_profile_screen.dart';
+import 'package:takimaki_full/screens/customer_messages_screen.dart';
 import 'package:takimaki_full/screens/customer_orders_screen.dart';
 import 'package:takimaki_full/screens/customer_search_screen.dart';
+import 'package:takimaki_full/screens/map_picker_screen.dart';
+import 'package:takimaki_full/screens/offers_screen.dart';
+import 'package:takimaki_full/screens/onboarding.dart';
+import 'package:takimaki_full/screens/problem_tickets_screen.dart';
+import 'package:takimaki_full/screens/provider_all_orders_screen.dart';
 import 'package:takimaki_full/widgets/service_choice_grid.dart';
 import 'package:takimaki_full/screens/customer_profile_screen.dart';
 import 'package:takimaki_full/screens/otp_verify_screen.dart';
@@ -21,10 +30,16 @@ import 'package:takimaki_full/screens/profile_info_screen.dart';
 import 'package:takimaki_full/screens/provider_add_service_screen.dart';
 import 'package:takimaki_full/screens/provider_edit_profile_screen.dart';
 import 'package:takimaki_full/screens/provider_profile_screen.dart';
+import 'package:takimaki_full/screens/provider_requests_screen.dart';
 import 'package:takimaki_full/screens/provider_services_screen.dart';
 import 'package:takimaki_full/screens/registration_success_screen.dart';
+import 'package:takimaki_full/screens/rental_calendar_sync_screen.dart';
+import 'package:takimaki_full/screens/role_select_screen.dart';
 import 'package:takimaki_full/screens/settings_screen.dart';
+import 'package:takimaki_full/screens/settings_notifications_screen.dart';
 import 'package:takimaki_full/screens/subscription_screen.dart';
+import 'package:takimaki_full/screens/work_calendar_screen.dart';
+import 'package:takimaki_full/screens/work_notifications_screen.dart';
 import 'package:takimaki_full/theme.dart';
 import 'package:takimaki_full/services/account_store.dart';
 import 'package:takimaki_full/widgets/branded_background.dart';
@@ -48,6 +63,21 @@ final _screens = <String, Widget Function()>{
   'chat_thread': () => const ChatThreadScreen(threadId: 'layout-chat'),
   'orders': () => const CustomerOrdersScreen(),
   'settings': () => const SettingsScreen(),
+  'settings_notifications': () => const SettingsNotificationsScreen(),
+  'role_select': () => const RoleSelectScreen(),
+  'work_notifications': () => const WorkNotificationsScreen(),
+  'work_calendar': () => const WorkCalendarScreen(),
+  'calendar_connection': () => const CalendarConnectionScreen(),
+  'rental_accounts': () => const RentalCalendarSyncScreen(),
+  'customer_messages': () => const CustomerMessagesScreen(),
+  'provider_requests': () => const ProviderRequestsScreen(),
+  'provider_orders': () => const ProviderAllOrdersScreen(),
+  'offers': () => const OffersScreen(),
+  'academy': () => const AcademyScreen(),
+  'cleaning_job': () => const CleaningJobScreen(),
+  'provider_setup': () => const OnboardingScreen(),
+  'problem_tickets': () => const ProblemTicketsScreen(),
+  'map_picker': () => const MapPickerScreen(),
 };
 
 void main() {

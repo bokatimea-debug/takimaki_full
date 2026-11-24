@@ -33,14 +33,14 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
   Widget build(BuildContext context) => Scaffold(
     appBar: TakiAppBar(title: const Text('Helyszín megadása')),
     body: ListView(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 104),
       children: [
         const TakiHeroHeader(
-          eyebrow: 'Budapest',
+          eyebrow: 'Cím megadása',
           icon: Icons.location_on_outlined,
           title: 'Hol legyen a munka?',
           subtitle:
-              'Add meg a pontos címet. A Google Maps címválasztó a következő verzióban kapcsolódik be.',
+              'Írd be a pontos címet. A címjavaslatokhoz Google Maps-konfiguráció szükséges.',
         ),
         const SizedBox(height: 24),
         TakiPanel(
@@ -57,35 +57,10 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
                   prefixIcon: Icon(Icons.map_outlined),
                 ),
               ),
-              const SizedBox(height: 16),
-              Container(
-                height: 190,
-                decoration: BoxDecoration(
-                  color: takiMint,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Stack(
-                  children: [
-                    Positioned.fill(
-                      child: Icon(
-                        Icons.map_rounded,
-                        size: 118,
-                        color: Color(0x3310AAA5),
-                      ),
-                    ),
-                    Center(
-                      child: CircleAvatar(
-                        radius: 28,
-                        backgroundColor: takiOrange,
-                        child: Icon(
-                          Icons.location_pin,
-                          color: Colors.white,
-                          size: 34,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+              const SizedBox(height: 10),
+              const Text(
+                'A címet ellenőrizd mentés előtt.',
+                style: TextStyle(color: takiMutedText),
               ),
             ],
           ),
