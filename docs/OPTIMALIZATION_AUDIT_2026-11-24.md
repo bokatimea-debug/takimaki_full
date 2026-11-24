@@ -21,8 +21,9 @@ Kiinduló commit: `ceb2e19`
 - A Google Maps konzol ebben a munkakörnyezetben nem volt elérhető. A kulcs
   forrás helyett privát buildtitokként használható, de létrehozása és Android
   alkalmazásra/szignóra korlátozása még szükséges.
-- A Firebase Storage production bucket létrehozása a Firebase konzol
-  "unknown error" hibájával megszakadt; bucket nem jött létre.
+- A Firebase Storage production bucket sikeresen létrejött `europe-west3`
+  régióban, neve `takimaki.firebasestorage.app`. A tároló szabályai még
+  közzétételre várnak, ezért a képfeltöltést nem tekintjük késznek.
 - A korábbi tesztaláíró kulcs a munkakörnyezetben még megvan és a kulcs
   érvényessége ellenőrizhető volt, de már nincs követve Gitben. GitHub CLI
   hitelesítés és titokkezelési jogosultság nincs, ezért a szükséges Actions
