@@ -176,13 +176,14 @@ class _WorkCalendarScreenState extends State<WorkCalendarScreen> {
                     children: [
                       Text(
                         '$number',
+                        textScaler: TextScaler.noScaling,
                         style: TextStyle(
                           color: selected ? Colors.white : takiTealDark,
                           fontWeight: FontWeight.w900,
                           fontSize: 16,
                         ),
                       ),
-                      const SizedBox(height: 3),
+                      const SizedBox(height: 2),
                       AnimatedContainer(
                         duration: const Duration(milliseconds: 160),
                         width: count > 0 ? 20 : 5,

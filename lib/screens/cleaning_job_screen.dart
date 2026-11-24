@@ -262,11 +262,35 @@ class _CleaningJobScreenState extends State<CleaningJobScreen> {
                 ),
                 if (_isOwner) ...[
                   const SizedBox(height: 8),
-                  Row(children: [
-                    Expanded(child: OutlinedButton.icon(onPressed: () => _ownerDecision(false), icon: const Icon(Icons.reply_rounded), label: const Text('Javítás kérése'))),
-                    const SizedBox(width: 8),
-                    Expanded(child: FilledButton.icon(onPressed: _done == _total ? () => _ownerDecision(true) : null, icon: const Icon(Icons.verified_rounded), label: const Text('Jóváhagyás'))),
-                  ]),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final stacked = constraints.maxWidth < 380 ||
+                          MediaQuery.textScalerOf(context).scale(12) > 13.2;
+                      final repair = OutlinedButton.icon(
+                        onPressed: () => _ownerDecision(false),
+                        icon: const Icon(Icons.reply_rounded),
+                        label: const Text('Javítás kérése'),
+                      );
+                      final approve = FilledButton.icon(
+                        onPressed: _done == _total ? () => _ownerDecision(true) : null,
+                        icon: const Icon(Icons.verified_rounded),
+                        label: const Text('Jóváhagyás'),
+                      );
+                      if (stacked) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [repair, const SizedBox(height: 8), approve],
+                        );
+                      }
+                      return Row(
+                        children: [
+                          Expanded(child: repair),
+                          const SizedBox(width: 8),
+                          Expanded(child: approve),
+                        ],
+                      );
+                    },
+                  ),
                 ],
                 const SizedBox(height: 12),
                 FilledButton.icon(onPressed: _complete, icon: const Icon(Icons.check_circle_outline), label: const Text('Checklist lezárása')),

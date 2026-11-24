@@ -10,9 +10,13 @@ class OnboardingScreen extends StatelessWidget {
     return Scaffold(
       body: BrandedBackground(
         child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(24, 24, 24, 28),
-            child: Column(
+          child: LayoutBuilder(
+            builder: (context, constraints) => SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 28),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: IntrinsicHeight(
+                  child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SectionBadge(
@@ -70,6 +74,9 @@ class OnboardingScreen extends StatelessWidget {
                   ),
                 ),
               ],
+                  ),
+                ),
+              ),
             ),
           ),
         ),

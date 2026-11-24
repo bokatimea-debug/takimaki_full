@@ -43,8 +43,14 @@ class RoleSelectScreen extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 10, 20, 12),
             child: LayoutBuilder(
-              builder: (context, constraints) => SingleChildScrollView(
-                child: ConstrainedBox(
+              builder: (context, constraints) {
+                final largeText =
+                    MediaQuery.textScalerOf(context).scale(12) > 13.2;
+                final cardHeight = largeText
+                    ? 190.0
+                    : (constraints.maxHeight < 760 ? 162.0 : 172.0);
+                return SingleChildScrollView(
+                  child: ConstrainedBox(
                   constraints: BoxConstraints(minHeight: constraints.maxHeight),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -68,7 +74,7 @@ class RoleSelectScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 10),
                       SizedBox(
-                        height: constraints.maxHeight < 760 ? 146 : 162,
+                        height: cardHeight,
                         child: _RoleCard(
                           color: takiTeal,
                           icon: Icons.cleaning_services_rounded,
@@ -81,7 +87,7 @@ class RoleSelectScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       SizedBox(
-                        height: constraints.maxHeight < 760 ? 146 : 162,
+                        height: cardHeight,
                         child: _RoleCard(
                           color: takiOrange,
                           icon: Icons.home_rounded,
@@ -94,7 +100,7 @@ class RoleSelectScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       SizedBox(
-                        height: constraints.maxHeight < 760 ? 146 : 162,
+                        height: cardHeight,
                         child: _RoleCard(
                           color: takiTealDark,
                           icon: Icons.school_rounded,
@@ -106,8 +112,9 @@ class RoleSelectScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                ),
-              ),
+                  ),
+                );
+              },
             ),
           ),
         ),
