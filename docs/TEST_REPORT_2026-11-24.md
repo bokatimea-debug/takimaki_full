@@ -51,3 +51,10 @@ adatkommunikációt.
 - A szabályverzió a Firebase konzolban sikeresen publikálva lett. A megrendelések, ajánlatok, csetek és takarítási adatok hozzáférése résztvevőhöz kötött; a csetüzenetek módosítása/törlése tiltott.
 - A Firebase Storage EU-West3 bucket és az ahhoz tartozó képtárolási szabályok korábban már sikeresen publikálva lettek.
 - Az éles, többtelefonos végponttól végpontig teszt a privát Android Firebase-konfiguráció és a Functions deploy után marad hátra.
+
+
+## Functions build – 2026-11-25
+
+- A Firebase Functions TypeScript-ellenőrzés és build sikeres volt: `npm run lint`, `npm run build`.
+- A függőségek zárolt listája bekerült, és a Firebase deploy előtt automatikus Functions-build van beállítva.
+- A tényleges Cloud Functions-élesítés továbbra is Firebase deploy-jogosultságot igényel; ezt nem állítjuk késznek a deploy nélkül.
